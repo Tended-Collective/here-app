@@ -32,6 +32,12 @@ export const useChrome = () => useContext(ChromeContext);
 export function PhoneFrame({ children }: { children: React.ReactNode }) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  // The device is scaled to the box we are actually given, not to the window —
+  // they are the same in the app itself, but an embedded build (the published
+  // web preview) is mounted in a fixed-height element whose host reports a
+  // window height of its own. Measuring the container keeps the mock the right
+  // size in both. Falls back to the window until the first layout lands.
+  const [boxHeight, setBoxHeight] = useState(0);
 
   // Only the web build ever gets a window wide enough to be worth framing.
   const framed = Platform.OS === 'web' && width >= DEVICE_OUTER_WIDTH + 80;
@@ -49,7 +55,8 @@ export function PhoneFrame({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const scale = Math.min(1, (height - 32) / DEVICE_OUTER_HEIGHT);
+  const available = boxHeight || height;
+  const scale = Math.min(1, (available - 32) / DEVICE_OUTER_HEIGHT);
   const chrome: Chrome = {
     framed: true,
     topInset: STATUS_BAR_HEIGHT,
@@ -58,7 +65,10 @@ export function PhoneFrame({ children }: { children: React.ReactNode }) {
 
   return (
     <ChromeContext.Provider value={chrome}>
-      <View style={styles.canvas}>
+      <View
+        style={styles.canvas}
+        onLayout={(e) => setBoxHeight(e.nativeEvent.layout.height)}
+      >
         <View style={[styles.device, { transform: [{ scale }] }]}>
           <View style={styles.screen}>
             <View style={styles.notch} />
