@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Lora:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="classical.css"><script src="_ds/classical-946ee387-4144-43bc-a0b8-440ce0a9f454/_ds_bundle.js"></script><style>
+body{margin:0;background:var(--color-neutral-300);font-family:var(--font-body)}
+a{color:var(--color-accent-700)}a:hover{color:var(--color-accent)}
+.dv-turn{padding:var(--space-8);border-bottom:1px solid var(--color-divider)}
+.dv-thd{display:flex;align-items:baseline;gap:var(--space-2);margin:0 0 var(--space-6)}
+.dv-tid{font-family:var(--font-heading);font-weight:600;font-size:11px;letter-spacing:.1em;padding:3px 8px;background:var(--color-text);color:var(--color-bg);border-radius:var(--radius-sm);text-decoration:none}
+.dv-tname{font-family:var(--font-heading);font-weight:600;font-size:16px}
+.dv-opts{display:flex;flex-direction:column;gap:var(--space-8)}
+.dv-opt{display:flex;flex-direction:column;gap:var(--space-3);scroll-margin-top:16px}
+.dv-oid{font-family:var(--font-heading);font-weight:600;font-size:11px;letter-spacing:.08em;padding:3px 8px;background:var(--color-accent-100);color:var(--color-accent-800);border-radius:var(--radius-sm);text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:var(--space-2);font-size:13.5px;line-height:1.6;color:var(--color-neutral-800);max-width:980px}
+.dv-opt:target .dv-oid{background:var(--color-accent);color:var(--color-bg)}
+.dv-row{display:flex;gap:var(--space-6);align-items:flex-start;flex-wrap:wrap}
+.dv-next{margin:var(--space-6) 0 0;font-size:13px;line-height:1.7;color:var(--color-neutral-700)}
+.dv-cap{font-family:var(--font-heading);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)}
+@keyframes breathe{0%,100%{transform:scale(.68);opacity:.45}45%,55%{transform:scale(1);opacity:1}}
+</style></helmet>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Tended — the full system: schedule, reminders, zip-code signal, revenue</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Setup and the daily loop. The teacher gives Tended three things once — bell schedule, duty rotation, contract hours and sick-day balance — and everything else in the app is generated from them.</div>
+<div class="dv-row">
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>7:41</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:72%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;padding:76px var(--space-6) 40px;display:flex;flex-direction:column">
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Tended · private by design</div>
+<h1 style="font-weight:400;font-size:44px;line-height:1.06;margin:var(--space-4) 0 0">Only you ever see this.</h1>
+<p style="font-size:14.5px;line-height:1.6;color:var(--color-neutral-700);margin-top:var(--space-3);text-align:justify">Burnout isn't a personal failure. But the record of yours belongs to you alone — not your building, not your district.</p>
+<div style="border-top:1px solid var(--color-divider);margin-top:var(--space-4)">
+<div style="display:flex;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Your own email, not your school's</div><div style="font-size:13.5px;line-height:1.55;color:var(--color-neutral-700)">No district account, no SSO, no roster.</div></div></div>
+<div style="display:flex;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">No principal dashboard</div><div style="font-size:13.5px;line-height:1.55;color:var(--color-neutral-700)">Nothing you log is ever attributable to you.</div></div></div>
+<div style="display:flex;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Your ZIP, and only your ZIP</div><div style="font-size:13.5px;line-height:1.55;color:var(--color-neutral-700)">It joins a pool of 40+ teachers or it isn't counted.</div></div></div>
+</div>
+<div style="flex:1"></div>
+<button class="btn btn-primary btn-block" style="height:52px;font-size:17px">Set up my week · 3 min</button>
+<button class="btn btn-ghost btn-block" style="height:44px;font-size:15px;color:var(--color-neutral-700)">Read the privacy promise</button>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>7:43</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:72%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;overflow:hidden;padding:66px var(--space-4) 40px">
+<div style="display:flex;align-items:center;gap:var(--space-2)"><div style="height:2px;width:44px;background:var(--color-accent)"></div><div style="height:2px;width:44px;background:var(--color-accent)"></div><div style="height:2px;width:44px;background:var(--color-neutral-300)"></div><div style="height:2px;width:44px;background:var(--color-neutral-300)"></div><div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.1em;color:var(--color-neutral-600);margin-left:auto">2 / 4</div></div>
+<h2 style="font-weight:400;font-size:33px;margin:var(--space-4) 0 0">Your contract, in numbers.</h2>
+<p style="font-size:14px;line-height:1.6;color:var(--color-neutral-700);margin-top:var(--space-2)">Tended uses these to know when you're giving away time you were never paid for.</p>
+
+<div style="margin-top:var(--space-4);border-top:1px solid var(--color-divider)">
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Contract hours</div><div style="font-size:13px;color:var(--color-neutral-600)">Doors open to contract end</div></div><div style="font-family:var(--font-heading);font-size:19px;font-feature-settings:'tnum'">7:30 – 3:30</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Commute</div><div style="font-size:13px;color:var(--color-neutral-600)">Sets your leave-for-work countdown</div></div><div style="font-family:var(--font-heading);font-size:19px;font-feature-settings:'tnum'">26 min</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Sick days this year</div><div style="font-size:13px;color:var(--color-neutral-600)">Mental-health days count as sick days</div></div><div style="font-family:var(--font-heading);font-size:19px;font-feature-settings:'tnum'">11</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Personal days</div><div style="font-size:13px;color:var(--color-neutral-600)">Tracked separately</div></div><div style="font-family:var(--font-heading);font-size:19px;font-feature-settings:'tnum'">3</div></div>
+</div>
+
+<div style="margin-top:var(--space-6);font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Duty rotation</div>
+<div style="display:flex;gap:var(--space-1);margin-top:var(--space-3)">
+<div style="flex:1;padding:var(--space-2) 0;text-align:center;border:1px solid var(--color-accent);background:var(--color-accent-100);border-radius:var(--radius-md)"><div style="font-family:var(--font-heading);font-size:12px;letter-spacing:.06em">MON</div><div style="font-size:11px;color:var(--color-accent-800);margin-top:2px">Bus</div></div>
+<div style="flex:1;padding:var(--space-2) 0;text-align:center;border:1px solid var(--color-divider);border-radius:var(--radius-md)"><div style="font-family:var(--font-heading);font-size:12px;letter-spacing:.06em">TUE</div><div style="font-size:11px;color:var(--color-neutral-600);margin-top:2px">—</div></div>
+<div style="flex:1;padding:var(--space-2) 0;text-align:center;border:1px solid var(--color-accent);background:var(--color-accent-100);border-radius:var(--radius-md)"><div style="font-family:var(--font-heading);font-size:12px;letter-spacing:.06em">WED</div><div style="font-size:11px;color:var(--color-accent-800);margin-top:2px">Café</div></div>
+<div style="flex:1;padding:var(--space-2) 0;text-align:center;border:1px solid var(--color-accent);background:var(--color-accent-100);border-radius:var(--radius-md)"><div style="font-family:var(--font-heading);font-size:12px;letter-spacing:.06em">THU</div><div style="font-size:11px;color:var(--color-accent-800);margin-top:2px">Café</div></div>
+<div style="flex:1;padding:var(--space-2) 0;text-align:center;border:1px solid var(--color-divider);border-radius:var(--radius-md)"><div style="font-family:var(--font-heading);font-size:12px;letter-spacing:.06em">FRI</div><div style="font-size:11px;color:var(--color-neutral-600);margin-top:2px">—</div></div>
+</div>
+
+<div style="margin-top:var(--space-6);padding:var(--space-3);border:1px solid var(--color-divider);border-radius:var(--radius-md);display:flex;gap:var(--space-3);align-items:flex-start"><div style="font-size:13.5px;line-height:1.55;color:var(--color-neutral-800)">Or import your bell schedule from a photo of the master timetable — Tended reads periods, lunch and duty blocks.</div></div>
+
+<button class="btn btn-primary btn-block" style="height:52px;font-size:17px;margin-top:var(--space-6)">Next · pick your reminders</button>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>7:41</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:72%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;overflow:hidden;padding:66px var(--space-4) 40px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent);font-feature-settings:'tnum'">Thu 9 Oct · Week 7</div><h2 style="font-weight:400;font-size:36px;margin:var(--space-1) 0 0">Morning, Dana.</h2></div>
+<div style="width:38px;height:38px;border-radius:50%;border:1px solid var(--color-divider);background:var(--color-surface)"></div>
+</div>
+
+<div style="margin-top:var(--space-4);padding:var(--space-3) var(--space-4);border:1px solid var(--color-accent);border-radius:var(--radius-md);display:flex;align-items:center;gap:var(--space-3)">
+
+<div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Leave in 12 minutes</div><div style="font-size:13px;color:var(--color-neutral-700)">Bus loop backs up after 7:58</div></div>
+<div style="font-family:var(--font-heading);font-size:26px;font-feature-settings:'tnum';color:var(--color-accent-700)">12:00</div>
+</div>
+
+<div class="card" style="margin-top:var(--space-3);gap:var(--space-3)">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><div class="card-title">Check in before first bell</div><div style="font-family:var(--font-heading);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">8 sec</div></div>
+<div style="display:flex;gap:var(--space-1)">
+<div style="flex:1;aspect-ratio:1;border-radius:var(--radius-md);border:1px solid var(--color-divider);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="font-family:var(--font-heading);font-size:19px;font-feature-settings:'tnum';color:var(--color-accent-700)">1</div><div style="font-size:9.5px;letter-spacing:.04em;color:var(--color-neutral-600)">Steady</div></div>
+<div style="flex:1;aspect-ratio:1;border-radius:var(--radius-md);border:1px solid var(--color-divider);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="font-family:var(--font-heading);font-size:19px;font-feature-settings:'tnum';color:var(--color-accent-700)">2</div><div style="font-size:9.5px;letter-spacing:.04em;color:var(--color-neutral-600)">Tired</div></div>
+<div style="flex:1;aspect-ratio:1;border-radius:var(--radius-md);border:1px solid var(--color-divider);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="font-family:var(--font-heading);font-size:19px;font-feature-settings:'tnum';color:var(--color-accent-700)">3</div><div style="font-size:9.5px;letter-spacing:.04em;color:var(--color-neutral-600)">Thin</div></div>
+<div style="flex:1;aspect-ratio:1;border-radius:var(--radius-md);border:1px solid var(--color-divider);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="font-family:var(--font-heading);font-size:19px;font-feature-settings:'tnum';color:var(--color-accent-700)">4</div><div style="font-size:9.5px;letter-spacing:.04em;color:var(--color-neutral-600)">Empty</div></div>
+<div style="flex:1;aspect-ratio:1;border-radius:var(--radius-md);border:1px solid var(--color-divider);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="font-family:var(--font-heading);font-size:19px;font-feature-settings:'tnum';color:var(--color-accent-700)">5</div><div style="font-size:9.5px;letter-spacing:.04em;color:var(--color-neutral-600)">Rough</div></div>
+</div>
+</div>
+
+<div style="margin-top:var(--space-6);display:flex;align-items:baseline;justify-content:space-between"><div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Today's rhythm</div><div style="font-size:12px;color:var(--color-neutral-600)">Cafeteria duty day</div></div>
+<div style="margin-top:var(--space-2);border-top:1px solid var(--color-divider)">
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="width:48px;font-size:13px;color:var(--color-neutral-600);font-feature-settings:'tnum'">7:55</div><div style="flex:1;font-size:15px">Homeroom</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="width:48px;font-size:13px;color:var(--color-neutral-600);font-feature-settings:'tnum'">10:20</div><div style="flex:1;font-size:15px">Prep <span style="color:var(--color-neutral-600);font-size:13px">· your only 45 min</span></div><span class="tag tag-outline">Reset</span></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="width:48px;font-size:13px;color:var(--color-neutral-600);font-feature-settings:'tnum'">12:05</div><div style="flex:1;font-size:15px">Cafeteria duty <span style="color:var(--color-neutral-600);font-size:13px">· 22 min to eat</span></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="width:48px;font-size:13px;color:var(--color-neutral-600);font-feature-settings:'tnum'">3:30</div><div style="flex:1;font-size:15px">Contract ends <span style="color:var(--color-neutral-600);font-size:13px">· IEP at 3:45</span></div></div>
+</div>
+
+<div style="margin-top:var(--space-4);display:flex;gap:var(--space-3)">
+<div class="card" style="flex:1;gap:var(--space-1)"><div class="card-kicker">Sick days left</div><div style="font-family:var(--font-heading);font-size:32px;font-feature-settings:'tnum'">9 <span style="font-size:15px;color:var(--color-neutral-600)">of 11</span></div><div style="font-size:12px;color:var(--color-neutral-700);line-height:1.5">One was a mental-health day. That's what they're for.</div></div>
+<div class="card" style="flex:1;gap:var(--space-1)"><div class="card-kicker">Unpaid time this week</div><div style="font-family:var(--font-heading);font-size:32px;font-feature-settings:'tnum'">4h 20</div><div style="font-size:12px;color:var(--color-neutral-700);line-height:1.5">Past contract end, four days running.</div></div>
+</div>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>3:41</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:48%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;overflow:hidden;padding:70px var(--space-6) 40px;display:flex;flex-direction:column">
+<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Check-in · 3:40 pm</div><button class="btn btn-ghost" style="color:var(--color-neutral-700)">Skip</button></div>
+<h2 style="font-weight:400;font-size:38px;margin:var(--space-4) 0 0">How did today land?</h2>
+<div style="display:flex;flex-direction:column;gap:var(--space-2);margin-top:var(--space-6)">
+<div style="display:flex;align-items:center;gap:var(--space-3);height:62px;padding:0 var(--space-4);border-radius:var(--radius-md);border:1px solid var(--color-divider)"><div style="font-family:var(--font-heading);font-weight:600;font-size:18px">Steady</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);height:62px;padding:0 var(--space-4);border-radius:var(--radius-md);border:1px solid var(--color-divider)"><div style="font-family:var(--font-heading);font-weight:600;font-size:18px">Tired but fine</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);height:62px;padding:0 var(--space-4);border-radius:var(--radius-md);border:1px solid var(--color-accent);background:var(--color-accent-100)"><div style="font-family:var(--font-heading);font-weight:600;font-size:18px;color:var(--color-accent-900)">Stretched thin</div><div style="flex:1"></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);height:62px;padding:0 var(--space-4);border-radius:var(--radius-md);border:1px solid var(--color-divider)"><div style="font-family:var(--font-heading);font-weight:600;font-size:18px">Running on empty</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);height:62px;padding:0 var(--space-4);border-radius:var(--radius-md);border:1px solid var(--color-divider)"><div style="font-family:var(--font-heading);font-weight:600;font-size:18px">Rough day</div></div>
+</div>
+<div style="margin-top:var(--space-6);font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">What weighed on it · optional</div>
+<div style="display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-3)">
+<div style="height:38px;padding:0 var(--space-3);border-radius:var(--radius-md);border:1px solid var(--color-accent);color:var(--color-accent-800);background:var(--color-accent-100);font-size:14px;display:flex;align-items:center">Behaviour</div>
+<div style="height:38px;padding:0 var(--space-3);border-radius:var(--radius-md);border:1px solid var(--color-divider);font-size:14px;display:flex;align-items:center">Admin</div>
+<div style="height:38px;padding:0 var(--space-3);border-radius:var(--radius-md);border:1px solid var(--color-accent);color:var(--color-accent-800);background:var(--color-accent-100);font-size:14px;display:flex;align-items:center">No prep time</div>
+<div style="height:38px;padding:0 var(--space-3);border-radius:var(--radius-md);border:1px solid var(--color-divider);font-size:14px;display:flex;align-items:center">Parents</div>
+<div style="height:38px;padding:0 var(--space-3);border-radius:var(--radius-md);border:1px solid var(--color-divider);font-size:14px;display:flex;align-items:center">Duty</div>
+<div style="height:38px;padding:0 var(--space-3);border-radius:var(--radius-md);border:1px solid var(--color-divider);font-size:14px;display:flex;align-items:center">Sleep</div>
+</div>
+<div style="flex:1"></div>
+<button class="btn btn-primary btn-block" style="height:52px;font-size:17px">Done · saved to this phone</button>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>8:12</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:60%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;overflow:hidden;padding:66px var(--space-4) 40px">
+<h2 style="font-weight:400;font-size:34px;margin:0">Six weeks</h2>
+<div class="seg" style="margin-top:var(--space-3);width:100%">
+<label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="range1" defaultChecked="{{ true }}">6 weeks</label>
+<label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="range1">Term</label>
+<label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="range1">Year</label>
+</div>
+
+<div class="card" style="margin-top:var(--space-4)">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><div class="card-title">Daily load</div><div style="font-family:var(--font-heading);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600)">Higher = harder</div></div>
+<div style="position:relative">
+<div style="position:absolute;left:0;right:0;top:8px;height:30px;border-top:1px dashed var(--color-accent);background:var(--color-accent-100)"></div>
+<svg viewBox="0 0 300 106" style="width:100%;height:106px;display:block;position:relative">
+<polyline points="6,74 26,66 46,80 66,58 86,50 106,62 126,44 146,38 166,52 186,30 206,26 226,40 246,22 266,16 288,28" fill="none" stroke="#7d5411" stroke-width="1.5" stroke-linejoin="round"></polyline>
+<circle cx="288" cy="28" r="3.5" fill="#7d5411"></circle>
+</svg>
+<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-neutral-600);font-feature-settings:'tnum'"><span>28 Aug</span><span>18 Sep</span><span>9 Oct</span></div>
+</div>
+<div style="height:1px;background:var(--color-divider)"></div>
+<div style="font-size:14px;line-height:1.6;text-align:justify">Above your own hard-day line <em>six of the last nine school days</em>. Last October it ran three weeks — and you took no days off in it.</div>
+</div>
+
+<div class="card" style="margin-top:var(--space-4)">
+<div class="card-title">When it gets heavy</div>
+<div style="display:grid;grid-template-columns:44px repeat(5,1fr);gap:3px;margin-top:var(--space-1)">
+<div></div><div style="font-size:10px;text-align:center;color:var(--color-neutral-600)">M</div><div style="font-size:10px;text-align:center;color:var(--color-neutral-600)">T</div><div style="font-size:10px;text-align:center;color:var(--color-neutral-600)">W</div><div style="font-size:10px;text-align:center;color:var(--color-neutral-600)">T</div><div style="font-size:10px;text-align:center;color:var(--color-neutral-600)">F</div>
+<div style="font-size:10px;letter-spacing:.06em;color:var(--color-neutral-600);display:flex;align-items:center">P1</div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div>
+<div style="font-size:10px;letter-spacing:.06em;color:var(--color-neutral-600);display:flex;align-items:center">P2</div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-400)"></div>
+<div style="font-size:10px;letter-spacing:.06em;color:var(--color-neutral-600);display:flex;align-items:center">DUTY</div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-500)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-600)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-700)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div>
+<div style="font-size:10px;letter-spacing:.06em;color:var(--color-neutral-600);display:flex;align-items:center">P5</div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-400)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-500)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-500)"></div>
+<div style="font-size:10px;letter-spacing:.06em;color:var(--color-neutral-600);display:flex;align-items:center">AFTER</div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-500)"></div><div style="height:24px;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div>
+</div>
+<div style="height:1px;background:var(--color-divider)"></div>
+<div style="font-size:14px;line-height:1.6;text-align:justify">Cafeteria duty is your worst block, every week you've logged. It may be the single thing worth trading away.</div>
+</div>
+
+<div style="margin-top:var(--space-4);display:flex;align-items:center;gap:var(--space-2)"><div style="font-size:11px;color:var(--color-neutral-600);letter-spacing:.06em">LIGHT</div><div style="flex:1;height:6px;border-radius:2px;background:linear-gradient(90deg,var(--color-accent-100),var(--color-accent-300),var(--color-accent-500),var(--color-accent-700))"></div><div style="font-size:11px;color:var(--color-neutral-600);letter-spacing:.06em">HEAVY</div></div>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+
+</div>
+<div class="dv-cap">Privacy onboarding · contract &amp; duty setup · today · check-in · trends</div>
+</div>
+
+<div class="dv-opt" id="2b">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>The reminder system — four moments a day, all generated from the schedule, all phrased as permission rather than instruction. Leave for work · sit down and eat · duty starting · your contract day is over.</div>
+<div class="dv-row">
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:#1c1a18;color:var(--color-bg)">
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>6:52</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:88%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;padding:70px var(--space-4) 40px;display:flex;flex-direction:column">
+<div style="text-align:center;font-size:15px;color:color-mix(in srgb, #f3f2f2 55%, transparent)">Thursday, October 9</div>
+<div style="text-align:center;font-family:var(--font-heading);font-weight:400;font-size:86px;line-height:1;letter-spacing:-.02em;font-feature-settings:'tnum'">6:52</div>
+<div style="margin-top:var(--space-6);display:flex;flex-direction:column;align-items:center;gap:var(--space-3)">
+<div style="position:relative;width:186px;height:186px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid color-mix(in srgb, #f3f2f2 14%, transparent)">
+<div style="position:absolute;inset:-1px;border-radius:50%;background:conic-gradient(#e1ad66 0 62%, transparent 62%);-webkit-mask:radial-gradient(circle,transparent 70%,#000 71%);mask:radial-gradient(circle,transparent 70%,#000 71%)"></div>
+<div style="text-align:center"><div style="font-family:var(--font-heading);font-size:44px;font-feature-settings:'tnum';line-height:1">12:00</div><div style="font-family:var(--font-heading);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:color-mix(in srgb, #f3f2f2 55%, transparent);margin-top:var(--space-1)">Until you leave</div></div>
+</div>
+</div>
+<div style="margin-top:var(--space-6);border:1px solid color-mix(in srgb, #f3f2f2 18%, transparent);border-radius:var(--radius-lg);padding:var(--space-4);background:color-mix(in srgb, #f3f2f2 6%, transparent)">
+<div style="display:flex;align-items:center;gap:var(--space-2)"><div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#e1ad66">Tended</div><div style="flex:1"></div><div style="font-size:12px;color:color-mix(in srgb, #f3f2f2 45%, transparent)">now</div></div>
+<div style="font-family:var(--font-heading);font-weight:600;font-size:19px;margin-top:var(--space-2)">Leave at 7:04 and you arrive calm.</div>
+<div style="font-size:14px;line-height:1.55;color:color-mix(in srgb, #f3f2f2 62%, transparent);margin-top:2px">26 minute commute, and the bus loop backs up after 7:58. Coffee is not a plan.</div>
+<div style="display:flex;gap:var(--space-2);margin-top:var(--space-3)"><div style="flex:1;height:42px;border:1px solid #e1ad66;color:#e1ad66;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:14px">Leaving now</div><div style="flex:1;height:42px;border:1px solid color-mix(in srgb, #f3f2f2 20%, transparent);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:14px">5 more min</div></div>
+</div>
+<div style="flex:1"></div>
+<div style="text-align:center;font-size:12px;color:color-mix(in srgb, #f3f2f2 38%, transparent)">Countdown lives on the lock screen until you go</div>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, #f3f2f2 55%, transparent);z-index:6"></div>
+</div></div>
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:#1c1a18;color:var(--color-bg)">
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>12:05</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:54%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;padding:70px var(--space-4) 40px;display:flex;flex-direction:column">
+<div style="text-align:center;font-size:15px;color:color-mix(in srgb, #f3f2f2 55%, transparent)">Cafeteria duty · Thursday</div>
+<div style="text-align:center;font-family:var(--font-heading);font-weight:400;font-size:86px;line-height:1;letter-spacing:-.02em;font-feature-settings:'tnum'">12:05</div>
+<div style="margin-top:var(--space-6);border:1px solid color-mix(in srgb, #f3f2f2 18%, transparent);border-radius:var(--radius-lg);padding:var(--space-4);background:color-mix(in srgb, #f3f2f2 6%, transparent)">
+<div style="display:flex;align-items:center;gap:var(--space-2)"><div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#e1ad66">Lunch · 22 minutes</div></div>
+<div style="font-family:var(--font-heading);font-weight:600;font-size:19px;margin-top:var(--space-2)">Sit down. Eat the whole thing.</div>
+<div style="font-size:14px;line-height:1.55;color:color-mix(in srgb, #f3f2f2 62%, transparent);margin-top:2px">You ate standing up three days this week. Duty starts at 12:27, not now.</div>
+<div style="height:1px;background:color-mix(in srgb, #f3f2f2 14%, transparent);margin:var(--space-3) 0"></div>
+<div style="display:flex;align-items:center;gap:var(--space-3)"><div style="font-family:var(--font-heading);font-size:34px;font-feature-settings:'tnum'">22:00</div><div style="flex:1;font-size:13px;line-height:1.5;color:color-mix(in srgb, #f3f2f2 55%, transparent)">Silent timer. Buzzes once at 12:25 so you're not watching the clock.</div></div>
+</div>
+<div style="margin-top:var(--space-3);border:1px solid color-mix(in srgb, #f3f2f2 12%, transparent);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);display:flex;align-items:center;gap:var(--space-3)">
+
+<div style="font-size:13.5px;line-height:1.5;color:color-mix(in srgb, #f3f2f2 62%, transparent)">Cafeteria duty in 22 min · you swapped Friday with Marcus</div>
+</div>
+<div style="flex:1"></div>
+<div style="text-align:center;font-size:12px;color:color-mix(in srgb, #f3f2f2 38%, transparent)">Never fires during instruction time</div>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, #f3f2f2 55%, transparent);z-index:6"></div>
+</div></div>
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>3:45</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:44%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;padding:66px var(--space-4) 40px;display:flex;flex-direction:column">
+<div style="border:1px solid var(--color-accent);border-radius:var(--radius-lg);padding:var(--space-4);box-shadow:var(--shadow-sm)">
+<div style="display:flex;align-items:center;gap:var(--space-2)"><div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent)">Contract day ended · 15 min ago</div></div>
+<div style="font-family:var(--font-heading);font-weight:600;font-size:22px;margin-top:var(--space-2);line-height:1.2">What's left can wait until tomorrow.</div>
+<p style="font-size:14px;line-height:1.6;color:var(--color-neutral-700);margin-top:var(--space-2);text-align:justify">You've stayed past 3:30 four days running — 4 hours 20 minutes of unpaid time this week. Grading three more essays will not change that.</p>
+<div style="display:flex;gap:var(--space-2);margin-top:var(--space-3)"><button class="btn btn-primary" style="flex:1;height:44px">Packing up</button><button class="btn btn-secondary" style="flex:1;height:44px">I'm in a meeting</button></div>
+</div>
+
+<div style="margin-top:var(--space-6);font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Your reminders</div>
+<div style="margin-top:var(--space-2);border-top:1px solid var(--color-divider)">
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:16px">Leave for work</div><div style="font-size:12.5px;color:var(--color-neutral-600);font-feature-settings:'tnum'">Countdown from 6:38 · lock screen</div></div><div class="seg"><label class="seg-opt"><input type="radio" name="r1" defaultChecked="{{ true }}">On</label><label class="seg-opt"><input type="radio" name="r1">Off</label></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:16px">Stop and eat</div><div style="font-size:12.5px;color:var(--color-neutral-600);font-feature-settings:'tnum'">At your lunch block · 12:05</div></div><div class="seg"><label class="seg-opt"><input type="radio" name="r2" defaultChecked="{{ true }}">On</label><label class="seg-opt"><input type="radio" name="r2">Off</label></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:16px">Duty starting</div><div style="font-size:12.5px;color:var(--color-neutral-600)">10 min ahead, duty days only</div></div><div class="seg"><label class="seg-opt"><input type="radio" name="r3" defaultChecked="{{ true }}">On</label><label class="seg-opt"><input type="radio" name="r3">Off</label></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:16px">Go home</div><div style="font-size:12.5px;color:var(--color-neutral-600);font-feature-settings:'tnum'">15 min after contract end</div></div><div class="seg"><label class="seg-opt"><input type="radio" name="r4" defaultChecked="{{ true }}">On</label><label class="seg-opt"><input type="radio" name="r4">Off</label></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:16px">Reset in your prep</div><div style="font-size:12.5px;color:var(--color-neutral-600)">Only on days you logged heavy</div></div><div class="seg"><label class="seg-opt"><input type="radio" name="r5">On</label><label class="seg-opt"><input type="radio" name="r5" defaultChecked="{{ true }}">Off</label></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:16px">Sunday-night dread</div><div style="font-size:12.5px;color:var(--color-neutral-600)">One kind line, 7pm Sundays</div></div><div class="seg"><label class="seg-opt"><input type="radio" name="r6" defaultChecked="{{ true }}">On</label><label class="seg-opt"><input type="radio" name="r6">Off</label></div></div>
+</div>
+<div style="flex:1"></div>
+<div style="display:flex;gap:var(--space-3);align-items:flex-start;padding:var(--space-3);border:1px solid var(--color-divider);border-radius:var(--radius-md)"><div style="font-size:13px;line-height:1.55;color:var(--color-neutral-800)">Nothing ever fires while you're teaching. Tended reads your bell schedule and waits for the passing period.</div></div>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+
+</div>
+<div class="dv-cap">Leave-for-work countdown · eat lunch · go home + the reminder library</div>
+</div>
+
+<div class="dv-opt" id="2c">
+<div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>The ZIP-code signal — the same private check-ins, aggregated into something a union rep or a board member can't argue with. Individual data never leaves the phone; only ZIP-level counts do, and only above a floor of 40 teachers.</div>
+<div class="dv-row">
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>8:20</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:60%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;overflow:hidden;padding:66px var(--space-4) 40px">
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent);font-feature-settings:'tnum'">Anonymous · 4,182 teachers</div>
+<h2 style="font-weight:400;font-size:34px;margin:var(--space-1) 0 0">How the county feels</h2>
+<div class="seg" style="margin-top:var(--space-3);width:100%">
+<label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="zoom" defaultChecked="{{ true }}">By ZIP</label>
+<label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="zoom">County</label>
+<label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="zoom">State</label>
+</div>
+
+<div style="margin-top:var(--space-4);border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:var(--space-3);position:relative">
+<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:3px">
+<div style="aspect-ratio:1"></div><div style="aspect-ratio:1"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div><div style="aspect-ratio:1"></div><div style="aspect-ratio:1"></div><div style="aspect-ratio:1"></div>
+<div style="aspect-ratio:1"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-400)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-500)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div><div style="aspect-ratio:1"></div><div style="aspect-ratio:1"></div>
+<div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-600)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-700)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-500)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div><div style="aspect-ratio:1"></div>
+<div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-500)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-700)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-600);outline:1.5px solid var(--color-text);outline-offset:1px"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-400)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div><div style="aspect-ratio:1"></div>
+<div style="aspect-ratio:1"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-400)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-400)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1"></div><div style="aspect-ratio:1"></div>
+<div style="aspect-ratio:1"></div><div style="aspect-ratio:1"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="aspect-ratio:1;border-radius:var(--radius-sm);background:var(--color-accent-100)"></div><div style="aspect-ratio:1"></div><div style="aspect-ratio:1"></div><div style="aspect-ratio:1"></div>
+</div>
+<div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-3)"><div style="font-size:10px;letter-spacing:.08em;color:var(--color-neutral-600)">STEADY</div><div style="flex:1;height:6px;border-radius:2px;background:linear-gradient(90deg,var(--color-accent-100),var(--color-accent-300),var(--color-accent-500),var(--color-accent-700))"></div><div style="font-size:10px;letter-spacing:.08em;color:var(--color-neutral-600)">ROUGH</div></div>
+<div style="font-size:10px;letter-spacing:.08em;color:var(--color-neutral-600);margin-top:var(--space-1)">SCHEMATIC — ZIP TILES, NOT TRUE GEOGRAPHY</div>
+</div>
+
+<div class="card" style="margin-top:var(--space-4)">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><div class="card-title">Your ZIP · 47404</div><div style="font-family:var(--font-heading);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600);font-feature-settings:'tnum'">128 teachers</div></div>
+<div style="font-family:var(--font-heading);font-size:25px;line-height:1.2;font-weight:400">Rougher than 84% of the state this week.</div>
+<div style="height:1px;background:var(--color-divider)"></div>
+<div style="font-size:14px;line-height:1.6;text-align:justify">Report cards went out Tuesday. It shows up in every ZIP that shares your district calendar — and in none of the ones that don't.</div>
+<div style="display:flex;gap:var(--space-2);margin-top:var(--space-1)"><button class="btn btn-primary" style="flex:1;height:42px">See the brief</button><button class="btn btn-secondary" style="flex:1;height:42px">How this stays anonymous</button></div>
+</div>
+
+<div style="margin-top:var(--space-4);display:flex;gap:var(--space-3);align-items:flex-start"><div style="font-size:12.5px;line-height:1.6;color:var(--color-neutral-700);text-align:justify">A ZIP needs 40+ contributing teachers before it appears at all. Schools are never identified, and no ZIP is ever cross-referenced with a school, grade or subject.</div></div>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>8:22</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:60%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;overflow:hidden;padding:66px var(--space-4) 40px">
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">October brief · ZIP 47404</div>
+<h2 style="font-weight:400;font-size:34px;margin:var(--space-1) 0 0">You're not the only one.</h2>
+
+<div class="card" style="margin-top:var(--space-4)">
+<div style="display:flex;align-items:baseline;gap:var(--space-3)"><div style="font-family:var(--font-heading);font-size:56px;line-height:.9;font-weight:400;font-feature-settings:'tnum';color:var(--color-accent-700)">71%</div><div style="font-size:14px;line-height:1.5;flex:1">of teachers in your ZIP logged a hard day this week</div></div>
+<div style="display:grid;grid-template-columns:repeat(10,1fr);gap:4px">
+<div style="aspect-ratio:1;border-radius:50%;background:var(--color-accent-500)"></div><div style="aspect-ratio:1;border-radius:50%;background:var(--color-accent-500)"></div><div style="aspect-ratio:1;border-radius:50%;background:var(--color-accent-500)"></div><div style="aspect-ratio:1;border-radius:50%;background:var(--color-accent-500)"></div><div style="aspect-ratio:1;border-radius:50%;background:var(--color-accent-500)"></div><div style="aspect-ratio:1;border-radius:50%;background:var(--color-accent-500)"></div><div style="aspect-ratio:1;border-radius:50%;background:var(--color-accent-500)"></div><div style="aspect-ratio:1;border-radius:50%;border:1px solid var(--color-neutral-400)"></div><div style="aspect-ratio:1;border-radius:50%;border:1px solid var(--color-neutral-400)"></div><div style="aspect-ratio:1;border-radius:50%;border:1px solid var(--color-neutral-400)"></div>
+</div>
+</div>
+
+<div style="margin-top:var(--space-6);font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">What they named</div>
+<div style="margin-top:var(--space-2);border-top:1px solid var(--color-divider)">
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1;font-size:15px">Report cards</div><div style="width:90px;height:6px;background:var(--color-neutral-200);border-radius:2px"><div style="width:88%;height:6px;background:var(--color-accent-600);border-radius:2px"></div></div><div style="width:32px;text-align:right;font-size:12px;color:var(--color-neutral-600);font-feature-settings:'tnum'">88%</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1;font-size:15px">Coverage · no subs</div><div style="width:90px;height:6px;background:var(--color-neutral-200);border-radius:2px"><div style="width:71%;height:6px;background:var(--color-accent-500);border-radius:2px"></div></div><div style="width:32px;text-align:right;font-size:12px;color:var(--color-neutral-600);font-feature-settings:'tnum'">71%</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1;font-size:15px">Duty at lunch</div><div style="width:90px;height:6px;background:var(--color-neutral-200);border-radius:2px"><div style="width:64%;height:6px;background:var(--color-accent-500);border-radius:2px"></div></div><div style="width:32px;text-align:right;font-size:12px;color:var(--color-neutral-600);font-feature-settings:'tnum'">64%</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1;font-size:15px">Behaviour supports</div><div style="width:90px;height:6px;background:var(--color-neutral-200);border-radius:2px"><div style="width:54%;height:6px;background:var(--color-accent-400);border-radius:2px"></div></div><div style="width:32px;text-align:right;font-size:12px;color:var(--color-neutral-600);font-feature-settings:'tnum'">54%</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1;font-size:15px">Parent email load</div><div style="width:90px;height:6px;background:var(--color-neutral-200);border-radius:2px"><div style="width:38%;height:6px;background:var(--color-accent-300);border-radius:2px"></div></div><div style="width:32px;text-align:right;font-size:12px;color:var(--color-neutral-600);font-feature-settings:'tnum'">38%</div></div>
+</div>
+
+<div class="card" style="margin-top:var(--space-4);border-color:var(--color-accent)">
+<div class="card-kicker">Take it somewhere</div>
+<div class="card-title">Send the October brief to your union rep</div>
+<div style="font-size:13.5px;line-height:1.6;color:var(--color-neutral-800);text-align:justify">A one-page PDF: ZIP-level trend, the top five named causes, and the state comparison. No names, no schools, no way back to you. 214 teachers in 47404 have already sent it.</div>
+<div style="display:flex;gap:var(--space-2)"><button class="btn btn-primary" style="flex:1;height:42px">Preview the PDF</button><button class="btn btn-secondary" style="height:42px">Board meeting dates</button></div>
+</div>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+
+</div>
+<div class="dv-cap">ZIP heatmap · the brief a teacher can actually hand to someone</div>
+</div>
+
+<div class="dv-opt" id="2d">
+<div class="dv-olabel"><a class="dv-oid" href="#2d">2d</a>In-the-moment support, and where Tended's existing catalogue lives inside the app — The Safety podcast, the Let It Out Journal, HELD — alongside the free help teachers already have and don't use.</div>
+<div class="dv-row">
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:#1c1a18;color:var(--color-bg)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>10:24</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:58%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;padding:70px var(--space-6) 40px;display:flex;flex-direction:column">
+<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#e1ad66">Your prep · 41 min left</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-8)">
+<div style="position:relative;width:236px;height:236px;display:flex;align-items:center;justify-content:center">
+<div style="position:absolute;inset:0;border-radius:50%;border:1px solid color-mix(in srgb, #f3f2f2 10%, transparent)"></div>
+<div style="position:absolute;inset:26px;border-radius:50%;border:1px solid #e1ad66;animation:breathe 10s ease-in-out infinite"></div>
+<div style="text-align:center;position:relative"><div style="font-family:var(--font-heading);font-size:27px;font-weight:400">Breathe out</div><div style="font-family:var(--font-heading);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:color-mix(in srgb, #f3f2f2 50%, transparent);margin-top:var(--space-2)">4 in · 6 out</div></div>
+</div>
+<div style="text-align:center"><div style="font-family:var(--font-heading);font-size:28px;font-weight:400;line-height:1.25">Two more rounds, then they're at the door.</div><div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;color:color-mix(in srgb, #f3f2f2 45%, transparent);margin-top:var(--space-3);font-feature-settings:'tnum'">1:12 LEFT</div></div>
+</div>
+<div style="display:flex;gap:var(--space-2)">
+<button class="btn btn-primary" style="flex:1;height:52px;font-size:16px;color:#e1ad66;border-color:#e1ad66">Pause</button>
+<button class="btn" style="width:52px;height:52px;border-color:color-mix(in srgb, #f3f2f2 20%, transparent);color:var(--color-bg)"></button>
+</div>
+<div style="text-align:center;font-size:12px;color:color-mix(in srgb, #f3f2f2 38%, transparent);margin-top:var(--space-3)">Locks itself when the bell goes</div>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, #f3f2f2 55%, transparent);z-index:6"></div>
+</div></div>
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>9:06</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:52%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;overflow:hidden;padding:66px var(--space-4) 40px">
+<h2 style="font-weight:400;font-size:34px;margin:0">When you need a person</h2>
+<p style="font-size:14px;line-height:1.6;color:var(--color-neutral-700);margin-top:var(--space-2)">Nothing here tells anyone you looked.</p>
+
+<div class="card" style="border-color:var(--color-accent);margin-top:var(--space-3)">
+<div class="card-kicker">If tonight is the bad kind</div>
+<div class="card-title" style="font-size:19px;font-feature-settings:'tnum'">988 · Suicide &amp; Crisis Lifeline</div>
+<div style="font-size:13.5px;line-height:1.6;color:var(--color-neutral-800)">Free, 24/7, call or text. You don't have to be in crisis to use it.</div>
+<div style="display:flex;gap:var(--space-2)"><button class="btn btn-primary" style="flex:1;height:44px">Call 988</button><button class="btn btn-secondary" style="flex:1;height:44px">Text instead</button></div>
+</div>
+
+<div style="margin-top:var(--space-6);font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Already yours — already paid for</div>
+<div style="margin-top:var(--space-2);border-top:1px solid var(--color-divider)">
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:16px">6 free therapy sessions</div><div style="font-size:12.5px;color:var(--color-neutral-600)">Your EAP · no referral needed</div></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:16px">Union member assistance</div><div style="font-size:12.5px;color:var(--color-neutral-600)">Confidential, separate from the district</div></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:16px">Take a mental-health day</div><div style="font-size:12.5px;color:var(--color-neutral-600);font-feature-settings:'tnum'">9 sick days left · here's the script</div></div></div>
+</div>
+
+<div style="margin-top:var(--space-6);font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">From Tended Collective</div>
+<div style="margin-top:var(--space-2);display:flex;flex-direction:column;gap:var(--space-2)">
+<div class="card" style="flex-direction:row;align-items:center;gap:var(--space-3)"><div style="width:56px;height:56px;flex:none;border:1px solid var(--color-divider);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center"><div style="width:18px;height:1px;background:var(--color-accent)"></div></div><div><div class="card-title" style="font-size:16px">The Safety · Ep. 14</div><div style="font-size:12.5px;color:var(--color-neutral-700);line-height:1.5">Guided meditation for the drive home. 11 min. Free, always.</div></div></div>
+<div class="card" style="flex-direction:row;align-items:center;gap:var(--space-3)"><div style="width:56px;height:56px;flex:none;border:1px solid var(--color-divider);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center"><div style="width:18px;height:1px;background:var(--color-accent)"></div></div><div><div class="card-title" style="font-size:16px">Let It Out · tonight's prompt</div><div style="font-size:12.5px;color:var(--color-neutral-700);line-height:1.5">"What did you carry today that wasn't yours?"</div></div></div>
+<div class="card" style="flex-direction:row;align-items:center;gap:var(--space-3)"><div style="width:56px;height:56px;flex:none;border:1px solid var(--color-divider);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center"><div style="width:18px;height:1px;background:var(--color-accent)"></div></div><div><div class="card-title" style="font-size:16px">HELD · Month 2 of 10</div><div style="font-size:12.5px;color:var(--color-neutral-700);line-height:1.5">Your circle meets Thursday, 7pm. Two spots open.</div></div></div>
+</div>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+
+</div>
+<div class="dv-cap">Passing-period reset · resources, escalation and the Tended catalogue</div>
+</div>
+
+<div class="dv-opt" id="2e">
+<div class="dv-olabel"><a class="dv-oid" href="#2e">2e</a>How it earns. The teacher-facing paywall stays small and honest — the real revenue is the school and district work Tended already sells, plus the journal and HELD. The ZIP data is never a product.</div>
+<div class="dv-row">
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>9:41</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:52%;height:100%;background:currentColor"></div></div></div>
+<div style="position:absolute;inset:0;overflow:hidden;padding:66px var(--space-4) 40px">
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Tended membership</div>
+<h2 style="font-weight:400;font-size:34px;margin:var(--space-1) 0 0">Free stays free.</h2>
+<p style="font-size:14px;line-height:1.6;color:var(--color-neutral-700);margin-top:var(--space-2);text-align:justify">Check-ins, reminders, your trends and the ZIP signal cost nothing, forever. A teacher should never pay to notice they're struggling.</p>
+
+<div class="card" style="margin-top:var(--space-4)">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><div class="card-title">Tended · Free</div><div style="font-family:var(--font-heading);font-size:18px">$0</div></div>
+<div style="font-size:13.5px;line-height:1.7;color:var(--color-neutral-800)">Daily check-in · schedule reminders · six-week trends · ZIP signal and briefs · The Safety podcast · crisis and EAP directory</div>
+</div>
+
+<div class="card" style="margin-top:var(--space-3);border-color:var(--color-accent);box-shadow:var(--shadow-sm)">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><div class="card-title">Tended+ </div><div style="font-family:var(--font-heading);font-size:18px;font-feature-settings:'tnum'">$5.99<span style="font-size:12px;color:var(--color-neutral-600)">/mo</span></div></div>
+<div class="card-kicker">For the year it's actually hard</div>
+<div style="font-size:13.5px;line-height:1.7;color:var(--color-neutral-800)">Full history beyond 6 weeks · year-over-year October comparison · the Let It Out prompt library · guided audio beyond the free feed · export for your therapist · unpaid-time report for your union</div>
+<div style="height:1px;background:var(--color-divider)"></div>
+<div style="font-size:12.5px;line-height:1.6;color:var(--color-neutral-700)">Free for the whole first year in any building where a colleague brought Tended in.</div>
+<button class="btn btn-primary btn-block" style="height:46px">Try 60 days · no card</button>
+</div>
+
+<div class="card" style="margin-top:var(--space-3)">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><div class="card-title">Let It Out Journal</div><div style="font-family:var(--font-heading);font-size:18px;font-feature-settings:'tnum'">$38</div></div>
+<div style="font-size:13.5px;line-height:1.6;color:var(--color-neutral-800)">The 400-page paper companion. Tended+ members get the prompts in-app; the book ships to your door.</div>
+</div>
+
+<div style="margin-top:var(--space-4);display:flex;gap:var(--space-3);align-items:flex-start"><div style="font-size:12.5px;line-height:1.6;color:var(--color-neutral-700);text-align:justify">We do not sell data, run ads, or accept money from any district for anything that touches an individual record. If Tended ever tries, this screen is where we'd have to say so.</div></div>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+
+<div style="width:760px;background:var(--color-bg);border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:var(--space-8);box-shadow:var(--shadow-sm)">
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Business model · draft for discussion</div>
+<h2 style="font-weight:400;font-size:36px;margin:var(--space-3) 0 0;max-width:16em">Teachers fund almost none of it. Systems fund the rest.</h2>
+<div style="height:1px;background:var(--color-divider);margin:var(--space-6) 0"></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-6)">
+<div><div class="card-kicker">01 · Individual</div><div style="font-family:var(--font-heading);font-size:21px;font-weight:600;margin-top:var(--space-1)">Tended+ subscription</div><p style="font-size:13.5px;line-height:1.65;color:var(--color-neutral-800);margin-top:var(--space-2);text-align:justify">$5.99/mo or $49/yr. Deliberately modest: history, comparisons, exports and audio. Assume low single-digit conversion — this is retention and credibility revenue, not the business.</p><div style="font-family:var(--font-heading);font-size:13px;color:var(--color-accent-700);margin-top:var(--space-2)">Small, predictable, ethical</div></div>
+<div><div class="card-kicker">02 · Commerce</div><div style="font-family:var(--font-heading);font-size:21px;font-weight:600;margin-top:var(--space-1)">Journal, HELD, bulk orders</div><p style="font-size:13.5px;line-height:1.65;color:var(--color-neutral-800);margin-top:var(--space-2);text-align:justify">The app is the best storefront the Let It Out Journal will ever have: a teacher who just logged three hard weeks is the exact reader for it. HELD and The Shift enroll from the same moment, and buildings buy journals in bulk.</p><div style="font-family:var(--font-heading);font-size:13px;color:var(--color-accent-700);margin-top:var(--space-2)">Highest margin today</div></div>
+<div><div class="card-kicker">03 · Institutional</div><div style="font-family:var(--font-heading);font-size:21px;font-weight:600;margin-top:var(--space-1)">Consultancy &amp; The Shift</div><p style="font-size:13.5px;line-height:1.65;color:var(--color-neutral-800);margin-top:var(--space-2);text-align:justify">Districts pay for culture work, not for teacher data. Tended sells the diagnosis-and-change engagement; the app supplies free, public, ZIP-level evidence that the problem is structural. Sponsored Tended+ for a whole district is a clean line item.</p><div style="font-family:var(--font-heading);font-size:13px;color:var(--color-accent-700);margin-top:var(--space-2)">Where the scale is</div></div>
+</div>
+<div style="height:1px;background:var(--color-divider);margin:var(--space-6) 0"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6)">
+<div><div class="card-kicker">Never for sale</div><ul style="font-size:13.5px;line-height:1.8;color:var(--color-neutral-800);margin:var(--space-2) 0 0;padding-left:1.1em"><li>Individual check-ins, notes or trends — to anyone, at any price</li><li>School-level or building-level breakdowns</li><li>Ad inventory, or anything resembling it</li><li>ZIP data behind a paywall — the briefs are public and free</li></ul></div>
+<div><div class="card-kicker">Open questions for you</div><ul style="font-size:13.5px;line-height:1.8;color:var(--color-neutral-800);margin:var(--space-2) 0 0;padding-left:1.1em"><li>Does a union local pay per-member, or is that the district's line item?</li><li>Is Tended+ free forever for HELD participants?</li><li>Grant funding for the ZIP research arm — is that a fourth line?</li><li>Do you want a leader-facing app at all, or does The Shift stay human-delivered?</li></ul></div>
+</div>
+</div>
+
+</div>
+<div class="dv-cap">Membership screen · business model board</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: "make the ZIP map real geography" · "design the union brief PDF" · "add the schedule-import-from-photo flow" · "a leader-facing view for The Shift" · "warmer copy in <a class="dv-oid" href="#2b">2b</a>"</p>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;}}"></script>
+</body>
+</html>

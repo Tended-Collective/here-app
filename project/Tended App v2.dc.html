@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Lora:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="classical.css"><style>
+body{margin:0;background:var(--color-neutral-300);font-family:var(--font-body)}
+a{color:var(--color-accent-700)}a:hover{color:var(--color-accent)}
+</style></helmet>
+
+<section style="padding:var(--space-8);display:flex;gap:var(--space-8);align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:var(--space-3)">
+<div style="display:flex;align-items:baseline;gap:var(--space-2)"><span style="font-family:var(--font-heading);font-weight:600;font-size:11px;letter-spacing:.08em;padding:3px 8px;background:var(--color-accent-100);color:var(--color-accent-800);border-radius:var(--radius-sm)">3a</span><span style="font-size:13px;color:var(--color-neutral-800)">Four tabs, one loop. Tap through it — the check, the week, the map, support.</span></div>
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#1c1a18;padding:10px;box-shadow:var(--shadow-lg)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:var(--color-bg);color:var(--color-text)">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#1c1a18;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-feature-settings:'tnum'"><span>7:41</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.6"><div style="width:72%;height:100%;background:currentColor"></div></div></div>
+
+<div style="position:absolute;top:54px;bottom:84px;left:0;right:0;overflow:auto;padding:var(--space-4) var(--space-4) var(--space-6)">
+
+<sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Thursday 9 October</div>
+<h2 style="font-weight:400;font-size:34px;margin:var(--space-1) 0 0">How are you doing today?</h2>
+<p style="font-size:14px;line-height:1.6;color:var(--color-neutral-700);margin-top:var(--space-2)">One tap. Nobody but you ever sees it.</p>
+
+<div style="display:flex;flex-direction:column;gap:var(--space-2);margin-top:var(--space-4)">
+<sc-for list="{{ moods }}" as="m" hint-placeholder-count="5">
+<div onClick="{{ m.onClick }}" style="{{ m.style }}">
+<div style="font-family:var(--font-heading);font-size:20px;font-feature-settings:'tnum';width:26px;color:var(--color-accent-700)">{{ m.n }}</div>
+<div style="font-family:var(--font-heading);font-weight:600;font-size:18px">{{ m.label }}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="margin-top:var(--space-6);font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">What made it that way · optional</div>
+<div style="display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-3)">
+<sc-for list="{{ tags }}" as="t" hint-placeholder-count="6">
+<div onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</div>
+</sc-for>
+</div>
+
+<button onClick="{{ save }}" class="btn btn-primary btn-block" style="height:52px;font-size:17px;margin-top:var(--space-6)">{{ saveLabel }}</button>
+<p style="font-size:12.5px;line-height:1.6;color:var(--color-neutral-600);margin-top:var(--space-3);text-align:center">{{ saveNote }}</p>
+</div>
+</sc-if>
+
+<sc-if value="{{ isTrends }}" hint-placeholder-val="{{ false }}">
+<div>
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Your record</div>
+<h2 style="font-weight:400;font-size:34px;margin:var(--space-1) 0 0">This week</h2>
+
+<div class="card" style="margin-top:var(--space-4)">
+<div style="display:flex;gap:var(--space-2);align-items:flex-end;height:120px">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:var(--space-1);height:100%;justify-content:flex-end"><div style="width:100%;height:46%;border-radius:var(--radius-sm);background:var(--color-accent-300)"></div><div style="font-size:11px;color:var(--color-neutral-600)">Mon</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:var(--space-1);height:100%;justify-content:flex-end"><div style="width:100%;height:28%;border-radius:var(--radius-sm);background:var(--color-accent-200)"></div><div style="font-size:11px;color:var(--color-neutral-600)">Tue</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:var(--space-1);height:100%;justify-content:flex-end"><div style="width:100%;height:74%;border-radius:var(--radius-sm);background:var(--color-accent-600)"></div><div style="font-size:11px;color:var(--color-neutral-600)">Wed</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:var(--space-1);height:100%;justify-content:flex-end"><div style="width:100%;height:60%;border-radius:var(--radius-sm);background:var(--color-accent-400)"></div><div style="font-size:11px;color:var(--color-text)">Thu</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:var(--space-1);height:100%;justify-content:flex-end;opacity:.4"><div style="width:100%;height:12px;border-radius:var(--radius-sm);border:1px dashed var(--color-neutral-400)"></div><div style="font-size:11px;color:var(--color-neutral-600)">Fri</div></div>
+</div>
+<div style="height:1px;background:var(--color-divider)"></div>
+<div style="font-size:14px;line-height:1.6;text-align:justify">Wednesday was your heaviest day. You named <em>workload</em> and <em>no break</em> both times it got heavy.</div>
+</div>
+
+<div class="card" style="margin-top:var(--space-4);border-color:var(--color-accent)">
+<div class="card-kicker">Beyond seven days</div>
+<div class="card-title" style="font-size:20px">See the shape of a whole term.</div>
+<div style="font-size:13.5px;line-height:1.65;color:var(--color-neutral-800);text-align:justify">The free record keeps the last seven days. Tended+ keeps everything: month and term views, October compared to last October, the patterns behind your heavy days, and an export you can hand to a therapist.</div>
+<div style="display:flex;align-items:baseline;gap:var(--space-2)"><div style="font-family:var(--font-heading);font-size:26px;font-feature-settings:'tnum'">$4.99</div><div style="font-size:13px;color:var(--color-neutral-600)">a month · or $39 a year</div></div>
+<button onClick="{{ openPay }}" class="btn btn-primary btn-block" style="height:46px">Try 30 days free</button>
+</div>
+
+<div style="margin-top:var(--space-4);border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:var(--space-4);position:relative;overflow:hidden">
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-neutral-600)">Six weeks · Tended+</div>
+<svg viewBox="0 0 300 90" style="width:100%;height:90px;display:block;margin-top:var(--space-2);opacity:.28">
+<polyline points="6,66 32,58 58,70 84,48 110,54 136,38 162,44 188,28 214,34 240,20 266,26 288,18" fill="none" stroke="#7d5411" stroke-width="1.5" stroke-linejoin="round"></polyline>
+</svg>
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="font-family:var(--font-heading);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-800);background:var(--color-bg);border:1px solid var(--color-accent);border-radius:var(--radius-md);padding:var(--space-2) var(--space-3)">Locked</div></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMap }}" hint-placeholder-val="{{ false }}">
+<div>
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent);font-feature-settings:'tnum'">Anonymous · 4,182 teachers</div>
+<h2 style="font-weight:400;font-size:34px;margin:var(--space-1) 0 0">Your area this week</h2>
+
+<div style="margin-top:var(--space-4);border:1px solid var(--color-divider);border-radius:var(--radius-md);padding:var(--space-3)">
+<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:3px">
+<sc-for list="{{ cells }}" as="c" hint-placeholder-count="48">
+<div style="{{ c.style }}"></div>
+</sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-3)"><div style="font-size:10px;letter-spacing:.08em;color:var(--color-neutral-600)">STEADY</div><div style="flex:1;height:6px;border-radius:2px;background:linear-gradient(90deg,var(--color-accent-100),var(--color-accent-300),var(--color-accent-500),var(--color-accent-700))"></div><div style="font-size:10px;letter-spacing:.08em;color:var(--color-neutral-600)">ROUGH</div></div>
+<div style="font-size:10px;letter-spacing:.08em;color:var(--color-neutral-600);margin-top:var(--space-1)">ZIP TILES · SCHEMATIC, NOT TRUE GEOGRAPHY</div>
+</div>
+
+<div class="card" style="margin-top:var(--space-4)">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><div class="card-title">47404 · your ZIP</div><div style="font-family:var(--font-heading);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-600);font-feature-settings:'tnum'">128 teachers</div></div>
+<div style="font-family:var(--font-heading);font-size:24px;line-height:1.25;font-weight:400">71% logged a hard day this week.</div>
+<div style="height:1px;background:var(--color-divider)"></div>
+<div style="font-size:13.5px;line-height:1.65;color:var(--color-neutral-800);text-align:justify">Most named the same two things you did. Report card week lands the same way across every ZIP that shares your calendar.</div>
+</div>
+
+<div style="margin-top:var(--space-4);font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">What people named here</div>
+<div style="margin-top:var(--space-2);border-top:1px solid var(--color-divider)">
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1;font-size:15px">Workload</div><div style="width:84px;height:6px;background:var(--color-neutral-200);border-radius:2px"><div style="width:88%;height:6px;background:var(--color-accent-600);border-radius:2px"></div></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1;font-size:15px">No break in the day</div><div style="width:84px;height:6px;background:var(--color-neutral-200);border-radius:2px"><div style="width:71%;height:6px;background:var(--color-accent-500);border-radius:2px"></div></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1;font-size:15px">Behaviour support</div><div style="width:84px;height:6px;background:var(--color-neutral-200);border-radius:2px"><div style="width:54%;height:6px;background:var(--color-accent-400);border-radius:2px"></div></div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1;font-size:15px">Admin asks</div><div style="width:84px;height:6px;background:var(--color-neutral-200);border-radius:2px"><div style="width:41%;height:6px;background:var(--color-accent-300);border-radius:2px"></div></div></div>
+</div>
+
+<div class="card" style="margin-top:var(--space-4)">
+<div style="display:flex;align-items:flex-start;gap:var(--space-3)">
+<div style="flex:1"><div class="card-title" style="font-size:16px">Include my check-ins</div><div style="font-size:12.5px;line-height:1.6;color:var(--color-neutral-700);margin-top:2px">ZIP only, never your school. A ZIP needs 40+ teachers before it appears at all.</div></div>
+<div onClick="{{ toggleZip }}" style="{{ zipTrackStyle }}"><div style="{{ zipKnobStyle }}"></div></div>
+</div>
+<div style="font-size:12.5px;color:var(--color-neutral-600)">{{ zipStatus }}</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSupport }}" hint-placeholder-val="{{ false }}">
+<div>
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Support</div>
+<h2 style="font-weight:400;font-size:34px;margin:var(--space-1) 0 0">When you need a person</h2>
+<p style="font-size:14px;line-height:1.6;color:var(--color-neutral-700);margin-top:var(--space-2)">Nothing here tells anyone you looked.</p>
+
+<div class="card" style="margin-top:var(--space-3);border-color:var(--color-accent)">
+<div class="card-kicker">If tonight is the bad kind</div>
+<div class="card-title" style="font-size:19px;font-feature-settings:'tnum'">988 · Suicide &amp; Crisis Lifeline</div>
+<div style="font-size:13.5px;line-height:1.65;color:var(--color-neutral-800)">Free, 24/7, call or text. You don't have to be in crisis to use it.</div>
+<div style="display:flex;gap:var(--space-2)"><button class="btn btn-primary" style="flex:1;height:44px">Call 988</button><button class="btn btn-secondary" style="flex:1;height:44px">Text instead</button></div>
+</div>
+
+<div style="margin-top:var(--space-6);font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Already yours — already paid for</div>
+<div style="margin-top:var(--space-2);border-top:1px solid var(--color-divider)">
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">6 free therapy sessions</div><div style="font-size:12.5px;color:var(--color-neutral-700);margin-top:2px">Your employee assistance program · no referral needed</div></div><div style="font-family:var(--font-heading);color:var(--color-accent);font-size:18px">→</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Find a therapist who takes your plan</div><div style="font-size:12.5px;color:var(--color-neutral-700);margin-top:2px">Filtered for evening and weekend hours</div></div><div style="font-family:var(--font-heading);color:var(--color-accent);font-size:18px">→</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Union member assistance</div><div style="font-size:12.5px;color:var(--color-neutral-700);margin-top:2px">Confidential, and separate from your district</div></div><div style="font-family:var(--font-heading);color:var(--color-accent);font-size:18px">→</div></div>
+<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) 0;border-bottom:1px solid var(--color-divider)"><div style="flex:1"><div style="font-family:var(--font-heading);font-weight:600;font-size:17px">Taking a mental-health day</div><div style="font-size:12.5px;color:var(--color-neutral-700);margin-top:2px">What your contract allows, and how to ask</div></div><div style="font-family:var(--font-heading);color:var(--color-accent);font-size:18px">→</div></div>
+</div>
+
+<div class="card" style="margin-top:var(--space-6)">
+<div class="card-kicker">From Tended Collective</div>
+<div class="card-title" style="font-size:17px">The Safety · guided audio for the drive home</div>
+<div style="font-size:13px;line-height:1.6;color:var(--color-neutral-700)">Free, always. 11 minutes, no talking required.</div>
+</div>
+</div>
+</sc-if>
+
+</div>
+
+<div style="position:absolute;bottom:0;left:0;right:0;height:84px;border-top:1px solid var(--color-divider);background:var(--color-bg);display:flex;align-items:flex-start;padding-top:var(--space-3);z-index:5">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<div onClick="{{ t.onClick }}" style="{{ t.style }}">
+<div style="{{ t.markStyle }}"></div>
+<div style="font-family:var(--font-heading);font-size:13px;letter-spacing:.02em">{{ t.label }}</div>
+</div>
+</sc-for>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:color-mix(in srgb, var(--color-text) 22%, transparent);z-index:6"></div>
+</div></div>
+</div>
+
+<div style="width:520px;padding-top:var(--space-6)">
+<div style="font-family:var(--font-heading);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent)">Simplified build · what's in it</div>
+<h2 style="font-weight:400;font-size:32px;margin:var(--space-2) 0 0">Four screens, one table of data.</h2>
+<p style="font-size:14px;line-height:1.7;color:var(--color-neutral-800);margin-top:var(--space-3);text-align:justify">Everything the app knows is one row per day: a number from one to five, up to three optional tags, a date, and a ZIP. That is the whole schema. The week chart, the ZIP map and the paywall are all views of that one table — no schedule parsing, no notifications engine, no accounts beyond an email.</p>
+<div style="height:1px;background:var(--color-divider);margin:var(--space-6) 0"></div>
+<div style="display:flex;flex-direction:column;gap:var(--space-4)">
+<div><div class="card-kicker">Kept</div><div style="font-size:14px;line-height:1.7;margin-top:var(--space-1)">Daily wellbeing check · seven-day record · anonymous ZIP contribution and map · support tab with EAP, therapist finder, union and 988.</div></div>
+<div><div class="card-kicker">Cut for now</div><div style="font-size:14px;line-height:1.7;margin-top:var(--space-1)">Schedule import, timed reminders, duty rotation, contract-hours tracking, peer circles, breathing tool. All live in <a href="#t2">the earlier version</a> if you want them back later.</div></div>
+<div><div class="card-kicker">The paywall</div><div style="font-size:14px;line-height:1.7;margin-top:var(--space-1)">Seven days free, forever. History, month and term views, year-over-year comparison and export are Tended+ at $4.99/mo — the only thing a teacher can pay for.</div></div>
+<div><div class="card-kicker">Language</div><div style="font-size:14px;line-height:1.7;margin-top:var(--space-1)">No school-y shorthand anywhere: no bells, no staffrooms, no “educator wellness journey.” Plain sentences a tired person can read in one pass.</div></div>
+</div>
+</div>
+
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;zipFloor&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:40,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:10,&quot;max&quot;:200,&quot;step&quot;:5,&quot;section&quot;:&quot;Privacy&quot;},&quot;plusPrice&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;$4.99&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Pricing&quot;}}">
+class Component extends DCLogic {
+  state = { tab: 'today', mood: null, tags: [], saved: false, zip: true, cellSeed: 1 };
+
+  renderVals() {
+    const s = this.state;
+    const tabDefs = [['today', 'Today'], ['trends', 'Record'], ['map', 'Your area'], ['support', 'Support']];
+    const moodLabels = ['Good', 'Okay', 'Worn down', 'Running empty', 'Rough'];
+    const tagLabels = ['Workload', 'No break', 'Behaviour', 'Admin asks', 'Parents', 'Sleep'];
+    const ramp = ['var(--color-accent-100)', 'var(--color-accent-200)', 'var(--color-accent-300)', 'var(--color-accent-400)', 'var(--color-accent-500)', 'var(--color-accent-600)', 'var(--color-accent-700)'];
+    const pattern = [0,0,2,3,2,1,0,0, 0,2,4,5,3,2,1,0, 1,3,6,6,5,3,2,1, 2,5,6,7,4,3,2,1, 0,3,4,4,3,2,2,0, 0,0,2,3,2,1,0,0];
+
+    return {
+      isToday: s.tab === 'today',
+      isTrends: s.tab === 'trends',
+      isMap: s.tab === 'map',
+      isSupport: s.tab === 'support',
+
+      tabs: tabDefs.map(([key, label]) => {
+        const on = s.tab === key;
+        return {
+          label,
+          onClick: () => this.setState({ tab: key }),
+          style: `flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:${on ? 'var(--color-accent-800)' : 'var(--color-neutral-600)'}`,
+          markStyle: `width:22px;height:2px;background:${on ? 'var(--color-accent)' : 'transparent'}`
+        };
+      }),
+
+      moods: moodLabels.map((label, i) => {
+        const on = s.mood === i;
+        return {
+          label, n: i + 1,
+          onClick: () => this.setState({ mood: i, saved: false }),
+          style: `display:flex;align-items:center;gap:var(--space-3);height:60px;padding:0 var(--space-4);border-radius:var(--radius-md);cursor:pointer;border:1px solid ${on ? 'var(--color-accent)' : 'var(--color-divider)'};background:${on ? 'var(--color-accent-100)' : 'transparent'}`
+        };
+      }),
+
+      tags: tagLabels.map((label) => {
+        const on = s.tags.includes(label);
+        return {
+          label,
+          onClick: () => this.setState({ tags: on ? s.tags.filter(t => t !== label) : [...s.tags, label], saved: false }),
+          style: `height:38px;padding:0 var(--space-3);border-radius:var(--radius-md);cursor:pointer;font-size:14px;display:flex;align-items:center;border:1px solid ${on ? 'var(--color-accent)' : 'var(--color-divider)'};background:${on ? 'var(--color-accent-100)' : 'transparent'};color:${on ? 'var(--color-accent-800)' : 'var(--color-text)'}`
+        };
+      }),
+
+      saveLabel: s.saved ? 'Saved for today' : (s.mood === null ? 'Pick one to save' : 'Save today'),
+      saveNote: s.saved ? 'Stored on this phone. Change it any time before midnight.' : 'Stored on this phone. Nobody at your school can see it.',
+      save: () => { if (s.mood !== null) this.setState({ saved: true }); },
+      openPay: () => this.setState({ tab: 'trends' }),
+
+      cells: pattern.map((v) => ({
+        style: v === 0
+          ? 'aspect-ratio:1'
+          : `aspect-ratio:1;border-radius:var(--radius-sm);background:${ramp[v - 1]}`
+      })),
+
+      toggleZip: () => this.setState({ zip: !s.zip }),
+      zipTrackStyle: `width:48px;height:28px;flex:none;border-radius:99px;cursor:pointer;position:relative;transition:background .18s ease,border-color .18s ease;border:1px solid ${s.zip ? 'var(--color-accent)' : 'var(--color-neutral-400)'};background:${s.zip ? 'var(--color-accent-200)' : 'transparent'}`,
+      zipKnobStyle: `position:absolute;top:3px;left:${s.zip ? '23px' : '3px'};width:20px;height:20px;border-radius:50%;transition:left .18s ease;background:${s.zip ? 'var(--color-accent-700)' : 'var(--color-neutral-400)'}`,
+      zipStatus: s.zip ? 'Included since 28 August · 41 check-ins counted' : 'Not included. The map still works; your days stay only here.'
+    };
+  }
+}
+</script>
+</body>
+</html>

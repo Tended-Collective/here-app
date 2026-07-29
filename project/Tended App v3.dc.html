@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><style>
+body{margin:0;background:#eceae5;font-family:-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:oklch(.45 .07 210)}a:hover{color:oklch(.38 .07 210)}
+</style></helmet>
+
+<section style="padding:44px 48px;display:flex;gap:44px;align-items:flex-start">
+
+<div style="display:flex;flex-direction:column;gap:11px">
+<div style="display:flex;align-items:baseline;gap:9px"><span style="font:500 10.5px 'IBM Plex Mono',monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px">4a</span><span style="font-size:12px;color:rgba(0,0,0,.55)">The simplified app in the quiet-paper treatment. Tap the tabs.</span></div>
+
+<div style="width:402px;height:874px;flex:none;border-radius:46px;background:#17161a;padding:10px;box-shadow:0 18px 50px rgba(0,0,0,.22)"><div style="position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:#f6f5f2;color:#191817">
+<div style="position:absolute;top:9px;left:50%;transform:translateX(-50%);width:110px;height:31px;border-radius:20px;background:#17161a;z-index:6"></div>
+<div style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;z-index:5;font-size:13px;font-weight:590"><span>7:41</span><div style="width:24px;height:12px;border:1px solid currentColor;border-radius:3px;padding:1.5px;opacity:.55"><div style="width:72%;height:100%;background:currentColor;border-radius:1px"></div></div></div>
+
+<div style="position:absolute;top:54px;bottom:86px;left:0;right:0;overflow:auto;padding:18px 24px 28px">
+
+<sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8a8579">THURSDAY 9 OCTOBER</div>
+<div style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:38px;line-height:1.08;margin-top:12px">How are you doing, right now?</div>
+
+<div style="display:flex;flex-direction:column;gap:9px;margin-top:24px">
+<sc-for list="{{ moods }}" as="m" hint-placeholder-count="5">
+<div onClick="{{ m.onClick }}" style="{{ m.style }}">
+<div style="{{ m.dotStyle }}"></div>
+<div style="font-size:16.5px;font-weight:600">{{ m.label }}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="margin-top:26px;font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8a8579">WHAT MADE IT THAT WAY · OPTIONAL</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+<sc-for list="{{ tags }}" as="t" hint-placeholder-count="6">
+<div onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</div>
+</sc-for>
+</div>
+
+<button onClick="{{ save }}" style="{{ saveBtnStyle }}">{{ saveLabel }}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isTrends }}" hint-placeholder-val="{{ false }}">
+<div>
+<div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8a8579">YOUR RECORD</div>
+<div style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:38px;line-height:1.08;margin-top:10px">This week</div>
+
+<div style="margin-top:20px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:18px 16px">
+<div style="display:flex;gap:7px;align-items:flex-end;height:124px">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end"><div style="width:100%;height:46%;border-radius:7px;background:oklch(.78 .08 75 / .5)"></div><div style="font:500 10px 'IBM Plex Mono',monospace;color:#a9a49a">MON</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end"><div style="width:100%;height:26%;border-radius:7px;background:oklch(.7 .08 150 / .5)"></div><div style="font:500 10px 'IBM Plex Mono',monospace;color:#a9a49a">TUE</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end"><div style="width:100%;height:76%;border-radius:7px;background:oklch(.6 .1 25 / .5)"></div><div style="font:500 10px 'IBM Plex Mono',monospace;color:#a9a49a">WED</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end"><div style="width:100%;height:58%;border-radius:7px;background:oklch(.7 .09 40 / .5)"></div><div style="font:600 10px 'IBM Plex Mono',monospace;color:#191817">THU</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end;opacity:.4"><div style="width:100%;height:14px;border-radius:7px;border:1.5px dashed rgba(0,0,0,.18)"></div><div style="font:500 10px 'IBM Plex Mono',monospace;color:#a9a49a">FRI</div></div>
+</div>
+<div style="height:1px;background:rgba(0,0,0,.07);margin:16px 0 14px"></div>
+<div style="font-size:14px;line-height:1.5;color:#4a463f">Wednesday was your heaviest day. You named <b style="color:#191817">workload</b> and <b style="color:#191817">no break</b> both times it got heavy.</div>
+</div>
+
+<div style="margin-top:18px;background:#fff;border:1.5px solid oklch(.45 .07 210 / .35);border-radius:18px;padding:20px 18px">
+<div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:oklch(.45 .07 210)">BEYOND SEVEN DAYS</div>
+<div style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:27px;line-height:1.15;margin-top:10px">See the shape of a whole term.</div>
+<div style="font-size:13.5px;line-height:1.55;color:#4a463f;margin-top:10px">The free record keeps your last seven days. Tended+ keeps everything: month and term views, October against last October, the patterns behind your heavy days, and an export you can hand a therapist.</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin-top:16px"><div style="font-family:Newsreader,Georgia,serif;font-size:28px">$4.99</div><div style="font-size:13px;color:#6f6b64">a month · or $39 a year</div></div>
+<button onClick="{{ noop }}" style="width:100%;height:50px;margin-top:14px;border:none;border-radius:14px;background:#191817;color:#fff;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer">Try 30 days free</button>
+</div>
+
+<div style="margin-top:18px;position:relative;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:18px 16px;overflow:hidden">
+<div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#a9a49a">SIX WEEKS · TENDED+</div>
+<svg viewBox="0 0 300 90" style="width:100%;height:90px;display:block;margin-top:10px;opacity:.22">
+<polyline points="6,66 32,58 58,70 84,48 110,54 136,38 162,44 188,28 214,34 240,20 266,26 288,18" fill="none" stroke="oklch(.45 .07 210)" stroke-width="2.2" stroke-linejoin="round"></polyline>
+</svg>
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.12em;color:#6f6b64;background:#f6f5f2;border:1px solid rgba(0,0,0,.1);border-radius:99px;padding:9px 15px">LOCKED</div></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMap }}" hint-placeholder-val="{{ false }}">
+<div>
+<div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8a8579">ANONYMOUS · 4,182 TEACHERS</div>
+<div style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:38px;line-height:1.08;margin-top:10px">Your area this week</div>
+
+<div style="margin-top:20px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:14px">
+<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px">
+<sc-for list="{{ cells }}" as="c" hint-placeholder-count="48">
+<div style="{{ c.style }}"></div>
+</sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:10px;margin-top:14px"><div style="font:500 9.5px 'IBM Plex Mono',monospace;color:#a9a49a">STEADY</div><div style="flex:1;height:7px;border-radius:99px;background:linear-gradient(90deg,oklch(.7 .08 150 / .5),oklch(.74 .08 100 / .5),oklch(.78 .08 75 / .55),oklch(.7 .09 40 / .6),oklch(.6 .1 25 / .65))"></div><div style="font:500 9.5px 'IBM Plex Mono',monospace;color:#a9a49a">ROUGH</div></div>
+<div style="font:500 9px 'IBM Plex Mono',monospace;letter-spacing:.1em;color:#b9b4aa;margin-top:8px">ZIP TILES · SCHEMATIC, NOT TRUE GEOGRAPHY</div>
+</div>
+
+<div style="margin-top:18px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:18px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:16.5px;font-weight:650">47404 · your ZIP</div><div style="font:500 10px 'IBM Plex Mono',monospace;color:#8a8579">128 TEACHERS</div></div>
+<div style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:26px;line-height:1.2;margin-top:10px">71% logged a hard day this week.</div>
+<div style="font-size:13.5px;line-height:1.55;color:#4a463f;margin-top:10px">Most named the same two things you did. Report-card week lands the same way across every ZIP on your calendar.</div>
+</div>
+
+<div style="margin-top:22px;font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8a8579">WHAT PEOPLE NAMED HERE</div>
+<div style="margin-top:12px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:4px 18px">
+<div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.07)"><div style="flex:1;font-size:15px">Workload</div><div style="width:84px;height:7px;border-radius:99px;background:rgba(0,0,0,.08)"><div style="width:88%;height:7px;border-radius:99px;background:oklch(.6 .1 25 / .6)"></div></div></div>
+<div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.07)"><div style="flex:1;font-size:15px">No break in the day</div><div style="width:84px;height:7px;border-radius:99px;background:rgba(0,0,0,.08)"><div style="width:71%;height:7px;border-radius:99px;background:oklch(.7 .09 40 / .6)"></div></div></div>
+<div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.07)"><div style="flex:1;font-size:15px">Behaviour support</div><div style="width:84px;height:7px;border-radius:99px;background:rgba(0,0,0,.08)"><div style="width:54%;height:7px;border-radius:99px;background:oklch(.78 .08 75 / .7)"></div></div></div>
+<div style="display:flex;align-items:center;gap:12px;padding:14px 0"><div style="flex:1;font-size:15px">Admin asks</div><div style="width:84px;height:7px;border-radius:99px;background:rgba(0,0,0,.08)"><div style="width:41%;height:7px;border-radius:99px;background:oklch(.74 .08 100 / .7)"></div></div></div>
+</div>
+
+<div style="margin-top:18px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:18px">
+<div style="display:flex;align-items:flex-start;gap:14px">
+<div style="flex:1"><div style="font-size:15.5px;font-weight:650">Include my check-ins</div><div style="font-size:12.5px;line-height:1.55;color:#6f6b64;margin-top:3px">ZIP only, never your school. A ZIP needs 40+ teachers before it appears at all.</div></div>
+<div onClick="{{ toggleZip }}" style="{{ zipTrackStyle }}"><div style="{{ zipKnobStyle }}"></div></div>
+</div>
+<div style="font-size:12.5px;color:#8a8579;margin-top:12px">{{ zipStatus }}</div>
+</div>
+</div>
+
+<div style="margin-top:26px;display:flex;align-items:center;gap:8px"><div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8a8579">LIVE NEARBY</div><div style="height:20px;padding:0 8px;border-radius:99px;border:1px solid oklch(.45 .07 210 / .4);color:oklch(.45 .07 210);font:500 9px 'IBM Plex Mono',monospace;letter-spacing:.08em;display:flex;align-items:center">EXPLORING</div></div>
+<div style="margin-top:12px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:4px 16px">
+<sc-for list="{{ feed }}" as="f" hint-placeholder-count="4">
+<div style="display:flex;gap:12px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.06)">
+<div style="{{ f.dotStyle }}"></div>
+<div style="flex:1"><div style="font-size:14px;line-height:1.5;color:#191817">{{ f.text }}</div><div style="font:500 9.5px 'IBM Plex Mono',monospace;color:#a9a49a;margin-top:4px">{{ f.meta }}</div></div>
+</div>
+</sc-for>
+<div style="padding:13px 0;font-size:13.5px;color:oklch(.45 .07 210);cursor:pointer">See the last hour</div>
+</div>
+<div style="font-size:12px;line-height:1.6;color:#8a8579;margin-top:10px">A rolling feed of check-ins within 15 miles, stripped of everything but the number and the tag. No names, no free text, nothing you can reply to — so it can't turn into a place to vent about a colleague.</div>
+</sc-if>
+
+<sc-if value="{{ isSupport }}" hint-placeholder-val="{{ false }}">
+<div>
+<div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8a8579">SUPPORT</div>
+<div style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:38px;line-height:1.08;margin-top:10px">Looking after yourself</div>
+
+<div style="margin-top:22px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:18px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:16.5px;font-weight:650">Your practices</div><div style="font:500 10px 'IBM Plex Mono',monospace;color:#8a8579">THIS WEEK</div></div>
+<div style="display:flex;gap:6px;margin-top:14px;padding-left:0"><div style="flex:1"></div><sc-for list="{{ weekDays }}" as="d" hint-placeholder-count="7"><div style="width:26px;text-align:center;font:500 9.5px 'IBM Plex Mono',monospace;color:#a9a49a">{{ d }}</div></sc-for></div>
+<div style="display:flex;flex-direction:column;gap:2px;margin-top:6px">
+<sc-for list="{{ practices }}" as="p" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:6px;padding:9px 0;border-top:1px solid rgba(0,0,0,.06)">
+<div style="flex:1;font-size:14.5px">{{ p.label }}</div>
+<sc-for list="{{ p.days }}" as="d" hint-placeholder-count="7">
+<div onClick="{{ d.onClick }}" style="{{ d.style }}"></div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+<div style="height:1px;background:rgba(0,0,0,.07);margin:14px 0 12px"></div>
+<div style="font-size:13.5px;line-height:1.55;color:#4a463f">{{ practiceNote }}</div>
+<div style="display:flex;gap:8px;margin-top:14px"><div style="height:38px;padding:0 15px;border-radius:99px;border:1px solid rgba(0,0,0,.12);font-size:14px;display:flex;align-items:center;cursor:pointer">Edit my practices</div><div style="height:38px;padding:0 15px;border-radius:99px;border:1px solid rgba(0,0,0,.12);font-size:14px;display:flex;align-items:center;cursor:pointer">Add one</div></div>
+</div>
+
+<div style="margin-top:26px;display:flex;align-items:baseline;justify-content:space-between"><div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8a8579">WORTH READING</div><div style="font-size:13px;color:oklch(.45 .07 210)">All posts</div></div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+<div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;overflow:hidden;display:flex">
+<div style="width:96px;flex:none;background:repeating-linear-gradient(135deg,#eae7e0 0 6px,#f2f0ea 6px 12px);display:flex;align-items:flex-end;padding:6px"><div style="font:500 7.5px 'IBM Plex Mono',monospace;color:#a9a49a">POST IMAGE</div></div>
+<div style="padding:14px 16px"><div style="font:500 9.5px 'IBM Plex Mono',monospace;letter-spacing:.1em;color:#a9a49a">HELD STORIES · 6 MIN</div><div style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:19px;line-height:1.2;margin-top:6px">The year I stopped answering emails after six</div></div>
+</div>
+<div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;overflow:hidden;display:flex">
+<div style="width:96px;flex:none;background:repeating-linear-gradient(135deg,#eae7e0 0 6px,#f2f0ea 6px 12px);display:flex;align-items:flex-end;padding:6px"><div style="font:500 7.5px 'IBM Plex Mono',monospace;color:#a9a49a">POST IMAGE</div></div>
+<div style="padding:14px 16px"><div style="font:500 9.5px 'IBM Plex Mono',monospace;letter-spacing:.1em;color:#a9a49a">THE SAFETY · 11 MIN AUDIO</div><div style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:19px;line-height:1.2;margin-top:6px">Guided audio for the drive home</div></div>
+</div>
+<div style="background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;overflow:hidden;display:flex">
+<div style="width:96px;flex:none;background:repeating-linear-gradient(135deg,#eae7e0 0 6px,#f2f0ea 6px 12px);display:flex;align-items:flex-end;padding:6px"><div style="font:500 7.5px 'IBM Plex Mono',monospace;color:#a9a49a">POST IMAGE</div></div>
+<div style="padding:14px 16px"><div style="font:500 9.5px 'IBM Plex Mono',monospace;letter-spacing:.1em;color:#a9a49a">PRACTICAL · 4 MIN</div><div style="font-family:Newsreader,Georgia,serif;font-weight:400;font-size:19px;line-height:1.2;margin-top:6px">How to ask for a mental-health day</div></div>
+</div>
+</div>
+
+<div style="margin-top:26px;font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8a8579">HELP WHEN YOU NEED IT</div>
+<div style="margin-top:12px;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:2px 16px">
+<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(0,0,0,.07)"><div style="flex:1"><div style="font-size:14.5px;font-weight:600">988 · Suicide &amp; Crisis Lifeline</div><div style="font-size:12px;color:#8a8579;margin-top:1px">Call or text, 24/7</div></div><div style="color:oklch(.45 .07 210);font-size:16px">&#8594;</div></div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(0,0,0,.07)"><div style="flex:1"><div style="font-size:14.5px;font-weight:600">Your EAP · 6 free sessions</div><div style="font-size:12px;color:#8a8579;margin-top:1px">No referral needed</div></div><div style="color:oklch(.45 .07 210);font-size:16px">&#8594;</div></div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(0,0,0,.07)"><div style="flex:1"><div style="font-size:14.5px;font-weight:600">Grow Therapy</div><div style="font-size:12px;color:#8a8579;margin-top:1px">Therapists who take your plan · evenings</div></div><div style="color:oklch(.45 .07 210);font-size:16px">&#8594;</div></div>
+<div style="display:flex;align-items:center;gap:12px;padding:13px 0"><div style="flex:1"><div style="font-size:14.5px;font-weight:600">Union member assistance</div><div style="font-size:12px;color:#8a8579;margin-top:1px">Confidential, separate from your district</div></div><div style="color:oklch(.45 .07 210);font-size:16px">&#8594;</div></div>
+</div>
+<div style="font-size:12px;line-height:1.55;color:#8a8579;margin-top:10px">Nothing here tells anyone you looked.</div>
+</div>
+</sc-if>
+
+</div>
+
+<div style="position:absolute;bottom:0;left:0;right:0;height:86px;border-top:1px solid rgba(0,0,0,.08);background:rgba(246,245,242,.94);backdrop-filter:blur(12px);display:flex;align-items:flex-start;padding-top:14px;z-index:5">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<div onClick="{{ t.onClick }}" style="{{ t.style }}">
+<div style="{{ t.markStyle }}"></div>
+<div style="font-size:12.5px;font-weight:600">{{ t.label }}</div>
+</div>
+</sc-for>
+</div>
+<div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:136px;height:5px;border-radius:99px;background:rgba(0,0,0,.22);z-index:6"></div>
+</div></div>
+</div>
+
+<div style="width:480px;padding-top:22px">
+<div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:#8a8579">QUIET PAPER TREATMENT · SAME SIMPLIFIED APP</div>
+<div style="font-family:Newsreader,Georgia,serif;font-weight:300;font-size:34px;line-height:1.1;margin-top:12px">Four screens, one table of data.</div>
+<div style="font-size:14px;line-height:1.7;color:#4a463f;margin-top:14px">Everything the app knows is one row per day: a number from one to five, up to three optional tags, a date, and a ZIP. The week chart, the map and the paywall are all views of that one table.</div>
+<div style="height:1px;background:rgba(0,0,0,.1);margin:26px 0"></div>
+<div style="display:flex;flex-direction:column;gap:20px">
+<div><div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:oklch(.45 .07 210)">TYPE</div><div style="font-size:14px;line-height:1.7;margin-top:5px">Newsreader at light weight for anything that speaks to the teacher; IBM Plex Mono, uppercase and tracked out, for labels; system sans for interface text.</div></div>
+<div><div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:oklch(.45 .07 210)">COLOR</div><div style="font-size:14px;line-height:1.7;margin-top:5px">Warm off-white ground, white cards, one teal accent for anything interactive. The five-step mood ramp is the only other color and it carries meaning everywhere it appears — bars, tiles, map.</div></div>
+<div><div style="font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.14em;color:oklch(.45 .07 210)">VERSIONS</div><div style="font-size:14px;line-height:1.7;margin-top:5px">This is v3. <a href="Tended%20App%20v2.dc.html">v2</a> is the same app in the Classical serif-and-gold treatment; the fuller system with reminders is in <a href="Teacher%20Wellness%20App.dc.html">the first file</a>.</div></div>
+</div>
+</div>
+
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;plusPrice&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;$4.99&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Pricing&quot;},&quot;zipFloor&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:40,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:10,&quot;max&quot;:200,&quot;step&quot;:5,&quot;section&quot;:&quot;Privacy&quot;}}">
+class Component extends DCLogic {
+  state = {
+    tab: 'today', mood: null, tags: [], saved: false, zip: true,
+    // one row per practice, seven booleans (Mon–Sun); index 3 is today
+    care: [[true, false, true, false, false, false, false], [true, true, true, true, false, false, false], [false, true, false, false, false, false, false]]
+  };
+
+  renderVals() {
+    const s = this.state;
+    const accent = 'oklch(.45 .07 210)';
+    const tabDefs = [['today', 'Today'], ['trends', 'Record'], ['map', 'Your area'], ['support', 'Support']];
+    const moods = [
+      ['Good', 'oklch(.7 .08 150)'],
+      ['Okay', 'oklch(.74 .08 100)'],
+      ['Worn down', 'oklch(.78 .08 75)'],
+      ['Running empty', 'oklch(.7 .09 40)'],
+      ['Rough', 'oklch(.6 .1 25)']
+    ];
+    const tagLabels = ['Workload', 'No break', 'Behaviour', 'Admin asks', 'Parents', 'Sleep'];
+    const ramp = ['oklch(.7 .08 150 / .35)', 'oklch(.7 .08 150 / .55)', 'oklch(.74 .08 100 / .5)', 'oklch(.78 .08 75 / .55)', 'oklch(.7 .09 40 / .5)', 'oklch(.7 .09 40 / .65)', 'oklch(.6 .1 25 / .6)'];
+    const pattern = [0,0,2,3,2,1,0,0, 0,2,4,5,3,2,1,0, 1,3,6,6,5,3,2,1, 2,5,6,7,4,3,2,1, 0,3,4,4,3,2,2,0, 0,0,2,3,2,1,0,0];
+
+    return {
+      noop: () => {},
+      isToday: s.tab === 'today',
+      isTrends: s.tab === 'trends',
+      isMap: s.tab === 'map',
+      isSupport: s.tab === 'support',
+
+      tabs: tabDefs.map(([key, label]) => {
+        const on = s.tab === key;
+        return {
+          label,
+          onClick: () => this.setState({ tab: key }),
+          style: `flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;color:${on ? '#191817' : '#a09b92'}`,
+          markStyle: `width:20px;height:2px;border-radius:2px;background:${on ? accent : 'transparent'}`
+        };
+      }),
+
+      moods: moods.map(([label, color], i) => {
+        const on = s.mood === i;
+        return {
+          label,
+          onClick: () => this.setState({ mood: i, saved: false }),
+          style: `display:flex;align-items:center;gap:15px;height:62px;padding:0 18px;border-radius:16px;cursor:pointer;transition:all .16s ease;background:${on ? '#fff' : 'rgba(255,255,255,.6)'};border:${on ? '2px solid ' + color : '1px solid rgba(0,0,0,.08)'};box-shadow:${on ? '0 2px 12px rgba(0,0,0,.07)' : 'none'}`,
+          dotStyle: `width:22px;height:22px;border-radius:99px;flex:none;background:${color};opacity:${on ? 1 : 0.42}`
+        };
+      }),
+
+      tags: tagLabels.map((label) => {
+        const on = s.tags.includes(label);
+        return {
+          label,
+          onClick: () => this.setState({ tags: on ? s.tags.filter(t => t !== label) : [...s.tags, label], saved: false }),
+          style: `height:36px;padding:0 14px;border-radius:99px;cursor:pointer;font-size:14px;display:flex;align-items:center;transition:all .14s ease;background:${on ? '#191817' : '#fff'};color:${on ? '#fff' : '#4a463f'};font-weight:${on ? 600 : 400};border:1px solid ${on ? '#191817' : 'rgba(0,0,0,.1)'}`
+        };
+      }),
+
+      saveLabel: s.saved ? 'Saved for today' : (s.mood === null ? 'Pick one to save' : 'Save today'),
+      saveNote: s.saved ? 'Stored on this phone. Change it any time before midnight.' : 'Stored on this phone. Nobody at your school can see it.',
+      saveBtnStyle: `width:100%;height:54px;margin-top:26px;border:none;border-radius:15px;font-size:16.5px;font-weight:600;font-family:inherit;cursor:${s.mood === null ? 'default' : 'pointer'};background:${s.mood === null ? 'rgba(0,0,0,.08)' : '#191817'};color:${s.mood === null ? '#8a8579' : '#fff'};transition:all .16s ease`,
+      save: () => { if (s.mood !== null) this.setState({ saved: true }); },
+
+      cells: pattern.map((v) => ({
+        style: v === 0 ? 'aspect-ratio:1' : `aspect-ratio:1;border-radius:5px;background:${ramp[v - 1]}`
+      })),
+
+      weekDays: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+      practices: [
+        { label: 'Eat lunch sitting down', hue: 150 },
+        { label: 'Out of the building by 4', hue: 100 },
+        { label: 'Twenty minutes outside', hue: 75 }
+      ].map((p, pi) => ({
+        label: p.label,
+        days: s.care[pi].map((done, di) => ({
+          onClick: () => {
+            const care = s.care.map(r => r.slice());
+            care[pi][di] = !care[pi][di];
+            this.setState({ care });
+          },
+          style: `width:26px;height:26px;border-radius:99px;flex:none;cursor:pointer;transition:all .15s ease;background:${done ? `oklch(.72 .08 ${p.hue} / .6)` : 'transparent'};border:1px solid ${done ? `oklch(.6 .08 ${p.hue} / .5)` : (di === 3 ? 'rgba(0,0,0,.28)' : 'rgba(0,0,0,.1)')}`
+        }))
+      })),
+      practiceNote: (() => {
+        const done = s.care.reduce((a, r) => a + r.filter(Boolean).length, 0);
+        if (done === 0) return 'Nothing marked yet this week. One is enough to start.';
+        if (done < 5) return `${done} kept this week. Getting out of the building is the one you miss most.`;
+        return `${done} kept this week — your best run since August.`;
+      })(),
+
+      feed: [
+        { hue: 25, text: 'Someone 3 miles away had a rough one.', meta: '2 MIN AGO · TAGGED BEHAVIOUR' },
+        { hue: 40, text: 'Running empty, second day in a row.', meta: '11 MIN AGO · TAGGED WORKLOAD' },
+        { hue: 150, text: 'A good day. First in a while.', meta: '24 MIN AGO · NO TAGS' },
+        { hue: 75, text: 'Worn down — no break again.', meta: '38 MIN AGO · TAGGED NO BREAK' }
+      ].map(f => ({
+        text: f.text, meta: f.meta,
+        dotStyle: `width:10px;height:10px;border-radius:99px;flex:none;margin-top:6px;background:oklch(.7 .09 ${f.hue} / .65)`
+      })),
+
+      toggleZip: () => this.setState({ zip: !s.zip }),
+      zipTrackStyle: `width:48px;height:28px;flex:none;border-radius:99px;cursor:pointer;position:relative;transition:background .18s ease;background:${s.zip ? accent : 'rgba(0,0,0,.14)'}`,
+      zipKnobStyle: `position:absolute;top:3px;left:${s.zip ? '23px' : '3px'};width:22px;height:22px;border-radius:99px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .18s ease`,
+      zipStatus: s.zip ? 'Included since 28 August · 41 check-ins counted' : 'Not included. The map still works; your days stay only here.'
+    };
+  }
+}
+</script>
+</body>
+</html>
