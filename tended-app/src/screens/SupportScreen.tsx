@@ -3,8 +3,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { PracticeEditor } from '../components/PracticeEditor';
 import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, Divider, MonoLabel } from '../components/ui';
-import { HELP_LINES, POSTS } from '../data/mock';
+import { HELP_LINES, POSTS, SITE } from '../data/mock';
 import { WEEKDAY_INITIALS, weekDates, weekdayIndex } from '../lib/dates';
+import { openLink } from '../lib/links';
 import { useStore } from '../store';
 import { color, radius } from '../theme';
 
@@ -116,12 +117,24 @@ export function SupportScreen() {
 
       <View style={styles.sectionHead}>
         <MonoLabel>WORTH READING</MonoLabel>
-        <Text style={styles.link}>All posts</Text>
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel="All posts on tendedcollective.com"
+          onPress={() => openLink(SITE.blog)}
+          hitSlop={8}
+        >
+          <Text style={styles.link}>All posts</Text>
+        </Pressable>
       </View>
 
       <View style={styles.posts}>
         {POSTS.map((post) => (
-          <Pressable key={post.id} accessibilityRole="button">
+          <Pressable
+            key={post.id}
+            accessibilityRole="link"
+            accessibilityLabel={`${post.title}, opens tendedcollective.com`}
+            onPress={() => openLink(post.url)}
+          >
             <Card style={styles.postCard}>
               <StripedPlaceholder />
               <View style={styles.postCopy}>
@@ -139,19 +152,36 @@ export function SupportScreen() {
 
       <MonoLabel style={{ marginTop: 26 }}>HELP WHEN YOU NEED IT</MonoLabel>
       <Card style={styles.helpCard}>
-        {HELP_LINES.map((line, i) => (
-          <Pressable
-            key={line.id}
-            accessibilityRole="button"
-            style={[styles.helpRow, i < HELP_LINES.length - 1 && styles.helpDivider]}
-          >
-            <View style={styles.helpCopy}>
-              <Text style={styles.helpTitle}>{line.title}</Text>
-              <Text style={styles.helpSub}>{line.sub}</Text>
+        {HELP_LINES.map((line, i) => {
+          const divider = i < HELP_LINES.length - 1 && styles.helpDivider;
+          const copy = (
+            <>
+              <View style={styles.helpCopy}>
+                <Text style={styles.helpTitle}>{line.title}</Text>
+                <Text style={styles.helpSub}>{line.sub}</Text>
+              </View>
+              {line.href && <Text style={styles.helpArrow}>→</Text>}
+            </>
+          );
+
+          // A line without an href has nowhere to go — the EAP is your
+          // district's. It reads as text rather than pretending to be a button.
+          return line.href ? (
+            <Pressable
+              key={line.id}
+              accessibilityRole="link"
+              accessibilityLabel={line.title}
+              onPress={() => openLink(line.href!)}
+              style={[styles.helpRow, divider]}
+            >
+              {copy}
+            </Pressable>
+          ) : (
+            <View key={line.id} style={[styles.helpRow, divider]}>
+              {copy}
             </View>
-            <Text style={styles.helpArrow}>→</Text>
-          </Pressable>
-        ))}
+          );
+        })}
       </Card>
       <Body size={12} tone={color.label} style={{ marginTop: 10 }}>
         Nothing here tells anyone you looked.

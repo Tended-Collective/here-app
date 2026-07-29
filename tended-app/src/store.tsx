@@ -50,6 +50,14 @@ function defaultPractices(): Practice[] {
   ];
 }
 
+/** One sentence the teacher posted to the nearby feed. */
+export type Update = {
+  id: string;
+  text: string;
+  /** Epoch milliseconds, so the feed can age the label as time passes. */
+  at: number;
+};
+
 type Persisted = {
   entries: Record<ISODate, Entry>;
   /** The practices this teacher is tracking — editable, not fixed by the design. */
@@ -58,9 +66,23 @@ type Persisted = {
   practiceDays: Record<string, ISODate[]>;
   /** One switch governs both the ZIP map and the live nearby feed. */
   contributing: boolean;
+  /** The teacher's own updates. Newest first. */
+  updates: Update[];
+  /**
+   * Which reactions this teacher has sent, keyed by the update they were sent
+   * to. The sample feed's own counts live in data/mock.ts; these add to them.
+   */
+  reactions: Record<string, string[]>;
 };
 
-const EMPTY: Persisted = { entries: {}, practices: [], practiceDays: {}, contributing: true };
+const EMPTY: Persisted = {
+  entries: {},
+  practices: [],
+  practiceDays: {},
+  contributing: true,
+  updates: [],
+  reactions: {},
+};
 
 /**
  * First-run sample week, so a fresh install opens on the record the design shows
@@ -97,7 +119,7 @@ function seed(): Persisted {
     practiceDays[p.id] = week.filter((_, di) => di <= today && kept[pi][di]);
   });
 
-  return { entries, practices, practiceDays, contributing: true };
+  return { ...EMPTY, entries, practices, practiceDays, contributing: true };
 }
 
 type StoreValue = Persisted & {
@@ -108,7 +130,13 @@ type StoreValue = Persisted & {
   addPractice: (label: string) => void;
   removePractice: (practiceId: string) => void;
   setContributing: (on: boolean) => void;
+  postUpdate: (text: string) => void;
+  removeUpdate: (id: string) => void;
+  toggleReaction: (updateId: string, reactionId: string) => void;
 };
+
+/** Long enough for a sentence, short enough that it stays one. */
+export const UPDATE_MAX_LENGTH = 140;
 
 const StoreContext = createContext<StoreValue | null>(null);
 
@@ -187,6 +215,31 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           };
         }),
       setContributing: (on) => update((prev) => ({ ...prev, contributing: on })),
+      postUpdate: (text) =>
+        update((prev) => {
+          const trimmed = text.trim().slice(0, UPDATE_MAX_LENGTH);
+          if (!trimmed) return prev;
+          const entry: Update = {
+            id: `u${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+            text: trimmed,
+            at: Date.now(),
+          };
+          return { ...prev, updates: [entry, ...prev.updates] };
+        }),
+      removeUpdate: (id) =>
+        update((prev) => ({ ...prev, updates: prev.updates.filter((u) => u.id !== id) })),
+      toggleReaction: (updateId, reactionId) =>
+        update((prev) => {
+          const current = prev.reactions[updateId] ?? [];
+          const next = current.includes(reactionId)
+            ? current.filter((r) => r !== reactionId)
+            : [...current, reactionId];
+          const reactions = { ...prev.reactions };
+          // Drop the key entirely rather than leaving an empty array behind.
+          if (next.length === 0) delete reactions[updateId];
+          else reactions[updateId] = next;
+          return { ...prev, reactions };
+        }),
     }),
     [data, hydrated, update],
   );

@@ -1,9 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { NearbyFeed } from '../components/NearbyFeed';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
 import { Toggle } from '../components/Toggle';
-import { AREA, HEAT_CELLS, NAMED_CAUSES, NEARBY_FEED } from '../data/mock';
+import { AREA, HEAT_CELLS, NAMED_CAUSES } from '../data/mock';
 import { useStore } from '../store';
 import { color, HEAT_LEGEND, HEAT_RAMP, radius } from '../theme';
 
@@ -112,38 +113,12 @@ export function AreaScreen() {
         </View>
       </View>
 
-      <Card style={styles.feedCard}>
-        {contributing ? (
-          <>
-            {NEARBY_FEED.map((item) => (
-              <View key={item.id} style={[styles.feedRow, styles.feedDivider]}>
-                <View style={[styles.feedDot, { backgroundColor: item.dot }]} />
-                <View style={styles.feedCopy}>
-                  <Text style={styles.feedText}>{item.text}</Text>
-                  <MonoLabel size={9.5} em={0} tone={color.faint} style={{ marginTop: 4 }}>
-                    {item.meta}
-                  </MonoLabel>
-                </View>
-              </View>
-            ))}
-            <Pressable accessibilityRole="button" style={styles.feedMore}>
-              <Text style={styles.feedMoreLabel}>See the last hour</Text>
-            </Pressable>
-          </>
-        ) : (
-          <View style={styles.feedOff}>
-            <Body size={13.5} tone={color.muted}>
-              The nearby feed reads from the same pool as the map. Turn on “Include my check-ins”
-              to see it.
-            </Body>
-          </View>
-        )}
-      </Card>
+      <NearbyFeed />
 
       <Body size={12} lineHeight={1.6} tone={color.label} style={{ marginTop: 10 }}>
-        A rolling feed of check-ins within 15 miles, stripped of everything but the number and the
-        tag. No names, no free text, nothing you can reply to — so it can’t turn into a place to
-        vent about a colleague.
+        A rolling feed from teachers within 15 miles: one sentence each, and three ways to answer.
+        No names on anything, and no replies — a reaction is all you can send, so it can’t turn
+        into a place to argue or to vent about a colleague.
       </Body>
     </View>
   );
@@ -256,43 +231,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: color.accentBorderSoft,
     justifyContent: 'center',
-  },
-  feedCard: {
-    marginTop: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-  },
-  feedRow: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingVertical: 14,
-  },
-  feedDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: color.rule,
-  },
-  feedDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 99,
-    marginTop: 6,
-  },
-  feedCopy: {
-    flex: 1,
-  },
-  feedText: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: color.ink,
-  },
-  feedMore: {
-    paddingVertical: 13,
-  },
-  feedMoreLabel: {
-    fontSize: 13.5,
-    color: color.accent,
-  },
-  feedOff: {
-    paddingVertical: 16,
   },
 });

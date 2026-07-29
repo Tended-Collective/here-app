@@ -179,6 +179,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: color.ink,
     backgroundColor: color.card,
+    // Matches the feed composer: accent focus ring rather than the web
+    // build's default black one.
+    outlineColor: color.accent,
+    outlineWidth: 2,
+    outlineOffset: 1,
   },
   addButton: {
     height: 44,

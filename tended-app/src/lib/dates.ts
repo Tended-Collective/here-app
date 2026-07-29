@@ -47,5 +47,19 @@ export function weekdayName(iso: ISODate): string {
   return new Date(y, m - 1, day).toLocaleDateString('en-GB', { weekday: 'long' });
 }
 
+/**
+ * "JUST NOW" / "6 MIN AGO" / "2 HR AGO", to sit beside the sample feed's own
+ * mono meta line. Takes epoch milliseconds, as the store records them.
+ */
+export function timeAgoLabel(at: number, now: number = Date.now()): string {
+  const minutes = Math.floor(Math.max(0, now - at) / 60_000);
+  if (minutes < 1) return 'JUST NOW';
+  if (minutes < 60) return `${minutes} MIN AGO`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} HR AGO`;
+  const days = Math.floor(hours / 24);
+  return days === 1 ? 'YESTERDAY' : `${days} DAYS AGO`;
+}
+
 export const WEEKDAY_INITIALS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 export const WEEKDAY_SHORT = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
