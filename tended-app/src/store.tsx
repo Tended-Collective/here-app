@@ -27,37 +27,40 @@ export type Practice = {
   border: string;
 };
 
-/** The three practices the user set up during onboarding. */
-export const PRACTICES: Practice[] = [
-  {
-    id: 'lunch',
-    label: 'Eat lunch sitting down',
-    fill: 'rgba(128,179,138,0.6)', //  oklch(.72 .08 150 / .6)
-    border: 'rgba(92,142,103,0.5)', // oklch(.6 .08 150 / .5)
-  },
-  {
-    id: 'leave',
-    label: 'Out of the building by 4',
-    fill: 'rgba(176,166,107,0.6)',
-    border: 'rgba(139,129,71,0.5)',
-  },
-  {
-    id: 'outside',
-    label: 'Twenty minutes outside',
-    fill: 'rgba(194,158,107,0.6)',
-    border: 'rgba(156,121,71,0.5)',
-  },
+/**
+ * Five tints at the practice ramp's own recipe — oklch(.72 .08 H) fill over
+ * oklch(.6 .08 H) border — one step past the three hues the design specified
+ * (150/100/75), so a practice added beyond the original three still reads as
+ * part of the same system rather than reaching for an arbitrary colour.
+ */
+const PRACTICE_PALETTE: { fill: string; border: string }[] = [
+  { fill: 'rgba(128,179,138,0.6)', border: 'rgba(92,142,103,0.5)' }, // 150
+  { fill: 'rgba(176,166,107,0.6)', border: 'rgba(139,129,71,0.5)' }, // 100
+  { fill: 'rgba(194,158,107,0.6)', border: 'rgba(156,121,71,0.5)' }, // 75
+  { fill: 'rgba(209,148,127,0.6)', border: 'rgba(170,112,91,0.5)' }, // 40
+  { fill: 'rgba(210,145,139,0.6)', border: 'rgba(171,109,104,0.5)' }, // 25
 ];
+
+/** The three practices the user set up during onboarding — the seed default. */
+function defaultPractices(): Practice[] {
+  return [
+    { id: 'lunch', label: 'Eat lunch sitting down', ...PRACTICE_PALETTE[0] },
+    { id: 'leave', label: 'Out of the building by 4', ...PRACTICE_PALETTE[1] },
+    { id: 'outside', label: 'Twenty minutes outside', ...PRACTICE_PALETTE[2] },
+  ];
+}
 
 type Persisted = {
   entries: Record<ISODate, Entry>;
+  /** The practices this teacher is tracking — editable, not fixed by the design. */
+  practices: Practice[];
   /** practice id → the dates it was kept. */
   practiceDays: Record<string, ISODate[]>;
   /** One switch governs both the ZIP map and the live nearby feed. */
   contributing: boolean;
 };
 
-const EMPTY: Persisted = { entries: {}, practiceDays: {}, contributing: true };
+const EMPTY: Persisted = { entries: {}, practices: [], practiceDays: {}, contributing: true };
 
 /**
  * First-run sample week, so a fresh install opens on the record the design shows
@@ -88,12 +91,13 @@ function seed(): Persisted {
     [true, true, true, true, false, false, false],
     [false, true, false, false, false, false, false],
   ];
+  const practices = defaultPractices();
   const practiceDays: Record<string, ISODate[]> = {};
-  PRACTICES.forEach((p, pi) => {
+  practices.forEach((p, pi) => {
     practiceDays[p.id] = week.filter((_, di) => di <= today && kept[pi][di]);
   });
 
-  return { entries, practiceDays, contributing: true };
+  return { entries, practices, practiceDays, contributing: true };
 }
 
 type StoreValue = Persisted & {
@@ -101,6 +105,8 @@ type StoreValue = Persisted & {
   saveCheckIn: (score: number, tags: string[]) => void;
   clearCheckIn: () => void;
   togglePracticeDay: (practiceId: string, date: ISODate) => void;
+  addPractice: (label: string) => void;
+  removePractice: (practiceId: string) => void;
   setContributing: (on: boolean) => void;
 };
 
@@ -161,6 +167,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ? current.filter((d) => d !== date)
             : [...current, date];
           return { ...prev, practiceDays: { ...prev.practiceDays, [practiceId]: next } };
+        }),
+      addPractice: (label) =>
+        update((prev) => {
+          const trimmed = label.trim();
+          if (!trimmed) return prev;
+          const id = `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+          const tint = PRACTICE_PALETTE[prev.practices.length % PRACTICE_PALETTE.length];
+          return { ...prev, practices: [...prev.practices, { id, label: trimmed, ...tint }] };
+        }),
+      removePractice: (practiceId) =>
+        update((prev) => {
+          const practiceDays = { ...prev.practiceDays };
+          delete practiceDays[practiceId];
+          return {
+            ...prev,
+            practices: prev.practices.filter((p) => p.id !== practiceId),
+            practiceDays,
+          };
         }),
       setContributing: (on) => update((prev) => ({ ...prev, contributing: on })),
     }),

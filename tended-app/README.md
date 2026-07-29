@@ -47,11 +47,20 @@ comment so the ramp can be retuned against the design. The accent `oklch(.45 .07
 CSS `letter-spacing` is em-relative and React Native's is absolute, so `monoLabel()` multiplies the
 em value through by the font size.
 
-**What is real and what is sample data.** Check-ins and practice ticks are the user's own — they
+**What is real and what is sample data.** Check-ins and practices are the user's own — they
 persist to `AsyncStorage` under `tended.v1` and genuinely drive the week chart, the insight line,
 the save-button state and the practice note. The heatmap, the ZIP card, the named causes, the
 nearby feed and the reading list are fixed sample content standing in for what a backend would
 return.
+
+**The practice editor.** The prototype has no screen behind "Edit my practices" / "Add one" — it
+assumes the three practices were chosen once, at an onboarding this simplified app never built.
+`src/components/PracticeEditor.tsx` is the minimum needed to make both buttons real: a sheet to
+remove a practice or add one, built from the app's own card/pill/divider vocabulary rather than a
+new visual language. Practices now live in the store (`practices: Practice[]`), not as a fixed
+constant; a practice added beyond the original three is assigned the next tint in a five-hue
+palette computed at the same recipe as the design's three (`oklch(.72 .08 H)` fill over
+`oklch(.6 .08 H)` border), so it still reads as part of the same system.
 
 **First run.** `SEED_FIRST_RUN` in `src/store.tsx` seeds this week's earlier weekdays with the
 design's sample week so a fresh install opens on a populated record rather than an empty chart.
@@ -64,6 +73,6 @@ derived from the real date, and the record runs the school week, Monday to Frida
 governs both the ZIP map and the live feed; with it off, the feed card explains that it reads from
 the same pool. Splitting it into a second toggle would be a small change in `AreaScreen`.
 
-**Not designed, so not built.** "Edit my practices" and "Add one" on the Support tab, "All posts",
-"See the last hour", the help-list rows and "Try 30 days free" are present and pressable as in the
-prototype, but there are no screens behind them in the design.
+**Not designed, so not built.** "All posts", "See the last hour", the help-list rows and "Try 30
+days free" are present and pressable as in the prototype, but there are no screens behind them in
+the design.
