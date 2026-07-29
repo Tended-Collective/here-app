@@ -1,0 +1,118 @@
+/**
+ * Design tokens for the "quiet paper" treatment (Tended App v3).
+ *
+ * The prototype was authored in OKLCH, which React Native cannot parse, so every
+ * colour below is the sRGB conversion of its OKLCH source. The source value is
+ * kept in a comment so the ramp can be retuned against the original design.
+ */
+
+export const color = {
+  /** Canvas behind the device frame on wide screens. */
+  canvas: '#eceae5',
+  device: '#17161a',
+
+  /** Warm off-white ground. */
+  ground: '#f6f5f2',
+  card: '#ffffff',
+  /** Unselected mood rows sit between the ground and a full white card. */
+  cardSoft: 'rgba(255,255,255,0.6)',
+
+  ink: '#191817',
+  body: '#4a463f',
+  muted: '#6f6b64',
+  label: '#8a8579',
+  faint: '#a9a49a',
+  fainter: '#b9b4aa',
+  tabIdle: '#a09b92',
+
+  hairline: 'rgba(0,0,0,0.08)',
+  divider: 'rgba(0,0,0,0.07)',
+  rule: 'rgba(0,0,0,0.06)',
+  outline: 'rgba(0,0,0,0.1)',
+  outlineStrong: 'rgba(0,0,0,0.12)',
+  track: 'rgba(0,0,0,0.08)',
+
+  /** The one interactive accent — oklch(.45 .07 210). */
+  accent: '#17606b',
+  accentBorder: 'rgba(23,96,107,0.35)',
+  accentBorderSoft: 'rgba(23,96,107,0.4)',
+} as const;
+
+export type Mood = {
+  label: string;
+  /** Solid swatch — used for the selection ring and the row dot. */
+  color: string;
+  /** Same hue at the alpha the charts use. */
+  fill: string;
+};
+
+/**
+ * The five-step ramp. Index 0 is the best day; the stored score is index + 1, so
+ * the persisted table matches the design note's "a number from one to five".
+ */
+export const MOODS: Mood[] = [
+  { label: 'Good', color: '#7aad84', fill: 'rgba(122,173,132,0.5)' }, //     oklch(.7 .08 150)
+  { label: 'Okay', color: '#b6ac71', fill: 'rgba(182,172,113,0.5)' }, //     oklch(.74 .08 100)
+  { label: 'Worn down', color: '#d6b17d', fill: 'rgba(214,177,125,0.5)' }, // oklch(.78 .08 75)
+  { label: 'Running empty', color: '#cf8b74', fill: 'rgba(207,139,116,0.5)' }, // oklch(.7 .09 40)
+  { label: 'Rough', color: '#b46762', fill: 'rgba(180,103,98,0.5)' }, //     oklch(.6 .1 25)
+];
+
+export const TAGS = ['Workload', 'No break', 'Behaviour', 'Admin asks', 'Parents', 'Sleep'];
+
+/** Seven-step ramp for the ZIP heatmap tiles. Cell value 0 renders nothing. */
+export const HEAT_RAMP = [
+  'rgba(122,173,132,0.35)',
+  'rgba(122,173,132,0.55)',
+  'rgba(182,172,113,0.5)',
+  'rgba(214,177,125,0.55)',
+  'rgba(207,139,116,0.5)',
+  'rgba(207,139,116,0.65)',
+  'rgba(180,103,98,0.6)',
+];
+
+/** Steady → rough, for the legend under the heatmap. */
+export const HEAT_LEGEND = [
+  'rgba(122,173,132,0.5)',
+  'rgba(182,172,113,0.5)',
+  'rgba(214,177,125,0.55)',
+  'rgba(207,139,116,0.6)',
+  'rgba(180,103,98,0.65)',
+];
+
+export const font = {
+  displayLight: 'Newsreader_300Light',
+  displayRegular: 'Newsreader_400Regular',
+  mono: 'IBMPlexMono_500Medium',
+  monoBold: 'IBMPlexMono_600SemiBold',
+} as const;
+
+/**
+ * The prototype's tracked-out mono labels. CSS letter-spacing is em-relative and
+ * React Native's is absolute, so the em value is multiplied through by the size.
+ */
+export function monoLabel(size = 10, em = 0.14, bold = false) {
+  return {
+    fontFamily: bold ? font.monoBold : font.mono,
+    fontSize: size,
+    letterSpacing: size * em,
+  } as const;
+}
+
+export const radius = {
+  card: 18,
+  row: 16,
+  button: 15,
+  tile: 5,
+  bar: 7,
+  pill: 99,
+} as const;
+
+/** Content inset inside the phone's scroll area. */
+export const SCREEN_PADDING = { paddingHorizontal: 24, paddingTop: 18, paddingBottom: 28 } as const;
+
+/** Device metrics from the design canvas. */
+export const DEVICE = { width: 402, height: 874, radius: 46, bezel: 10, screenRadius: 37 } as const;
+
+export const TAB_BAR_HEIGHT = 86;
+export const STATUS_BAR_HEIGHT = 54;

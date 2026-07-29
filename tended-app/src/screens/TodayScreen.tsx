@@ -1,0 +1,169 @@
+import React, { useEffect, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Display, MonoLabel } from '../components/ui';
+import { longDateLabel, todayISO } from '../lib/dates';
+import { useStore } from '../store';
+import { color, MOODS, radius, TAGS } from '../theme';
+
+const sameTags = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((t) => b.includes(t));
+
+export function TodayScreen() {
+  const { entries, hydrated, saveCheckIn } = useStore();
+  const stored = entries[todayISO()];
+
+  const [mood, setMood] = useState<number | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [restored, setRestored] = useState(false);
+
+  // The store hydrates from disk after first paint, so today's saved check-in is
+  // pulled into the form once — after that the form owns the selection.
+  useEffect(() => {
+    if (!hydrated || restored) return;
+    if (stored) {
+      setMood(stored.score - 1);
+      setTags(stored.tags);
+    }
+    setRestored(true);
+  }, [hydrated, restored, stored]);
+
+  const saved = !!stored && mood !== null && stored.score === mood + 1 && sameTags(stored.tags, tags);
+  const label = saved ? 'Saved for today' : mood === null ? 'Pick one to save' : 'Save today';
+
+  const toggleTag = (tag: string) =>
+    setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+
+  return (
+    <View>
+      <MonoLabel>{longDateLabel()}</MonoLabel>
+      <Display style={{ marginTop: 12 }}>How are you doing, right now?</Display>
+
+      <View style={styles.moods}>
+        {MOODS.map((m, i) => {
+          const on = mood === i;
+          return (
+            <Pressable
+              key={m.label}
+              onPress={() => setMood(i)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: on }}
+              accessibilityLabel={m.label}
+              style={[
+                styles.moodRow,
+                {
+                  backgroundColor: on ? color.card : color.cardSoft,
+                  borderWidth: on ? 2 : 1,
+                  borderColor: on ? m.color : color.hairline,
+                  boxShadow: on ? '0 2px 12px rgba(0,0,0,0.07)' : undefined,
+                },
+              ]}
+            >
+              <View
+                style={[styles.moodDot, { backgroundColor: m.color, opacity: on ? 1 : 0.42 }]}
+              />
+              <Text style={styles.moodLabel}>{m.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <MonoLabel style={{ marginTop: 26 }}>WHAT MADE IT THAT WAY · OPTIONAL</MonoLabel>
+      <View style={styles.tags}>
+        {TAGS.map((tag) => {
+          const on = tags.includes(tag);
+          return (
+            <Pressable
+              key={tag}
+              onPress={() => toggleTag(tag)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: on }}
+              style={[
+                styles.tag,
+                {
+                  backgroundColor: on ? color.ink : color.card,
+                  borderColor: on ? color.ink : color.outline,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.tagLabel,
+                  { color: on ? '#fff' : color.body, fontWeight: on ? '600' : '400' },
+                ]}
+              >
+                {tag}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Pressable
+        onPress={() => mood !== null && saveCheckIn(mood + 1, tags)}
+        disabled={mood === null}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: mood === null }}
+        style={[
+          styles.save,
+          { backgroundColor: mood === null ? color.track : color.ink },
+        ]}
+      >
+        <Text style={[styles.saveLabel, { color: mood === null ? color.label : '#fff' }]}>
+          {label}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  moods: {
+    marginTop: 24,
+    gap: 9,
+  },
+  moodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+    height: 62,
+    paddingHorizontal: 18,
+    borderRadius: radius.row,
+  },
+  moodDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 99,
+  },
+  moodLabel: {
+    fontSize: 16.5,
+    fontWeight: '600',
+    color: color.ink,
+  },
+  tags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  tag: {
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    justifyContent: 'center',
+  },
+  tagLabel: {
+    fontSize: 14,
+  },
+  save: {
+    height: 54,
+    marginTop: 26,
+    borderRadius: radius.button,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveLabel: {
+    fontSize: 16.5,
+    fontWeight: '600',
+  },
+});
