@@ -155,31 +155,67 @@ export const POSTS = [
 ];
 
 /**
- * Crisis first, then somewhere to actually go. A line with an `href` opens it;
- * one without is there to be read — the EAP is your district's, so the app has
- * no address for it and doesn't pretend to.
+ * The crisis block. Deliberately separate from the sponsored shelf below and
+ * never sold: someone reaching for 988 should not have to work out which row
+ * on the screen was paid for.
+ *
+ * A line with an `href` opens it; one without is there to be read — the EAP is
+ * your district's, so the app has no address for it and doesn't pretend to.
  */
-export const HELP_LINES: { id: string; title: string; sub: string; href?: string }[] = [
+export const CRISIS_LINES: { id: string; title: string; sub: string; href?: string }[] = [
   {
     id: '988',
     title: '988 · Suicide & Crisis Lifeline',
     sub: 'Call or text, 24/7',
     href: 'tel:988',
   },
-  {
-    id: 'tended',
-    title: 'Tended Collective · free therapy resources',
-    sub: 'Low-cost and free options, gathered for teachers',
-    href: SITE.freeTherapyResources,
-  },
-  {
-    id: 'grow',
-    title: 'Grow Therapy',
-    sub: 'Therapists who take your plan · evenings',
-    href: 'https://growtherapy.com',
-  },
   { id: 'eap', title: 'Your EAP · 6 free sessions', sub: 'No referral needed' },
 ];
+
+/**
+ * Tended Collective's own shelf. Always the first row of the support section
+ * and never part of the inventory, so there is one place in there that is
+ * editorial rather than bought.
+ */
+export const RESOURCE_LINK = {
+  title: 'Tended Collective · free therapy resources',
+  sub: 'Low-cost and free options, gathered for teachers',
+  href: SITE.freeTherapyResources,
+};
+
+export type Sponsor = {
+  id: string;
+  /** Named on the card — a placement is only honest if you can see whose it is. */
+  advertiser: string;
+  title: string;
+  sub: string;
+  href: string;
+};
+
+/** How many placements the section holds. Unsold ones show as available. */
+export const AD_SLOTS = 3;
+
+/**
+ * Sold placements, in order. Every one renders under a SPONSORED label:
+ * a paid recommendation sitting in a mental-health app has to say so, and in
+ * the US the FTC requires the disclosure to be clear and conspicuous.
+ */
+export const SPONSORS: Sponsor[] = [
+  {
+    id: 'grow',
+    advertiser: 'Grow Therapy',
+    title: 'Therapists who take your plan',
+    sub: 'Evenings and weekends · most major insurance',
+    href: 'https://growtherapy.com',
+  },
+];
+
+/**
+ * Draw the unsold slots as visible inventory. Useful while the space is being
+ * sold; set false to ship, where an empty slot should simply collapse rather
+ * than advertise that nobody bought it.
+ */
+export const SHOW_UNSOLD_SLOTS = true;
 
 export const PRICING = {
   price: '$4.99',

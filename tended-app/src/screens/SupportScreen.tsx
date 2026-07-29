@@ -3,7 +3,16 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSheets } from '../components/Sheet';
 import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, Divider, MonoLabel } from '../components/ui';
-import { HELP_LINES, POSTS, SITE } from '../data/mock';
+import {
+  AD_SLOTS,
+  CRISIS_LINES,
+  POSTS,
+  RESOURCE_LINK,
+  SHOW_UNSOLD_SLOTS,
+  SITE,
+  Sponsor,
+  SPONSORS,
+} from '../data/mock';
 import { WEEKDAY_INITIALS, weekDates, weekdayIndex } from '../lib/dates';
 import { openLink } from '../lib/links';
 import { useStore } from '../store';
@@ -143,10 +152,10 @@ export function SupportScreen() {
         ))}
       </View>
 
-      <MonoLabel style={{ marginTop: 26 }}>HELP WHEN YOU NEED IT</MonoLabel>
+      <MonoLabel style={{ marginTop: 26 }}>IF IT’S URGENT</MonoLabel>
       <Card style={styles.helpCard}>
-        {HELP_LINES.map((line, i) => {
-          const divider = i < HELP_LINES.length - 1 && styles.helpDivider;
+        {CRISIS_LINES.map((line, i) => {
+          const divider = i < CRISIS_LINES.length - 1 && styles.helpDivider;
           const copy = (
             <>
               <View style={styles.helpCopy}>
@@ -176,9 +185,81 @@ export function SupportScreen() {
           );
         })}
       </Card>
-      <Body size={12} tone={color.label} style={{ marginTop: 10 }}>
-        Nothing here tells anyone you looked.
+
+      <MonoLabel style={{ marginTop: 26 }}>HELP WHEN YOU NEED IT</MonoLabel>
+
+      {/* Tended Collective's own shelf holds the first slot and is never sold,
+          so the section opens on something editorial rather than bought. */}
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={RESOURCE_LINK.title}
+        onPress={() => openLink(RESOURCE_LINK.href)}
+      >
+        <Card style={styles.resourceCard}>
+          <View style={styles.helpCopy}>
+            <Text style={styles.helpTitle}>{RESOURCE_LINK.title}</Text>
+            <Text style={styles.helpSub}>{RESOURCE_LINK.sub}</Text>
+          </View>
+          <Text style={styles.helpArrow}>→</Text>
+        </Card>
+      </Pressable>
+
+      {Array.from({ length: AD_SLOTS }, (_, i) => {
+        const sponsor = SPONSORS[i];
+        if (sponsor) return <SponsorCard key={sponsor.id} sponsor={sponsor} />;
+        return SHOW_UNSOLD_SLOTS ? <EmptySlot key={`slot-${i}`} /> : null;
+      })}
+
+      <Body size={12} lineHeight={1.6} tone={color.label} style={{ marginTop: 12 }}>
+        Sponsored placements are marked. They pay for the free tier, they never see your
+        check-ins, and nothing here tells anyone you looked.
       </Body>
+    </View>
+  );
+}
+
+/**
+ * A sold placement. The SPONSORED label and the advertiser's name are part of
+ * the card rather than a footnote — a paid recommendation in a mental-health
+ * app has to be legible as one at a glance.
+ */
+function SponsorCard({ sponsor }: { sponsor: Sponsor }) {
+  return (
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel={`Sponsored: ${sponsor.advertiser}, ${sponsor.title}`}
+      onPress={() => openLink(sponsor.href)}
+    >
+      <Card style={styles.sponsorCard}>
+        <View style={styles.sponsorHead}>
+          <View style={styles.sponsoredTag}>
+            <MonoLabel size={8.5} em={0.12} tone={color.muted}>
+              SPONSORED
+            </MonoLabel>
+          </View>
+          <MonoLabel size={9} em={0.1} tone={color.faint}>
+            {sponsor.advertiser.toUpperCase()}
+          </MonoLabel>
+        </View>
+        <View style={styles.sponsorBody}>
+          <View style={styles.helpCopy}>
+            <Text style={styles.helpTitle}>{sponsor.title}</Text>
+            <Text style={styles.helpSub}>{sponsor.sub}</Text>
+          </View>
+          <Text style={styles.helpArrow}>→</Text>
+        </View>
+      </Card>
+    </Pressable>
+  );
+}
+
+/** Inventory nobody has bought yet. Hidden in a shipping build. */
+function EmptySlot() {
+  return (
+    <View style={styles.emptySlot}>
+      <MonoLabel size={9} em={0.12} tone={color.fainter}>
+        AD SLOT · AVAILABLE
+      </MonoLabel>
     </View>
   );
 }
@@ -277,6 +358,50 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     paddingHorizontal: 16,
+  },
+  resourceCard: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    // The one editorial row in this section, so it carries the accent rather
+    // than the hairline the bought cards use.
+    borderColor: color.accentBorder,
+    borderWidth: 1.5,
+  },
+  sponsorCard: {
+    marginTop: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+  },
+  sponsorHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  sponsoredTag: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    backgroundColor: color.track,
+  },
+  sponsorBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  emptySlot: {
+    marginTop: 10,
+    height: 64,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: color.outline,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   helpCard: {
     marginTop: 12,

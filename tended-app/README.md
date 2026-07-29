@@ -22,7 +22,7 @@ device from the design canvas, scaled down if the window is shorter than the dev
 | **Today** | "How are you doing, right now?" — five-step mood ramp, one tap, plus optional tags. Saves to the device. |
 | **Record** | This week's bars, an insight line read back from your own entries, the Tended+ card at $4.99, and the six-week chart behind the lock. |
 | **Your area** | ZIP heatmap with the steady→rough legend, your-ZIP card, what people named here, the contribution toggle, and the live nearby feed — post a sentence, react to other people's. |
-| **Support** | The self-care practice tracker (seven tappable days per practice), three reading cards that open Tended Collective, and a compact crisis-and-clinical list near the bottom. |
+| **Support** | The self-care practice tracker (seven tappable days per practice), three reading cards that open Tended Collective, a crisis block, and the sponsored shelf below it. |
 
 ## Layout of the code
 
@@ -98,9 +98,23 @@ app — the sandbox this was built in cannot reach the domain, so if the blog do
 `/blog` that constant is the only line to change. Each `POSTS` entry carries its own `url`, so real
 per-post slugs can replace the shared link without touching the screen.
 
-In the help list, a line with an `href` opens it and shows an arrow; a line without one reads as
-text rather than pretending to be a button. That is why "Your EAP" is not pressable — the EAP is
-your district's and the app has no address for it. 988 dials.
+**The support section is a crisis block and an ad shelf, and they are kept apart.** "If it's
+urgent" holds 988 and the EAP and is never sold — someone reaching for a crisis line should not
+have to work out which row on the screen was paid for. "Help when you need it" below it is the
+inventory.
+
+Its first slot is Tended Collective's own resource page. It is never sold and carries the accent
+border, so the section opens on something editorial rather than bought. The remaining `AD_SLOTS`
+hold `SPONSORS`, each rendered under a SPONSORED tag with the advertiser named on the card: a paid
+recommendation sitting in a mental-health app has to be legible as one, and the FTC requires the
+disclosure to be clear and conspicuous. Unsold slots draw as available inventory while the space is
+being sold — set `SHOW_UNSOLD_SLOTS` to false to ship, where an empty slot should collapse rather
+than advertise that nobody bought it.
+
+Everything in both blocks follows the same rule as the rest of the resource lists: a line with an
+`href` opens it and shows an arrow; a line without one reads as text rather than pretending to be a
+button. That is why "Your EAP" is not pressable — the EAP is your district's and the app has no
+address for it. 988 dials.
 
 **Tended+ and the trial.** "Try 30 days free" and the locked six-week chart both open
 `src/components/PlusSheet.tsx`: what you get, the price, one button, and — once a trial is running —
