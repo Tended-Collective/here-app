@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { PracticeEditor } from '../components/PracticeEditor';
+import { useSheets } from '../components/Sheet';
 import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, Divider, MonoLabel } from '../components/ui';
 import { HELP_LINES, POSTS, SITE } from '../data/mock';
@@ -12,10 +12,10 @@ import { color, radius } from '../theme';
 const DAY_COL = 26;
 
 export function SupportScreen() {
-  const { practices, practiceDays, togglePracticeDay, addPractice, removePractice } = useStore();
+  const { practices, practiceDays, togglePracticeDay } = useStore();
+  const { open } = useSheets();
   const week = useMemo(() => weekDates(), []);
   const today = weekdayIndex();
-  const [editorOpen, setEditorOpen] = useState(false);
 
   const kept = practices.map(
     (p) => week.filter((d, i) => i <= today && (practiceDays[p.id] ?? []).includes(d)).length,
@@ -93,27 +93,20 @@ export function SupportScreen() {
           <Pressable
             accessibilityRole="button"
             style={styles.ghostButton}
-            onPress={() => setEditorOpen(true)}
+            onPress={() => open('practices')}
           >
             <Text style={styles.ghostLabel}>Edit my practices</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"
             style={styles.ghostButton}
-            onPress={() => setEditorOpen(true)}
+            onPress={() => open('practices')}
           >
             <Text style={styles.ghostLabel}>Add one</Text>
           </Pressable>
         </View>
       </Card>
 
-      <PracticeEditor
-        visible={editorOpen}
-        onClose={() => setEditorOpen(false)}
-        practices={practices}
-        onAdd={addPractice}
-        onRemove={removePractice}
-      />
 
       <View style={styles.sectionHead}>
         <MonoLabel>WORTH READING</MonoLabel>

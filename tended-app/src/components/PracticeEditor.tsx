@@ -7,9 +7,10 @@
  */
 
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Practice } from '../store';
 import { color, radius } from '../theme';
+import { SheetShell } from './Sheet';
 import { Display } from './ui';
 
 export function PracticeEditor({
@@ -34,10 +35,8 @@ export function PracticeEditor({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.scrim}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
-        <View style={styles.sheet}>
+    <SheetShell visible={visible} onClose={onClose}>
+      <View style={styles.body}>
           <View style={styles.head}>
             <Display size={22} lineHeight={1.15}>
               Your practices
@@ -92,22 +91,13 @@ export function PracticeEditor({
           <Pressable onPress={onClose} accessibilityRole="button" style={styles.done}>
             <Text style={styles.doneLabel}>Done</Text>
           </Pressable>
-        </View>
       </View>
-    </Modal>
+    </SheetShell>
   );
 }
 
 const styles = StyleSheet.create({
-  scrim: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: color.ground,
-    borderTopLeftRadius: radius.card,
-    borderTopRightRadius: radius.card,
+  body: {
     padding: 20,
     paddingBottom: 32,
     gap: 4,

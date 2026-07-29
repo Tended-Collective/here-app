@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Polyline } from 'react-native-svg';
+import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, Divider, MonoLabel, ScreenHeading } from '../components/ui';
 import { todayISO, WEEKDAY_SHORT, weekDates, weekdayName } from '../lib/dates';
 import { LOCKED_TREND, PRICING } from '../data/mock';
@@ -51,7 +52,8 @@ function insight(week: Entry[]): Part[] {
 }
 
 export function RecordScreen() {
-  const { entries } = useStore();
+  const { entries, plusActive, trialDaysLeft } = useStore();
+  const { open } = useSheets();
   const today = todayISO();
 
   // The record runs the school week, Monday to Friday.
@@ -110,28 +112,51 @@ export function RecordScreen() {
         </Text>
       </Card>
 
-      <View style={styles.plusCard}>
-        <MonoLabel tone={color.accent}>BEYOND SEVEN DAYS</MonoLabel>
-        <Display size={27} lineHeight={1.15} style={{ marginTop: 10 }}>
-          See the shape of a whole term.
-        </Display>
-        <Body style={{ marginTop: 10 }}>
-          The free record keeps your last seven days. Tended+ keeps everything: month and term
-          views, October against last October, the patterns behind your heavy days, and an export
-          you can hand a therapist.
-        </Body>
-        <View style={styles.priceRow}>
-          <Text style={styles.price}>{PRICING.price}</Text>
-          <Text style={styles.cadence}>{PRICING.cadence}</Text>
+      {plusActive ? (
+        <View style={styles.plusCard}>
+          <MonoLabel tone={color.accent}>TENDED+ · TRIAL</MonoLabel>
+          <Display size={27} lineHeight={1.15} style={{ marginTop: 10 }}>
+            {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left in your trial.
+          </Display>
+          <Body style={{ marginTop: 10 }}>
+            The six-week chart below is open, and the term views come with it.
+          </Body>
+          <Pressable
+            accessibilityRole="button"
+            style={styles.manage}
+            onPress={() => open('plus')}
+          >
+            <Text style={styles.manageLabel}>Manage trial</Text>
+          </Pressable>
         </View>
-        <Pressable accessibilityRole="button" style={styles.cta}>
-          <Text style={styles.ctaLabel}>{PRICING.cta}</Text>
-        </Pressable>
-      </View>
+      ) : (
+        <View style={styles.plusCard}>
+          <MonoLabel tone={color.accent}>BEYOND SEVEN DAYS</MonoLabel>
+          <Display size={27} lineHeight={1.15} style={{ marginTop: 10 }}>
+            See the shape of a whole term.
+          </Display>
+          <Body style={{ marginTop: 10 }}>
+            The free record keeps your last seven days. Tended+ keeps everything: month and term
+            views, October against last October, the patterns behind your heavy days, and an export
+            you can hand a therapist.
+          </Body>
+          <View style={styles.priceRow}>
+            <Text style={styles.price}>{PRICING.price}</Text>
+            <Text style={styles.cadence}>{PRICING.cadence}</Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            style={styles.cta}
+            onPress={() => open('plus')}
+          >
+            <Text style={styles.ctaLabel}>{PRICING.cta}</Text>
+          </Pressable>
+        </View>
+      )}
 
       <Card style={styles.lockedCard}>
-        <MonoLabel tone={color.faint}>SIX WEEKS · TENDED+</MonoLabel>
-        <View style={styles.lockedChart}>
+        <MonoLabel tone={plusActive ? color.accent : color.faint}>SIX WEEKS · TENDED+</MonoLabel>
+        <View style={[styles.lockedChart, plusActive && styles.unlockedChart]}>
           <Svg viewBox="0 0 300 90" width="100%" height={90}>
             <Polyline
               points={LOCKED_TREND}
@@ -142,14 +167,22 @@ export function RecordScreen() {
             />
           </Svg>
         </View>
-        <View style={styles.lockedOverlay} pointerEvents="none">
-          <View style={styles.lockedPill}>
-            <MonoLabel size={11} em={0.12} bold tone={color.muted}>
-              LOCKED
-            </MonoLabel>
-          </View>
-        </View>
+        {!plusActive && (
+          <Pressable
+            style={styles.lockedOverlay}
+            accessibilityRole="button"
+            accessibilityLabel="Unlock the six-week chart with Tended+"
+            onPress={() => open('plus')}
+          >
+            <View style={styles.lockedPill}>
+              <MonoLabel size={11} em={0.12} bold tone={color.muted}>
+                LOCKED
+              </MonoLabel>
+            </View>
+          </Pressable>
+        )}
       </Card>
+
     </View>
   );
 }
@@ -244,6 +277,23 @@ const styles = StyleSheet.create({
   lockedChart: {
     marginTop: 10,
     opacity: 0.22,
+  },
+  unlockedChart: {
+    opacity: 1,
+  },
+  manage: {
+    height: 46,
+    marginTop: 16,
+    borderRadius: radius.button,
+    borderWidth: 1,
+    borderColor: color.outlineStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  manageLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: color.ink,
   },
   lockedOverlay: {
     position: 'absolute',

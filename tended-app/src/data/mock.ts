@@ -7,11 +7,8 @@
  * Tended Collective on the web. The reading list and the resource list are the
  * two places the app hands the teacher off to it.
  *
- * `FREE_THERAPY_RESOURCES` is exact. `BLOG` is the one link here that has not
- * been confirmed against the live site — the sandbox this was built in cannot
- * reach the domain — so if the blog lives somewhere other than /blog, this is
- * the single line to correct. Per-post slugs would replace the shared `url` on
- * each POSTS entry.
+ * Per-post slugs would replace the shared `url` on each POSTS entry; until the
+ * posts are real, all three point at the blog index.
  */
 export const SITE = {
   home: 'https://www.tendedcollective.com',
@@ -189,6 +186,17 @@ export const PRICING = {
   cadence: 'a month · or $39 a year',
   cta: 'Try 30 days free',
 };
+
+/** Length of the free trial, in days. Matches PRICING.cta. */
+export const TRIAL_DAYS = 30;
+
+/** What the paywall says you get. The first three are what the design promised. */
+export const PLUS_BENEFITS = [
+  'Month and term views, not just the last seven days',
+  'This October against last October',
+  'The patterns behind your heavy days',
+  'An export you can hand a therapist',
+];
 
 /** Six-week trend line behind the Tended+ lock, in a 300×90 viewBox. */
 export const LOCKED_TREND =

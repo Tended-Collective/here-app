@@ -102,6 +102,39 @@ In the help list, a line with an `href` opens it and shows an arrow; a line with
 text rather than pretending to be a button. That is why "Your EAP" is not pressable — the EAP is
 your district's and the app has no address for it. 988 dials.
 
-**Still not designed, so still not built.** "Try 30 days free" is pressable as in the prototype but
-there is nothing behind it: billing is a product decision, not a missing screen, and a button that
-appears to start a paid trial without one would be worse than an inert one.
+**Tended+ and the trial.** "Try 30 days free" and the locked six-week chart both open
+`src/components/PlusSheet.tsx`: what you get, the price, one button, and — once a trial is running —
+the days left and a way out of it. While it is running the six-week chart is drawn at full opacity
+and the record card leads with the trial instead of the pitch. `plus.trialStartedAt` persists, so
+the trial survives a restart, and `trialDaysRemaining` expires it on its own after 30 days.
+
+**Paying with Apple is two integrations, and only one of them is Apple Pay.** On iOS a subscription
+to digital content cannot go through Apple Pay: App Store Review guideline 3.1.1 requires In-App
+Purchase, and Apple Pay is for goods and services consumed outside the app. So:
+
+| Where | Route | What it needs |
+| --- | --- | --- |
+| iOS / Android app | StoreKit / Play Billing, via RevenueCat or `react-native-iap` | a native build — not Expo Go, and nothing on web |
+| Web build | Apple Pay through a processor (Stripe) | a merchant-validation endpoint and a domain verified with Apple |
+
+`src/lib/billing.ts` is the whole boundary. `paymentRoute()` picks between them — it asks Apple Pay's
+own `ApplePaySession.canMakePayments()` on web — and `routeLabel()` is why the button reads "Continue
+with Apple Pay" in Safari and "Continue with the App Store" on device.
+
+**Nothing is charged yet.** `PROVIDER_CONFIGURED` is `false`: there is no processor, no product IDs,
+no server and no receipt validation. `purchase()` therefore resolves `charged: false`, the sheet
+carries a "not connected to billing" notice, and the unlock is local to the device. That is
+deliberate — a flow that mimics a successful payment is worse than one that admits it took none.
+The sheet also does not imitate Apple's own Apple Pay button, which is theirs to grant and is only
+correct once a real Apple Pay session exists.
+
+To connect it: create the product ($4.99/month with a 30-day introductory free period) in App Store
+Connect and Play Console, implement `purchase()` per route, flip `PROVIDER_CONFIGURED`, and move
+entitlement to a server behind a validated receipt — `plus.trialStartedAt` is preview state and must
+not be what gates a paid feature in production.
+
+**Sheets are not `Modal`s.** React Native's `Modal` portals to the document root on web, which put
+the practice editor and the Tended+ sheet outside the device mock in the framed preview — they slid
+up across the whole browser window. `src/components/Sheet.tsx` is an absolutely-positioned overlay
+instead, mounted once in `AppShell` above the tab bar so it is clipped by the phone; screens ask for
+a sheet by name through `useSheets()`.

@@ -1,14 +1,26 @@
 import React, { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useChrome } from './components/PhoneFrame';
+import { PlusSheet } from './components/PlusSheet';
+import { PracticeEditor } from './components/PracticeEditor';
+import { SheetsProvider, useSheets } from './components/Sheet';
 import { TabBar, TabKey } from './components/TabBar';
 import { AreaScreen } from './screens/AreaScreen';
 import { RecordScreen } from './screens/RecordScreen';
 import { SupportScreen } from './screens/SupportScreen';
 import { TodayScreen } from './screens/TodayScreen';
+import { useStore } from './store';
 import { color, SCREEN_PADDING } from './theme';
 
 export function AppShell() {
+  return (
+    <SheetsProvider>
+      <Shell />
+    </SheetsProvider>
+  );
+}
+
+function Shell() {
   const [tab, setTab] = useState<TabKey>('today');
   const { topInset, tabBarHeight } = useChrome();
   const scroller = useRef<ScrollView>(null);
@@ -33,7 +45,47 @@ export function AppShell() {
       </ScrollView>
 
       <TabBar active={tab} onChange={select} />
+
+      {/* Sheets live above the tab bar and inside the device, so they are
+          mounted here rather than in the screen that opens them. */}
+      <Sheets />
     </View>
+  );
+}
+
+function Sheets() {
+  const { current, close } = useSheets();
+  const {
+    practices,
+    addPractice,
+    removePractice,
+    plusActive,
+    trialDaysLeft,
+    startTrial,
+    endTrial,
+  } = useStore();
+
+  return (
+    <>
+      <PracticeEditor
+        visible={current === 'practices'}
+        onClose={close}
+        practices={practices}
+        onAdd={addPractice}
+        onRemove={removePractice}
+      />
+      <PlusSheet
+        visible={current === 'plus'}
+        onClose={close}
+        active={plusActive}
+        daysLeft={trialDaysLeft}
+        onStart={startTrial}
+        onEnd={() => {
+          endTrial();
+          close();
+        }}
+      />
+    </>
   );
 }
 

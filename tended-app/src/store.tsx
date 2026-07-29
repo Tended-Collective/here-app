@@ -9,6 +9,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { TRIAL_DAYS } from './data/mock';
 import { ISODate, todayISO, weekDates, weekdayIndex } from './lib/dates';
 
 const STORAGE_KEY = 'tended.v1';
@@ -69,6 +70,12 @@ type Persisted = {
   /** The teacher's own updates. Newest first. */
   updates: Update[];
   /**
+   * Tended+ trial state. Device-local, and only good enough to drive the
+   * preview: real entitlement belongs on a server behind a validated receipt
+   * (see lib/billing.ts). `trialStartedAt` is epoch milliseconds.
+   */
+  plus: { trialStartedAt: number | null };
+  /**
    * Which reactions this teacher has sent, keyed by the update they were sent
    * to. The sample feed's own counts live in data/mock.ts; these add to them.
    */
@@ -82,6 +89,7 @@ const EMPTY: Persisted = {
   contributing: true,
   updates: [],
   reactions: {},
+  plus: { trialStartedAt: null },
 };
 
 /**
@@ -124,6 +132,10 @@ function seed(): Persisted {
 
 type StoreValue = Persisted & {
   hydrated: boolean;
+  /** True while the trial has days left on it. */
+  plusActive: boolean;
+  /** Whole days remaining, 0 when there is no trial. */
+  trialDaysLeft: number;
   saveCheckIn: (score: number, tags: string[]) => void;
   clearCheckIn: () => void;
   togglePracticeDay: (practiceId: string, date: ISODate) => void;
@@ -133,7 +145,18 @@ type StoreValue = Persisted & {
   postUpdate: (text: string) => void;
   removeUpdate: (id: string) => void;
   toggleReaction: (updateId: string, reactionId: string) => void;
+  startTrial: () => void;
+  endTrial: () => void;
 };
+
+/** Whole days left on a trial that began at `startedAt`. */
+export function trialDaysRemaining(startedAt: number | null, now: number = Date.now()): number {
+  if (startedAt === null) return 0;
+  const elapsed = now - startedAt;
+  const total = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+  if (elapsed >= total) return 0;
+  return Math.max(1, Math.ceil((total - elapsed) / (24 * 60 * 60 * 1000)));
+}
 
 /** Long enough for a sentence, short enough that it stays one. */
 export const UPDATE_MAX_LENGTH = 140;
@@ -173,10 +196,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const daysLeft = trialDaysRemaining(data.plus.trialStartedAt);
+
   const value = useMemo<StoreValue>(
     () => ({
       ...data,
       hydrated,
+      plusActive: daysLeft > 0,
+      trialDaysLeft: daysLeft,
       saveCheckIn: (score, tags) =>
         update((prev) => {
           const date = todayISO();
@@ -240,8 +267,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           else reactions[updateId] = next;
           return { ...prev, reactions };
         }),
+      startTrial: () =>
+        update((prev) =>
+          // Starting again while one is running would silently extend it.
+          trialDaysRemaining(prev.plus.trialStartedAt) > 0
+            ? prev
+            : { ...prev, plus: { trialStartedAt: Date.now() } },
+        ),
+      endTrial: () => update((prev) => ({ ...prev, plus: { trialStartedAt: null } })),
     }),
-    [data, hydrated, update],
+    [data, hydrated, daysLeft, update],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
