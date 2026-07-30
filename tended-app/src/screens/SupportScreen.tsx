@@ -6,7 +6,6 @@ import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, Divider, MonoLabel } from '../components/ui';
 import {
   AD_SLOTS,
-  CRISIS_LINES,
   POSTS,
   postUrl,
   RESOURCE_LINK,
@@ -175,46 +174,6 @@ export function SupportScreen() {
 
       {/* Tended Collective's other feed. Editorial, not a placement. */}
       <PodcastSection />
-
-      <MonoLabel style={{ marginTop: 26 }}>IF IT’S URGENT</MonoLabel>
-      <Card style={styles.helpCard}>
-        {CRISIS_LINES.map((line, i) => {
-          const divider = i < CRISIS_LINES.length - 1 && styles.helpDivider;
-          // A line reachable two ways asks which first, rather than dialling
-          // straight from a pocket. One with a plain href opens it. One with
-          // neither reads as text rather than pretending to be a button.
-          const asks = Boolean(line.call || line.text);
-          const copy = (
-            <>
-              <View style={styles.helpCopy}>
-                <Text style={styles.helpTitle}>{line.title}</Text>
-                <Text style={styles.helpSub}>{line.sub}</Text>
-              </View>
-              {(asks || line.href) && <Text style={styles.helpArrow}>→</Text>}
-            </>
-          );
-
-          if (!asks && !line.href) {
-            return (
-              <View key={line.id} style={[styles.helpRow, divider]}>
-                {copy}
-              </View>
-            );
-          }
-
-          return (
-            <Pressable
-              key={line.id}
-              accessibilityRole="button"
-              accessibilityLabel={line.title}
-              onPress={() => (asks ? open('crisis', line) : openLink(line.href!))}
-              style={[styles.helpRow, divider]}
-            >
-              {copy}
-            </Pressable>
-          );
-        })}
-      </Card>
 
       <MonoLabel style={{ marginTop: 26 }}>HELP WHEN YOU NEED IT</MonoLabel>
 

@@ -9,7 +9,10 @@ import { useStore } from '../store';
 import { color, HEAT_LEGEND, HEAT_RAMP, radius } from '../theme';
 
 export function AreaScreen() {
-  const { contributing, setContributing } = useStore();
+  const { contributing, setContributing, entries } = useStore();
+  // Your own check-ins, counted rather than asserted. The figures around the
+  // map are still sample content standing in for a backend (data/mock.ts).
+  const counted = Object.keys(entries).length;
 
   return (
     <View>
@@ -57,10 +60,6 @@ export function AreaScreen() {
           <Text style={styles.zipTitle}>{AREA.zip} · your ZIP</Text>
           <MonoLabel em={0}>{AREA.zipTeachers}</MonoLabel>
         </View>
-        <Display size={26} lineHeight={1.2} style={{ marginTop: 10 }}>
-          {AREA.headline}
-        </Display>
-        <Body style={{ marginTop: 10 }}>{AREA.body}</Body>
       </Card>
 
       <MonoLabel style={{ marginTop: 22 }}>WHAT PEOPLE NAMED HERE</MonoLabel>
@@ -99,7 +98,7 @@ export function AreaScreen() {
         </View>
         <Text style={styles.toggleStatus}>
           {contributing
-            ? 'Included since 28 August · 41 check-ins counted'
+            ? `Included · ${counted} ${counted === 1 ? 'check-in' : 'check-ins'} counted`
             : 'Not included. The map still works; your days stay only here.'}
         </Text>
       </Card>

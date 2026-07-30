@@ -30,7 +30,7 @@ export const SITE = {
  * Apple's lookup API at run time (see lib/podcast.ts). Left null, the section
  * falls back to a single button through to the show.
  */
-export const PODCAST_SHOW_ID: string | null = null;
+export const PODCAST_SHOW_ID: string | null = '1872481883';
 
 /** How many episodes the reading list shows. */
 export const PODCAST_EPISODES = 2;
@@ -56,12 +56,19 @@ export const HEAT_CELLS: number[][] = [
   [0, 0, 2, 3, 2, 1, 0, 0],
 ];
 
+/**
+ * Figures around the map. Still sample content standing in for a backend — the
+ * app has no other teachers' data to count.
+ *
+ * The two sentences that used to sit on the ZIP card are gone: "71% logged a
+ * hard day this week" and "most named the same two things you did" read as
+ * findings drawn from the data under them, and would have kept reading that way
+ * however the week actually went, because nothing computed them.
+ */
 export const AREA = {
   totalTeachers: '4,182',
   zip: '47404',
   zipTeachers: '128 TEACHERS',
-  headline: '71% logged a hard day this week.',
-  body: 'Most named the same two things you did. Report-card week lands the same way across every ZIP on your calendar.',
 };
 
 /** What people named here — share of check-ins, and the ramp colour it maps to. */
@@ -187,41 +194,6 @@ export const POSTS = [
     kicker: 'THE SAFETY · 11 MIN AUDIO',
     title: 'Guided audio for the drive home',
     slug: 'guided-audio-for-the-drive-home',
-  },
-];
-
-/**
- * The crisis block. Deliberately separate from the sponsored shelf below and
- * never sold: someone reaching for 988 should not have to work out which row
- * on the screen was paid for.
- *
- * Only nationally reachable lines belong here — anything that varies by
- * district (an EAP, a union scheme) cannot be resolved from inside the app and
- * lives on the Tended Collective resource page instead. A line with an `href`
- * opens it; one without is there to be read.
- */
-export type CrisisLine = {
-  id: string;
-  title: string;
-  sub: string;
-  /** Opened directly on tap. */
-  href?: string;
-  /**
-   * A line that can be reached two ways asks which, first. Tapping the row
-   * opens a confirm sheet rather than dialling — a crisis line is the last
-   * number that should be reachable by a pocket.
-   */
-  call?: string;
-  text?: string;
-};
-
-export const CRISIS_LINES: CrisisLine[] = [
-  {
-    id: '988',
-    title: '988 · Suicide & Crisis Lifeline',
-    sub: 'Call or text, 24/7',
-    call: 'tel:988',
-    text: 'sms:988',
   },
 ];
 

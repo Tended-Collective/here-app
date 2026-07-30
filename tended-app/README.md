@@ -22,7 +22,7 @@ device from the design canvas, scaled down if the window is shorter than the dev
 | **Today** | "How are you doing, right now?" — five-step mood ramp, one tap, plus optional tags. Saves to the device. |
 | **Record** | This week's bars, an insight line read back from your own entries, the Tended+ card at $4.99, and the six-week chart behind the lock. |
 | **Your area** | ZIP heatmap with the steady→rough legend, your-ZIP card, what people named here, the contribution toggle, and the live nearby feed — post a sentence, react to other people's. |
-| **Support** | The self-care practice tracker (seven tappable days per practice), three reading cards that open Tended Collective, a crisis block, and the sponsored shelf below it. |
+| **Support** | The self-care practice tracker (seven tappable days per practice), two reading cards and the podcast's episodes, both opening Tended Collective, and the sponsored shelf below them. |
 
 ## Layout of the code
 
@@ -46,6 +46,16 @@ comment so the ramp can be retuned against the design. The accent `oklch(.45 .07
 **Type.** Newsreader 300/400 and IBM Plex Mono 500/600 are bundled via `@expo-google-fonts`.
 CSS `letter-spacing` is em-relative and React Native's is absolute, so `monoLabel()` multiplies the
 em value through by the font size.
+
+**The area figures say less than they used to.** The ZIP card carried two sentences — "71% logged a
+hard day this week" and "most named the same two things you did" — that read as findings drawn from
+the map under them. Nothing computed either one, and they would have read the same way whatever the
+week held, so they are gone. The toggle's status line was the same kind of claim ("included since
+28 August · 41 check-ins counted") and is now counted from your own entries instead.
+
+What is left on that tab is openly a mock of a backend: the heatmap, the ZIP and its teacher count,
+the named causes and their shares, and the other teachers' updates in the feed. None of it moves
+with anything, because there is nothing yet for it to move with.
 
 **The practice note is computed, all of it.** It used to end "your best run since August" on any
 week that cleared five kept days — a superlative the app had no way of checking, since it never
@@ -83,13 +93,16 @@ change in `AreaScreen`.
 
 **The nearby feed is words now, not check-in echoes.** The v3 design had the feed as a reduction of
 check-ins — a number and a tag, no free text, nothing to answer. It is now what teachers actually
-say: one sentence, and three named reactions to send back (`src/components/NearbyFeed.tsx`).
+say: one sentence, and three reactions to send back (`src/components/NearbyFeed.tsx`).
 
 Two of the design's guardrails are kept deliberately, because they are what stopped the feed
 becoming a staffroom argument: nothing carries a name, and there are no replies — a reaction is the
 entire vocabulary. The 140-character cap in `UPDATE_MAX_LENGTH` is what keeps it a feed of days
-rather than a message board. Reactions are words rather than emoji because the app has no emoji
-anywhere else.
+rather than a message board.
+
+Reactions are emoji, each keeping its wording as the accessible name so a screen reader says
+"Holding you" rather than reading out a codepoint. 🫂 was the obvious pick for that one and is the
+wrong one — at pill size it collapses into an unreadable blob, where a face still reads.
 
 **What the free tier gets of the feed.** `FREE_FEED_VIEWS` updates — three — and then a line
 saying how many are behind Tended+. Posting is Plus only; the composer is replaced by a note
@@ -113,25 +126,24 @@ updating the website means changing a slug (or `SITE.blog`) and nothing else.
 **The podcast.** "Worth listening to" sits under the reading list and is headed the same way, with
 "All episodes" where the posts have "All posts".
 
-Set `PODCAST_SHOW_ID` — the digits after `id` in the show's Apple Podcasts permalink — and the
-section lists the show's real episodes, fetched at run time from Apple's public lookup API
-(`src/lib/podcast.ts`). No key and no account, and unlike the RSS feed — which most podcast hosts
-serve without CORS headers — it can be called straight from the client, so listing episodes needs
-no server of our own.
+`PODCAST_SHOW_ID` is the show — 1872481883 — and the section lists its real episodes, fetched at
+run time from Apple's public lookup API (`src/lib/podcast.ts`). No key and no account, and unlike
+the RSS feed — which most podcast hosts serve without CORS headers — it can be called straight from
+the client, so listing episodes needs no server of our own.
 
-Left null, or anywhere the request cannot be made, the section falls back to a single button
-through to the show. Two places it will always fall back: offline, and the published web preview,
-whose CSP blocks every external request by design. So the artifact will show the button even once
-the ID is set — the episode list is a device-and-browser feature. Both paths are tested against a
-recorded Apple payload.
+Where the request cannot be made the section falls back to a single button through to the show.
+Two places it always will: offline, and the published web preview, whose CSP blocks every external
+request by design. So the artifact shows the button rather than the episodes — that list is a
+device-and-browser feature. Both paths are tested against a recorded Apple payload.
 
-**The support section is a crisis block and an ad shelf, and they are kept apart.** "If it's
-urgent" holds the crisis lines and is never sold — someone reaching for one should not have to work
-out which row on the screen was paid for. "Help when you need it" below it is the inventory.
+**"Help when you need it" is ad inventory, and the crisis lines are not in it.** They are not in the
+app at all: 988 and everything like it live on the Tended Collective resource page, which the first
+slot of the section links to. Nothing that varies by district — an EAP, a union scheme — could have
+been resolved from inside the app anyway.
 
-Only nationally reachable lines go in the crisis block. Anything that varies by district — an EAP,
-a union scheme — cannot be resolved from inside the app, so it belongs on the Tended Collective
-resource page the first slot below points at, not in a row the app cannot make true for everyone.
+That leaves one rule worth keeping if a crisis line is ever added back here: it does not go in the
+inventory. Someone reaching for one should not have to work out which row on the screen was paid
+for. `git log` has the confirm-before-dialling sheet that 988 used, if it returns.
 
 Its first slot is Tended Collective's own resource page. It is never sold and carries the accent
 border, so the section opens on something editorial rather than bought. The remaining `AD_SLOTS`
@@ -141,16 +153,8 @@ disclosure to be clear and conspicuous. Unsold slots draw as available inventory
 being sold — set `SHOW_UNSOLD_SLOTS` to false to ship, where an empty slot should collapse rather
 than advertise that nobody bought it.
 
-Everything in both blocks follows the same rule as the rest of the resource lists: a line with an
-`href` opens it and shows an arrow; a line without one reads as text rather than pretending to be a
-button.
-
-**988 asks before it dials.** A line with `call`/`text` rather than an `href` opens a confirm sheet
-offering both (`src/components/CrisisSheet.tsx`). It reads as a choice — 988 answers a text as well
-as a call, so the row has to ask which regardless — but the reason is the pocket: a crisis line is
-the last number that should be one accidental tap away, and a butt-dial costs a counsellor's time
-on someone who is not there. Neither route is discouraged; both are full-width buttons and
-cancelling is the quiet one.
+Every resource row follows the same rule: one with an `href` opens it and shows an arrow; one
+without reads as text rather than pretending to be a button.
 
 **Tended+ and the trial.** "Try 30 days free" and the locked six-week chart both open
 `src/components/PlusSheet.tsx`: what you get, the price, one button, and — once a trial is running —
