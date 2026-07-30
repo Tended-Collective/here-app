@@ -15,13 +15,30 @@ export const SITE = {
   freeTherapyResources: 'https://www.tendedcollective.com/free-therapy-resources',
   blog: 'https://www.tendedcollective.com/blog',
   /**
-   * The podcast on Apple Podcasts. A show's permalink is
-   * `https://podcasts.apple.com/us/podcast/<slug>/id<showId>` — replace this
-   * with it once the show ID is to hand. Until then this is a real Apple
-   * Podcasts URL that resolves rather than a guessed ID that would 404.
+   * The podcast on Apple Podcasts. Once `PODCAST_SHOW_ID` is set this is
+   * derived from it; until then it is a real Apple Podcasts URL that resolves,
+   * rather than a guessed ID that would 404.
    */
   podcast: 'https://podcasts.apple.com/us/search?term=Tended%20Collective',
 } as const;
+
+/**
+ * The show's Apple Podcasts ID — the digits after `id` in its permalink,
+ * `https://podcasts.apple.com/us/podcast/<slug>/id1234567890`.
+ *
+ * Set it and the support tab lists the show's real episodes, pulled from
+ * Apple's lookup API at run time (see lib/podcast.ts). Left null, the section
+ * falls back to a single button through to the show.
+ */
+export const PODCAST_SHOW_ID: string | null = null;
+
+/** How many episodes the reading list shows. */
+export const PODCAST_EPISODES = 2;
+
+/** The show's page, derived from the ID when there is one. */
+export function podcastUrl(showId: string | null = PODCAST_SHOW_ID): string {
+  return showId ? `https://podcasts.apple.com/us/podcast/id${showId}` : SITE.podcast;
+}
 
 /**
  * Where a post lives on the site. Change `SITE.blog` or a post's `slug` and the
@@ -167,12 +184,6 @@ export const POSTS = [
     kicker: 'THE SAFETY · 11 MIN AUDIO',
     title: 'Guided audio for the drive home',
     slug: 'guided-audio-for-the-drive-home',
-  },
-  {
-    id: '3',
-    kicker: 'PRACTICAL · 4 MIN',
-    title: 'How to ask for a mental-health day',
-    slug: 'how-to-ask-for-a-mental-health-day',
   },
 ];
 

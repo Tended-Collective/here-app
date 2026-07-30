@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { PodcastSection } from '../components/PodcastSection';
 import { useSheets } from '../components/Sheet';
 import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, Divider, MonoLabel } from '../components/ui';
@@ -154,19 +155,7 @@ export function SupportScreen() {
       </View>
 
       {/* Tended Collective's other feed. Editorial, not a placement. */}
-      <Pressable
-        accessibilityRole="link"
-        accessibilityLabel="Tended Collective, the podcast, on Apple Podcasts"
-        onPress={() => openLink(SITE.podcast)}
-      >
-        <Card style={styles.podcastCard}>
-          <View style={styles.helpCopy}>
-            <Text style={styles.helpTitle}>Tended Collective · the podcast</Text>
-            <Text style={styles.helpSub}>Listen on Apple Podcasts</Text>
-          </View>
-          <Text style={styles.helpArrow}>→</Text>
-        </Card>
-      </Pressable>
+      <PodcastSection />
 
       <MonoLabel style={{ marginTop: 26 }}>IF IT’S URGENT</MonoLabel>
       <Card style={styles.helpCard}>
@@ -374,14 +363,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     paddingHorizontal: 16,
-  },
-  podcastCard: {
-    marginTop: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
   },
   resourceCard: {
     marginTop: 12,

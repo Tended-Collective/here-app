@@ -103,10 +103,20 @@ The reading cards open their post at `postUrl(slug)` — `${SITE.blog}/${slug}` 
 opens the index. The slugs in `POSTS` are placeholders in the shape the real ones will take, so
 updating the website means changing a slug (or `SITE.blog`) and nothing else.
 
-`SITE.podcast` is the show on Apple Podcasts, linked from under the reading list. A show's
-permalink is `https://podcasts.apple.com/us/podcast/<slug>/id<showId>`; until the show ID is to
-hand this points at an Apple Podcasts search that resolves, rather than a guessed ID that would
-404.
+**The podcast.** "Worth listening to" sits under the reading list and is headed the same way, with
+"All episodes" where the posts have "All posts".
+
+Set `PODCAST_SHOW_ID` — the digits after `id` in the show's Apple Podcasts permalink — and the
+section lists the show's real episodes, fetched at run time from Apple's public lookup API
+(`src/lib/podcast.ts`). No key and no account, and unlike the RSS feed — which most podcast hosts
+serve without CORS headers — it can be called straight from the client, so listing episodes needs
+no server of our own.
+
+Left null, or anywhere the request cannot be made, the section falls back to a single button
+through to the show. Two places it will always fall back: offline, and the published web preview,
+whose CSP blocks every external request by design. So the artifact will show the button even once
+the ID is set — the episode list is a device-and-browser feature. Both paths are tested against a
+recorded Apple payload.
 
 **The support section is a crisis block and an ad shelf, and they are kept apart.** "If it's
 urgent" holds the crisis lines and is never sold — someone reaching for one should not have to work
