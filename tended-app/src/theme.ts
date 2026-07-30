@@ -49,13 +49,24 @@ export type Mood = {
 /**
  * The five-step ramp. Index 0 is the best day; the stored score is index + 1, so
  * the persisted table matches the design note's "a number from one to five".
+ *
+ * The design's scale ran Good / Okay / Worn down / Running empty / Rough — one
+ * good day, one neutral one and three bad ones. A teacher having a genuinely
+ * fine day had a single box to put it in while a bad one had three, which both
+ * asks a leading question and skews every average built on the answer. It is
+ * now even: two above the middle, two below.
+ *
+ * Hue is spaced evenly from the green anchor to the red one — 150, 119, 88, 56,
+ * 25 — so the colour ramp is as even as the wording. The two ends are the
+ * design's own values, unchanged; every hex is the sRGB conversion of the OKLCH
+ * beside it.
  */
 export const MOODS: Mood[] = [
-  { label: 'Good', color: '#7aad84', fill: 'rgba(122,173,132,0.5)' }, //     oklch(.7 .08 150)
-  { label: 'Okay', color: '#b6ac71', fill: 'rgba(182,172,113,0.5)' }, //     oklch(.74 .08 100)
-  { label: 'Worn down', color: '#d6b17d', fill: 'rgba(214,177,125,0.5)' }, // oklch(.78 .08 75)
-  { label: 'Running empty', color: '#cf8b74', fill: 'rgba(207,139,116,0.5)' }, // oklch(.7 .09 40)
-  { label: 'Rough', color: '#b46762', fill: 'rgba(180,103,98,0.5)' }, //     oklch(.6 .1 25)
+  { label: 'Great', color: '#7aad84', fill: 'rgba(122,173,132,0.5)' }, //     oklch(.7 .08 150)
+  { label: 'Good', color: '#a5b278', fill: 'rgba(165,178,120,0.5)' }, //      oklch(.74 .08 119)
+  { label: 'Okay', color: '#cdb57b', fill: 'rgba(205,181,123,0.5)' }, //      oklch(.78 .08 88)
+  { label: 'Worn down', color: '#d79c73', fill: 'rgba(215,156,115,0.5)' }, // oklch(.74 .09 56)
+  { label: 'Rough', color: '#b46762', fill: 'rgba(180,103,98,0.5)' }, //      oklch(.6 .1 25)
 ];
 
 export const TAGS = ['Workload', 'No break', 'Behaviour', 'Admin asks', 'Parents', 'Sleep'];

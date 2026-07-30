@@ -16,7 +16,7 @@ const STORAGE_KEY = 'tended.v1';
 
 export type Entry = {
   date: ISODate;
-  /** 1 = Good … 5 = Rough. Index into MOODS is score - 1. */
+  /** 1 = Great … 5 = Rough, evenly spread. Index into MOODS is score - 1. */
   score: number;
   tags: string[];
 };
@@ -102,7 +102,7 @@ function seed(): Persisted {
   const week = weekDates();
   const today = weekdayIndex();
 
-  // Mon–Thu of the design's week: worn down, good, rough, running empty.
+  // A sample week on the even scale: okay, great, rough, worn down, good.
   const days: { score: number; tags: string[] }[] = [
     { score: 3, tags: ['Workload'] },
     { score: 1, tags: [] },

@@ -43,6 +43,19 @@ src/screens/                  one file per tab
 comment so the ramp can be retuned against the design. The accent `oklch(.45 .07 210)` is
 `#17606b`; the five moods run `#7aad84` → `#b46762`.
 
+**The check-in scale is even.** The design's five options ran Good / Okay / Worn down / Running
+empty / Rough — one good day, one neutral one and three bad ones. A teacher having a genuinely fine
+day had a single box to put it in while a bad one had three, which asks a leading question and
+skews every average built on the answer. It now runs Great / Good / Okay / Worn down / Rough: two
+above the middle, two below.
+
+The colour ramp is spaced to match, hue stepping evenly from the green end to the red one (150,
+119, 88, 56, 25) instead of bunching in the warm half. Both anchors are the design's own values,
+unchanged, and every hex is still the sRGB conversion of the OKLCH beside it.
+
+Nothing reads the labels — scores are stored 1–5 and indexed into `MOODS` — so the scale is one
+array to edit. Existing entries keep their numbers, which now mean something slightly kinder.
+
 **Type.** Newsreader 300/400 and IBM Plex Mono 500/600 are bundled via `@expo-google-fonts`.
 CSS `letter-spacing` is em-relative and React Native's is absolute, so `monoLabel()` multiplies the
 em value through by the font size.
