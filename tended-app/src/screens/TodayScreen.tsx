@@ -9,8 +9,9 @@ const sameTags = (a: string[], b: string[]) =>
   a.length === b.length && a.every((t) => b.includes(t));
 
 export function TodayScreen() {
-  const { entries, hydrated, saveCheckIn } = useStore();
-  const stored = entries[todayISO()];
+  const { entries, hydrated, saveCheckIn, practices, practiceDays, togglePracticeDay } = useStore();
+  const today = todayISO();
+  const stored = entries[today];
 
   const [mood, setMood] = useState<number | null>(null);
   const [tags, setTags] = useState<string[]>([]);
@@ -98,6 +99,47 @@ export function TodayScreen() {
         })}
       </View>
 
+      {/* The other half of the daily ask. Onboarding promises two things a day,
+          so both are on the screen the app opens on rather than one here and one
+          two tabs away. Ticks save on the tap — there is nothing to lose by not
+          reaching the button. */}
+      {practices.length > 0 && (
+        <>
+          <MonoLabel style={{ marginTop: 26 }}>WHAT YOU DID FOR YOURSELF</MonoLabel>
+          <View style={styles.practices}>
+            {practices.map((p) => {
+              const done = (practiceDays[p.id] ?? []).includes(today);
+              return (
+                <Pressable
+                  key={p.id}
+                  onPress={() => togglePracticeDay(p.id, today)}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: done }}
+                  accessibilityLabel={p.label}
+                  style={[
+                    styles.practiceRow,
+                    { borderColor: done ? p.border : color.hairline },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.practiceBox,
+                      {
+                        backgroundColor: done ? p.fill : 'transparent',
+                        borderColor: done ? p.border : color.outline,
+                      },
+                    ]}
+                  />
+                  <Text style={[styles.practiceLabel, done && styles.practiceLabelOn]}>
+                    {p.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </>
+      )}
+
       <Pressable
         onPress={() => mood !== null && saveCheckIn(mood + 1, tags)}
         disabled={mood === null}
@@ -154,6 +196,37 @@ const styles = StyleSheet.create({
   },
   tagLabel: {
     fontSize: 14,
+  },
+  practices: {
+    marginTop: 12,
+    gap: 8,
+  },
+  practiceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 13,
+    minHeight: 50,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: radius.row,
+    borderWidth: 1,
+    backgroundColor: color.card,
+  },
+  practiceBox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1.5,
+  },
+  practiceLabel: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 21,
+    color: color.body,
+  },
+  practiceLabelOn: {
+    color: color.ink,
+    fontWeight: '600',
   },
   save: {
     height: 54,

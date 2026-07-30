@@ -28,22 +28,27 @@ const MAX_PRACTICES = 5;
  * The case for the app, in three slides. Concrete rather than inspirational —
  * the argument is that memory is a poor record and a record is worth having,
  * not that teaching is hard.
+ *
+ * Both halves of the daily ask are named from the first screen. Tracking only
+ * how a day went produces a log of being worn down, which is a diagnosis
+ * without a lever; tracking only habits produces a chore list. The pair is what
+ * makes either one useful, so the pitch is the pair.
  */
 const STORY = [
   {
     kicker: 'TENDED',
-    title: 'Track your workload and well-being in seconds.',
-    body: 'Tap once a day to log how work went. That is the whole daily ask.',
+    title: 'Two things a day: how you felt, and what you did for yourself.',
+    body: 'A tap for the day, a tick for each habit you kept. That is the whole daily ask.',
   },
   {
-    kicker: 'WHY KEEP A RECORD',
-    title: 'Memory is a bad record of a hard term.',
-    body: 'Six weeks in you know it was rough, but not how rough, or when it started, or what kept causing it. “It has been a lot lately” is not something anyone can act on — including you.',
+    kicker: 'WHY BOTH',
+    title: 'One is the symptom. The other is the part you control.',
+    body: 'How a day goes is mostly not yours — the cover, the timetable, the meeting that moved. Whether you ate lunch sitting down is. Track only the first and you have a record of being worn down. Track both and you have a record of what you tried, and whether it held.',
   },
   {
     kicker: 'WHAT YOU GET',
-    title: 'Something you can put in front of someone.',
-    body: 'Dates, a trend line, and the reasons you named yourself. Enough to ask for a schedule change, back up a leave conversation, show a doctor what the term actually looked like, or decide something has to give before you are certain it already has.',
+    title: 'Proof of which of your own habits actually move a day.',
+    body: 'Weeks you kept your boundaries, next to weeks you did not. Plus dates, a trend line, and the reasons you named yourself — enough to take to a doctor, a union rep, or an administrator when you need to.',
   },
 ];
 
@@ -51,7 +56,7 @@ const STORY = [
 const PROMISES = [
   {
     title: 'Stored on your device',
-    body: 'Check-ins are saved locally and never sent to a server. There is no copy of them for anyone to ask us for.',
+    body: 'How you felt and what you kept are saved locally and never sent to a server. There is no copy of them for anyone to ask us for.',
   },
   {
     title: 'No account, no email',
@@ -156,12 +161,13 @@ export function Onboarding() {
 
         {step === SETUP_STEP && (
           <>
-            <MonoLabel>SET UP TRACKING</MonoLabel>
+            <MonoLabel>YOUR SELF-CARE</MonoLabel>
             <Display size={29} style={{ marginTop: 12 }}>
-              Choose what to track.
+              Pick what you are trying to keep.
             </Display>
             <Body style={{ marginTop: 14 }}>
-              Pick up to {MAX_PRACTICES} daily habits to log alongside your check-ins. Change them any
+              How you felt is one tap. These are the other half — up to {MAX_PRACTICES} habits you
+              tick off beside it. Pick ones you could still manage on a bad day. Change them any
               time.
             </Body>
 
