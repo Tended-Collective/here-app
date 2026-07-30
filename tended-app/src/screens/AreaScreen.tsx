@@ -1,8 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { InviteCard } from '../components/InviteCard';
 import { NearbyFeed } from '../components/NearbyFeed';
+import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
 import { Toggle } from '../components/Toggle';
 import { AREA, HEAT_CELLS, NAMED_CAUSES } from '../data/mock';
@@ -10,7 +11,8 @@ import { useStore } from '../store';
 import { color, HEAT_LEGEND, HEAT_RAMP, radius } from '../theme';
 
 export function AreaScreen() {
-  const { contributing, setContributing, entries, zip } = useStore();
+  const { contributing, setContributing, entries, zip, educator } = useStore();
+  const { open } = useSheets();
   // Your own check-ins, counted rather than asserted. The figures around the
   // map are still sample content standing in for a backend (data/mock.ts).
   const counted = Object.keys(entries).length;
@@ -83,26 +85,42 @@ export function AreaScreen() {
         ))}
       </Card>
 
-      <Card style={styles.toggleCard}>
-        <View style={styles.toggleRow}>
-          <View style={styles.toggleCopy}>
-            <Text style={styles.toggleTitle}>Include my check-ins</Text>
-            <Body size={12.5} tone={color.muted} style={{ marginTop: 3 }}>
-              Groups by ZIP code, never by school. A ZIP needs 40+ teachers before it appears.
-            </Body>
+      {/* Unverified check-ins must not reach the aggregate. The figures here are
+          meant to describe teachers, so anyone who has not shown they teach is
+          counted out — the toggle is their preference, verification is what
+          makes it take effect. */}
+      {educator.verified ? (
+        <Card style={styles.toggleCard}>
+          <View style={styles.toggleRow}>
+            <View style={styles.toggleCopy}>
+              <Text style={styles.toggleTitle}>Include my check-ins</Text>
+              <Body size={12.5} tone={color.muted} style={{ marginTop: 3 }}>
+                Groups by ZIP code, never by school. A ZIP needs 40+ teachers before it appears.
+              </Body>
+            </View>
+            <Toggle
+              value={contributing}
+              onChange={setContributing}
+              label="Include my check-ins in the area map and nearby feed"
+            />
           </View>
-          <Toggle
-            value={contributing}
-            onChange={setContributing}
-            label="Include my check-ins in the area map and nearby feed"
-          />
-        </View>
-        <Text style={styles.toggleStatus}>
-          {contributing
-            ? `Included · ${counted} ${counted === 1 ? 'check-in' : 'check-ins'} counted`
-            : 'Not included. The map still works; your check-ins stay on this device.'}
-        </Text>
-      </Card>
+          <Text style={styles.toggleStatus}>
+            {contributing
+              ? `Included · ${counted} ${counted === 1 ? 'check-in' : 'check-ins'} counted`
+              : 'Not included. The map still works; your check-ins stay on this device.'}
+          </Text>
+        </Card>
+      ) : (
+        <Pressable accessibilityRole="button" onPress={() => open('verify')}>
+          <Card style={styles.toggleCard}>
+            <Text style={styles.toggleTitle}>Your check-ins are not counted here</Text>
+            <Body size={12.5} tone={color.muted} style={{ marginTop: 3 }}>
+              These figures describe verified educators, so unverified check-ins are left out.
+              Verify to contribute yours.
+            </Body>
+          </Card>
+        </Pressable>
+      )}
 
       <View style={styles.feedHead}>
         <MonoLabel>LIVE NEARBY</MonoLabel>

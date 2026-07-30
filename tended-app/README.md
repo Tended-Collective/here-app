@@ -127,6 +127,16 @@ control rather than a growth dial — codes can be passed on, so the cap bounds 
 travels. Single-use is the one property a device holding the code cannot enforce; that needs the
 server to burn it, which is what `PROVIDER_CONFIGURED` in `invites.ts` gates.
 
+**What verification gates, and what it does not.** The feed, both reading and posting — and
+whether your check-ins reach the ZIP aggregate, since those figures are meant to describe teachers
+and an unverified check-in has not shown it is one.
+
+It does not gate the paid tier. Every benefit Tended+ advertises is about the personal record —
+month and term views, year against year, the tags behind the hardest days, the export — and all of
+it is computed on device from data that needs no verification. An unverified teacher can subscribe
+and receive everything the paywall lists, which is why the paywall names no feed benefit: the two
+gates are deliberately independent, one on proof and one on payment.
+
 **Verification is skippable, and gates only the feed.** The personal record — check-ins, practices,
 the week chart — works without it, so a teacher who won't use their work address doesn't lose the
 part that actually helps them. The feed shows a prompt instead, and `VerifySheet` runs the same
