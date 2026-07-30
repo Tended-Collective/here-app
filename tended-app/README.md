@@ -83,8 +83,41 @@ the save-button state and the practice note. The heatmap, the ZIP card, the name
 nearby feed and the reading list are fixed sample content standing in for what a backend would
 return.
 
+**Onboarding.** `src/screens/Onboarding.tsx` is the flow the design assumed had already happened —
+its tracker opens with three practices "chosen once", and its area view needs a ZIP. Four steps:
+what this is, what it does with what you tell it, the educator check, then the practices and ZIP.
+`onboardedAt` in the store is what the app routes on.
+
+The privacy step comes *before* the educator check on purpose. The first thing the app asks for is
+a school email address, and a teacher has every reason to be wary of putting a wellness app on a
+district-monitored account. The promise has to be made before the ask.
+
+**Verifying an educator without learning who they are.** A code goes to a school address and the
+teacher types it back; then the address is gone. What persists is `educator.verified` and a
+timestamp — not the address, and deliberately not the domain either, because
+`lincolnhigh.k12.in.us` names a building, and a building plus a daily mood is most of the way to
+naming a person.
+
+It proves control of a school address, not that someone currently teaches, and anyone with a .edu
+can pass it. That is the right level: the point is to keep the feed among teachers, not to
+withstand an attacker. Anything stronger — payslips, ID, a third-party check — puts identity
+somewhere, which is the thing being avoided.
+
+One limitation is chosen rather than overlooked: a single server seeing "address X verified at
+14:02" and "device D issued a token at 14:02" can link them by timing however little is stored.
+Breaking that needs blind signatures or a separate verifier returning only yes/no, and is worth
+doing if verification ever becomes load-bearing. `PROVIDER_CONFIGURED` in `src/lib/verification.ts`
+is false: no mail is sent and any six-digit code passes. The school-domain check is real and runs
+on device.
+
+**Verification is skippable, and gates only the feed.** The personal record — check-ins, practices,
+the week chart — works without it, so a teacher who won't use their work address doesn't lose the
+part that actually helps them. The feed shows a prompt instead, and `VerifySheet` runs the same
+form from inside the app. `src/components/VerifyForm.tsx` is shared by both so the flow, and the
+promise made beside it, cannot drift.
+
 **The practice editor.** The prototype has no screen behind "Edit my practices" / "Add one" — it
-assumes the three practices were chosen once, at an onboarding this simplified app never built.
+assumes the three practices were chosen once, at an onboarding the app now has.
 `src/components/PracticeEditor.tsx` is the minimum needed to make both buttons real: a sheet to
 remove a practice or add one, built from the app's own card/pill/divider vocabulary rather than a
 new visual language. Practices now live in the store (`practices: Practice[]`), not as a fixed
@@ -92,9 +125,11 @@ constant; a practice added beyond the original three is assigned the next tint i
 palette computed at the same recipe as the design's three (`oklch(.72 .08 H)` fill over
 `oklch(.6 .08 H)` border), so it still reads as part of the same system.
 
-**First run.** `SEED_FIRST_RUN` in `src/store.tsx` seeds this week's earlier weekdays with the
-design's sample week so a fresh install opens on a populated record rather than an empty chart.
-Set it to `false` for a genuinely blank first run.
+**First run.** A fresh install opens on onboarding. `SEED_FIRST_RUN` in `src/store.tsx` then seeds
+this week's earlier weekdays with the design's sample week, so the record is populated rather than
+an empty chart; set it to `false` for a genuinely blank first run. Finishing onboarding replaces
+the seeded practices with the chosen ones and clears their ticks, which were keyed to practices
+that no longer exist.
 
 **Dates.** The prototype hardcoded "THURSDAY 9 OCTOBER" and marked Thursday as today. Both are now
 derived from the real date, and the record runs the school week, Monday to Friday.

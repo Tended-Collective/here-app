@@ -36,6 +36,7 @@ export function NearbyFeed() {
     removeUpdate,
     toggleReaction,
     plusActive,
+    educator,
   } = useStore();
   const { open } = useSheets();
   const [draft, setDraft] = useState('');
@@ -46,6 +47,27 @@ export function NearbyFeed() {
     postUpdate(draft);
     setDraft('');
   };
+
+  // The feed is the one thing the educator check gates. The personal record
+  // works either way — a teacher who won't put this on a district-monitored
+  // work address should not lose the part that actually helps them.
+  if (!educator.verified) {
+    return (
+      <Card style={styles.card}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Verify you are an educator to see the nearby feed"
+          style={styles.composerLocked}
+          onPress={() => open('verify')}
+        >
+          <Text style={styles.lockedTitle}>The nearby feed is teachers only</Text>
+          <Text style={styles.lockedSub}>
+            Verify with a school address to see it. Everything else works without.
+          </Text>
+        </Pressable>
+      </Card>
+    );
+  }
 
   if (!contributing) {
     return (
@@ -265,6 +287,12 @@ const styles = StyleSheet.create({
     fontSize: 14.5,
     fontWeight: '600',
     color: color.ink,
+  },
+  lockedSub: {
+    fontSize: 12.5,
+    lineHeight: 19,
+    color: color.muted,
+    marginTop: 4,
   },
   gate: {
     paddingVertical: 14,

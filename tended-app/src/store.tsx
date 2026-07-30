@@ -75,6 +75,16 @@ type Persisted = {
    * (see lib/billing.ts). `trialStartedAt` is epoch milliseconds.
    */
   plus: { trialStartedAt: number | null };
+  /** Null until onboarding is finished; the app opens on it while it is. */
+  onboardedAt: number | null;
+  /**
+   * All that survives verification. Not the address and not the domain — a
+   * school domain names a building, and a building plus a daily mood is most of
+   * the way to naming a person. See lib/verification.ts.
+   */
+  educator: { verified: boolean; verifiedAt: number | null };
+  /** The unit the area view aggregates on. Given during onboarding. */
+  zip: string | null;
   /**
    * Which reactions this teacher has sent, keyed by the update they were sent
    * to. The sample feed's own counts live in data/mock.ts; these add to them.
@@ -90,6 +100,9 @@ const EMPTY: Persisted = {
   updates: [],
   reactions: {},
   plus: { trialStartedAt: null },
+  onboardedAt: null,
+  educator: { verified: false, verifiedAt: null },
+  zip: null,
 };
 
 /**
@@ -147,6 +160,10 @@ type StoreValue = Persisted & {
   toggleReaction: (updateId: string, reactionId: string) => void;
   startTrial: () => void;
   endTrial: () => void;
+  /** Finishes onboarding: the practices chosen, the ZIP, whether they verified. */
+  completeOnboarding: (input: { practices: string[]; zip: string; verified: boolean }) => void;
+  /** For "verify later" — the feed and area view ask again from inside the app. */
+  setVerified: (verified: boolean) => void;
 };
 
 /** Whole days left on a trial that began at `startedAt`. */
@@ -275,6 +292,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             : { ...prev, plus: { trialStartedAt: Date.now() } },
         ),
       endTrial: () => update((prev) => ({ ...prev, plus: { trialStartedAt: null } })),
+      completeOnboarding: ({ practices: labels, zip, verified }) =>
+        update((prev) => ({
+          ...prev,
+          onboardedAt: Date.now(),
+          zip: zip.trim() || null,
+          educator: { verified, verifiedAt: verified ? Date.now() : null },
+          practices: labels.map((label, i) => ({
+            id: `p${i}${Date.now().toString(36)}`,
+            label,
+            ...PRACTICE_PALETTE[i % PRACTICE_PALETTE.length],
+          })),
+          // The chosen practices are new rows; any ticks the seed left behind
+          // are keyed to practices that no longer exist.
+          practiceDays: {},
+        })),
+      setVerified: (verified) =>
+        update((prev) => ({
+          ...prev,
+          educator: { verified, verifiedAt: verified ? Date.now() : null },
+        })),
     }),
     [data, hydrated, daysLeft, update],
   );

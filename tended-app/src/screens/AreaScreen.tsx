@@ -9,7 +9,7 @@ import { useStore } from '../store';
 import { color, HEAT_LEGEND, HEAT_RAMP, radius } from '../theme';
 
 export function AreaScreen() {
-  const { contributing, setContributing, entries } = useStore();
+  const { contributing, setContributing, entries, zip } = useStore();
   // Your own check-ins, counted rather than asserted. The figures around the
   // map are still sample content standing in for a backend (data/mock.ts).
   const counted = Object.keys(entries).length;
@@ -57,7 +57,7 @@ export function AreaScreen() {
 
       <Card style={styles.zipCard}>
         <View style={styles.zipHead}>
-          <Text style={styles.zipTitle}>{AREA.zip} · your ZIP</Text>
+          <Text style={styles.zipTitle}>{zip ?? AREA.zip} · your ZIP</Text>
           <MonoLabel em={0}>{AREA.zipTeachers}</MonoLabel>
         </View>
       </Card>

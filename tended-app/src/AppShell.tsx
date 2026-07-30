@@ -4,8 +4,10 @@ import { useChrome } from './components/PhoneFrame';
 import { PlusSheet } from './components/PlusSheet';
 import { PracticeEditor } from './components/PracticeEditor';
 import { SheetsProvider, useSheets } from './components/Sheet';
+import { VerifySheet } from './components/VerifySheet';
 import { TabBar, TabKey } from './components/TabBar';
 import { AreaScreen } from './screens/AreaScreen';
+import { Onboarding } from './screens/Onboarding';
 import { RecordScreen } from './screens/RecordScreen';
 import { SupportScreen } from './screens/SupportScreen';
 import { TodayScreen } from './screens/TodayScreen';
@@ -13,6 +15,13 @@ import { useStore } from './store';
 import { color, SCREEN_PADDING } from './theme';
 
 export function AppShell() {
+  const { hydrated, onboardedAt } = useStore();
+
+  // Nothing until storage has been read, or onboarding flashes over a returning
+  // teacher's app for a frame.
+  if (!hydrated) return <View style={styles.root} />;
+  if (onboardedAt === null) return <Onboarding />;
+
   return (
     <SheetsProvider>
       <Shell />
@@ -63,6 +72,7 @@ function Sheets() {
     trialDaysLeft,
     startTrial,
     endTrial,
+    setVerified,
   } = useStore();
 
   return (
@@ -73,6 +83,11 @@ function Sheets() {
         practices={practices}
         onAdd={addPractice}
         onRemove={removePractice}
+      />
+      <VerifySheet
+        visible={current === 'verify'}
+        onClose={close}
+        onVerified={() => setVerified(true)}
       />
       <PlusSheet
         visible={current === 'plus'}

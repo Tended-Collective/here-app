@@ -251,6 +251,23 @@ export const PRICING = {
 /** Length of the free trial, in days. Matches PRICING.cta. */
 export const TRIAL_DAYS = 30;
 
+/**
+ * Offered during onboarding. The first three are the design's own practices, so
+ * a teacher who taps straight through lands on the tracker the mockup showed.
+ * All of them are small, same-day and answerable yes or no — a practice you
+ * cannot tick by four o'clock is a resolution, and this is not that.
+ */
+export const PRACTICE_SUGGESTIONS = [
+  'Eat lunch sitting down',
+  'Out of the building by 4',
+  'Twenty minutes outside',
+  'No email after six',
+  'One thing that went right',
+  'Asleep before eleven',
+  'A proper break at break',
+  'Say no to one thing',
+];
+
 /** What the paywall says you get. The first three are what the design promised. */
 export const PLUS_BENEFITS = [
   'Month and term views, not just the last seven days',
