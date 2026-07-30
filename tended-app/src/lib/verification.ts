@@ -31,6 +31,23 @@
  * accepted. The domain check below is real and runs on device.
  */
 
+/**
+ * ─── What the email must look like ───────────────────────────────────────────
+ *
+ * The one risk this flow cannot design away sits on the district's side, not
+ * ours: their mail server sees that a code arrived, whatever we do or don't
+ * store. We can only keep that trace uninformative, so whatever sends the code
+ * must obey these — the UI beside this promises them:
+ *
+ *   Subject   "Your Tended code is 123456"
+ *   Body      the code, an expiry, and nothing else
+ *   Sender    the product name only
+ *
+ * No mention of wellness, burnout, mental health, therapy or check-ins, in any
+ * header or body. Not to deceive an employer — the teacher is the one being
+ * protected — but because a subject line is the part of this a district reads.
+ */
+
 /** Flip once a real code-sending backend is behind `requestCode`. */
 export const PROVIDER_CONFIGURED = false;
 

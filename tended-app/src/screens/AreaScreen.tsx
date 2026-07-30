@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { InviteCard } from '../components/InviteCard';
 import { NearbyFeed } from '../components/NearbyFeed';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
 import { Toggle } from '../components/Toggle';
@@ -113,6 +114,8 @@ export function AreaScreen() {
       </View>
 
       <NearbyFeed />
+
+      <InviteCard />
     </View>
   );
 }

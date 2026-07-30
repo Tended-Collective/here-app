@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { TRIAL_DAYS } from './data/mock';
 import { ISODate, todayISO, weekDates, weekdayIndex } from './lib/dates';
+import { generateInviteCode, INVITES_PER_TEACHER } from './lib/invites';
 
 const STORAGE_KEY = 'tended.v1';
 
@@ -85,6 +86,8 @@ type Persisted = {
   educator: { verified: boolean; verifiedAt: number | null };
   /** The unit the area view aggregates on. Given during onboarding. */
   zip: string | null;
+  /** Codes this teacher has handed out. Capped by INVITES_PER_TEACHER. */
+  invites: { code: string; createdAt: number }[];
   /**
    * Which reactions this teacher has sent, keyed by the update they were sent
    * to. The sample feed's own counts live in data/mock.ts; these add to them.
@@ -103,6 +106,7 @@ const EMPTY: Persisted = {
   onboardedAt: null,
   educator: { verified: false, verifiedAt: null },
   zip: null,
+  invites: [],
 };
 
 /**
@@ -164,6 +168,8 @@ type StoreValue = Persisted & {
   completeOnboarding: (input: { practices: string[]; zip: string; verified: boolean }) => void;
   /** For "verify later" — the feed and area view ask again from inside the app. */
   setVerified: (verified: boolean) => void;
+  /** Mints one more invite, up to the cap. */
+  createInvite: () => void;
 };
 
 /** Whole days left on a trial that began at `startedAt`. */
@@ -312,6 +318,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           educator: { verified, verifiedAt: verified ? Date.now() : null },
         })),
+      createInvite: () =>
+        update((prev) =>
+          prev.invites.length >= INVITES_PER_TEACHER
+            ? prev
+            : {
+                ...prev,
+                invites: [
+                  ...prev.invites,
+                  { code: generateInviteCode(), createdAt: Date.now() },
+                ],
+              },
+        ),
     }),
     [data, hydrated, daysLeft, update],
   );

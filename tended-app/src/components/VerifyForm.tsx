@@ -17,10 +17,15 @@ import {
   requestCode,
   submitCode,
 } from '../lib/verification';
-import { color, radius } from '../theme';
+import { format, isWellFormed, redeemInvite } from '../lib/invites';
+import { color, font, radius } from '../theme';
 import { Body, MonoLabel } from './ui';
 
 export function VerifyForm({ onVerified }: { onVerified: () => void }) {
+  // Two routes in. The invite one exists because the email one lands in a
+  // district mailbox, which is the objection no promise of ours can answer.
+  const [route, setRoute] = useState<'email' | 'invite'>('email');
+  const [invite, setInvite] = useState('');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
@@ -59,6 +64,54 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
     );
   };
 
+  const redeem = async () => {
+    setBusy(true);
+    setProblem(null);
+    const result = await redeemInvite(invite);
+    setBusy(false);
+    if (result.ok) {
+      onVerified();
+      return;
+    }
+    setProblem(
+      result.reason === 'malformed'
+        ? 'That code doesn’t look right. Check it against the one you were sent.'
+        : result.reason === 'used'
+          ? 'That code has already been used.'
+          : 'Couldn’t check that code just now.',
+    );
+  };
+
+  if (route === 'invite') {
+    return (
+      <View>
+        <TextInput
+          value={invite}
+          onChangeText={(t) => {
+            setInvite(format(t));
+            setProblem(null);
+          }}
+          placeholder="XXXX-XXXX"
+          placeholderTextColor={color.faint}
+          style={[styles.input, styles.codeInput]}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          maxLength={9}
+          accessibilityLabel="Your invite code"
+        />
+        <Primary
+          label={busy ? 'Checking…' : 'Use this code'}
+          disabled={busy || !isWellFormed(invite)}
+          onPress={redeem}
+        />
+        <Pressable onPress={() => { setRoute('email'); setProblem(null); }} accessibilityRole="button">
+          <Text style={styles.quiet}>Use a school email instead</Text>
+        </Pressable>
+        {problem && <Text style={styles.problem}>{problem}</Text>}
+      </View>
+    );
+  }
+
   return (
     <View>
       {!codeSent ? (
@@ -87,6 +140,15 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
               We’ll only accept a school domain — .edu, .k12, .ac.uk and the like.
             </Text>
           )}
+
+          {/* The one part of this we cannot control sits on the district's mail
+              server. Naming it is worth more than any promise we could make
+              about our own storage. */}
+          <Text style={styles.hint}>
+            This lands in your work inbox, which your district may be able to see. The email says
+            only “Your Tended code is …” — no mention of what the app is for. If you’d rather it
+            didn’t arrive there at all, skip this; everything but the nearby feed still works.
+          </Text>
         </>
       ) : (
         <>
@@ -111,6 +173,10 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
       )}
 
       {problem && <Text style={styles.problem}>{problem}</Text>}
+
+      <Pressable onPress={() => { setRoute('invite'); setProblem(null); }} accessibilityRole="button">
+        <Text style={styles.quiet}>I have an invite code from a colleague</Text>
+      </Pressable>
 
       {!PROVIDER_CONFIGURED && (
         <View style={styles.notice}>
@@ -161,6 +227,12 @@ const styles = StyleSheet.create({
     outlineColor: color.accent,
     outlineWidth: 2,
     outlineOffset: 1,
+  },
+  codeInput: {
+    fontFamily: font.mono,
+    fontSize: 18,
+    letterSpacing: 3,
+    textAlign: 'center',
   },
   hint: {
     fontSize: 12.5,

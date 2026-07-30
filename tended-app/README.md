@@ -110,6 +110,23 @@ doing if verification ever becomes load-bearing. `PROVIDER_CONFIGURED` in `src/l
 is false: no mail is sent and any six-digit code passes. The school-domain check is real and runs
 on device.
 
+**The invite route.** School email is the practical signal, but it lands in a district mailbox, and
+that trace is on their mail server rather than in our database — no promise of ours reaches it. So
+the verify screen names the risk instead of hiding it, the code email is specified to say nothing
+but the code (see `lib/verification.ts`), and there is a second way in that never touches a work
+inbox: a code from a colleague who is already verified.
+
+`src/lib/invites.ts` holds the format — seven characters plus a check character, shown `XXXX-XXXX`,
+on an alphabet without I, L, O or U. Typed lookalikes are mapped back rather than punished, and the
+check character is position-weighted, so a mistyped or transposed code fails on the device instead
+of after a round trip: measured, that catches 95% of single typos and 97% of transpositions, the
+residual being the 1-in-32 a single check character cannot see.
+
+An invite proves a teacher vouched for you, not that you teach. `INVITES_PER_TEACHER` is a safety
+control rather than a growth dial — codes can be passed on, so the cap bounds how far a leaked one
+travels. Single-use is the one property a device holding the code cannot enforce; that needs the
+server to burn it, which is what `PROVIDER_CONFIGURED` in `invites.ts` gates.
+
 **Verification is skippable, and gates only the feed.** The personal record — check-ins, practices,
 the week chart — works without it, so a teacher who won't use their work address doesn't lose the
 part that actually helps them. The feed shows a prompt instead, and `VerifySheet` runs the same
