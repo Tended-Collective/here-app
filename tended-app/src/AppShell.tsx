@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useChrome } from './components/PhoneFrame';
 import { PlusSheet } from './components/PlusSheet';
-import { PracticeEditor } from './components/PracticeEditor';
+import { PlanBuilder } from './components/PlanBuilder';
 import { SheetsProvider, useSheets } from './components/Sheet';
 import { VerifySheet } from './components/VerifySheet';
 import { TabBar, TabKey } from './components/TabBar';
@@ -65,9 +65,6 @@ function Shell() {
 function Sheets() {
   const { current, close } = useSheets();
   const {
-    practices,
-    addPractice,
-    removePractice,
     plusActive,
     trialDaysLeft,
     startTrial,
@@ -77,13 +74,7 @@ function Sheets() {
 
   return (
     <>
-      <PracticeEditor
-        visible={current === 'practices'}
-        onClose={close}
-        practices={practices}
-        onAdd={addPractice}
-        onRemove={removePractice}
-      />
+      <PlanBuilder visible={current === 'plan'} onClose={close} />
       <VerifySheet
         visible={current === 'verify'}
         onClose={close}

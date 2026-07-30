@@ -268,6 +268,22 @@ export const PRACTICE_SUGGESTIONS = [
   'Say no to one thing',
 ];
 
+/**
+ * Offered in step 1 of the plan builder. Boundaries differ from habits: a habit
+ * is ticked off on a given day, a boundary is a standing rule that is either in
+ * force or not. Each one is a decision someone else can be told about.
+ */
+export const BOUNDARY_SUGGESTIONS = [
+  'No work email after 6pm',
+  'Leave the building by 4:30',
+  'No grading on Sundays',
+  'Lunch away from my desk',
+  'Phone off after 9pm',
+  'One weekday evening off',
+  'No school work in the bedroom',
+  'Decline meetings without an agenda',
+];
+
 /** What the paywall says you get. The first three are what the design promised. */
 export const PLUS_BENEFITS = [
   'Month and term views, not just the last seven days',

@@ -52,6 +52,16 @@ function defaultPractices(): Practice[] {
   ];
 }
 
+/** A standing rule. Either in force or not — unlike a habit, it is not ticked. */
+export type Boundary = { id: string; label: string; active: boolean };
+
+/**
+ * Someone to call on a bad day. This is the only place the app holds a name and
+ * a number, it is the teacher's own address book rather than ours, and like
+ * everything else in this store it stays on the device.
+ */
+export type Contact = { id: string; name: string; phone: string };
+
 /** One sentence the teacher posted to the nearby feed. */
 export type Update = {
   id: string;
@@ -88,6 +98,10 @@ type Persisted = {
   zip: string | null;
   /** Codes this teacher has handed out. Capped by INVITES_PER_TEACHER. */
   invites: { code: string; createdAt: number }[];
+  /** The self-care plan's standing rules. */
+  boundaries: Boundary[];
+  /** Who to call. Local only, never sent anywhere. */
+  contacts: Contact[];
   /**
    * Which reactions this teacher has sent, keyed by the update they were sent
    * to. The sample feed's own counts live in data/mock.ts; these add to them.
@@ -107,6 +121,8 @@ const EMPTY: Persisted = {
   educator: { verified: false, verifiedAt: null },
   zip: null,
   invites: [],
+  boundaries: [],
+  contacts: [],
 };
 
 /**
@@ -170,6 +186,10 @@ type StoreValue = Persisted & {
   setVerified: (verified: boolean) => void;
   /** Mints one more invite, up to the cap. */
   createInvite: () => void;
+  /** Writes the whole plan at once, as the builder produces it. */
+  savePlan: (input: { boundaries: string[]; habits: string[]; contacts: Contact[] }) => void;
+  /** Quick on/off from the summary card. */
+  toggleBoundary: (id: string) => void;
 };
 
 /** Whole days left on a trial that began at `startedAt`. */
@@ -317,6 +337,49 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         update((prev) => ({
           ...prev,
           educator: { verified, verifiedAt: verified ? Date.now() : null },
+        })),
+      savePlan: ({ boundaries, habits, contacts }) =>
+        update((prev) => {
+          // Habits are the existing practices, matched by label so a habit that
+          // survives an edit keeps its colour and its tick history.
+          const byLabel = new Map(prev.practices.map((p) => [p.label, p]));
+          const practices = habits.map((label, i) => {
+            const kept = byLabel.get(label);
+            return (
+              kept ?? {
+                id: `p${i}${Date.now().toString(36)}`,
+                label,
+                ...PRACTICE_PALETTE[i % PRACTICE_PALETTE.length],
+              }
+            );
+          });
+          // Ticks belonging to dropped habits go with them.
+          const live = new Set(practices.map((p) => p.id));
+          const practiceDays: Record<string, ISODate[]> = {};
+          Object.entries(prev.practiceDays).forEach(([id, dates]) => {
+            if (live.has(id)) practiceDays[id] = dates;
+          });
+
+          const existing = new Map(prev.boundaries.map((b) => [b.label, b]));
+          return {
+            ...prev,
+            practices,
+            practiceDays,
+            contacts,
+            boundaries: boundaries.map((label, i) => ({
+              id: existing.get(label)?.id ?? `b${i}${Date.now().toString(36)}`,
+              label,
+              // A rule already in place stays as the teacher left it.
+              active: existing.get(label)?.active ?? true,
+            })),
+          };
+        }),
+      toggleBoundary: (id) =>
+        update((prev) => ({
+          ...prev,
+          boundaries: prev.boundaries.map((b) =>
+            b.id === id ? { ...b, active: !b.active } : b,
+          ),
         })),
       createInvite: () =>
         update((prev) =>

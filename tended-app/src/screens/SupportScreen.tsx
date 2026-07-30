@@ -22,7 +22,8 @@ import { color, radius } from '../theme';
 const DAY_COL = 26;
 
 export function SupportScreen() {
-  const { practices, practiceDays, togglePracticeDay } = useStore();
+  const { practices, practiceDays, togglePracticeDay, boundaries, contacts, toggleBoundary } =
+    useStore();
   const { open } = useSheets();
   const week = useMemo(() => weekDates(), []);
   const today = weekdayIndex();
@@ -68,9 +69,40 @@ export function SupportScreen() {
 
       <Card style={styles.practiceCard}>
         <View style={styles.practiceHead}>
-          <Text style={styles.cardTitle}>Your practices</Text>
+          <Text style={styles.cardTitle}>Your self-care plan</Text>
           <MonoLabel em={0}>THIS WEEK</MonoLabel>
         </View>
+
+        {boundaries.length > 0 && (
+          <View style={styles.planSection}>
+            <MonoLabel size={9.5} em={0.1} tone={color.faint}>
+              BOUNDARIES
+            </MonoLabel>
+            {boundaries.map((b) => (
+              <Pressable
+                key={b.id}
+                onPress={() => toggleBoundary(b.id)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: b.active }}
+                accessibilityLabel={b.label}
+                style={styles.boundaryRow}
+              >
+                <View style={[styles.box, b.active && styles.boxOn]}>
+                  {b.active && <Text style={styles.check}>✓</Text>}
+                </View>
+                <Text style={[styles.boundaryLabel, !b.active && styles.boundaryOff]}>
+                  {b.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {practices.length > 0 && (
+          <MonoLabel size={9.5} em={0.1} tone={color.faint} style={{ marginTop: 18 }}>
+            DAILY HABITS
+          </MonoLabel>
+        )}
 
         <View style={styles.dayHeader}>
           <View style={styles.spacer} />
@@ -118,20 +150,41 @@ export function SupportScreen() {
         <Divider style={styles.practiceDivider} />
         <Body>{note}</Body>
 
+        {contacts.length > 0 && (
+          <View style={styles.planSection}>
+            <MonoLabel size={9.5} em={0.1} tone={color.faint}>
+              SUPPORT CONTACTS
+            </MonoLabel>
+            {contacts.map((c) =>
+              c.phone ? (
+                <Pressable
+                  key={c.id}
+                  onPress={() => openLink(`tel:${c.phone.replace(/[^0-9+]/g, '')}`)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Call ${c.name}`}
+                  style={styles.contactRow}
+                >
+                  <Text style={styles.contactName}>{c.name}</Text>
+                  <Text style={styles.contactAction}>Call</Text>
+                </Pressable>
+              ) : (
+                <View key={c.id} style={styles.contactRow}>
+                  <Text style={styles.contactName}>{c.name}</Text>
+                </View>
+              ),
+            )}
+          </View>
+        )}
+
         <View style={styles.practiceActions}>
           <Pressable
             accessibilityRole="button"
             style={styles.ghostButton}
-            onPress={() => open('practices')}
+            onPress={() => open('plan')}
           >
-            <Text style={styles.ghostLabel}>Edit my practices</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            style={styles.ghostButton}
-            onPress={() => open('practices')}
-          >
-            <Text style={styles.ghostLabel}>Add one</Text>
+            <Text style={styles.ghostLabel}>
+              {boundaries.length || contacts.length ? 'Edit plan' : 'Build your plan'}
+            </Text>
           </Pressable>
         </View>
       </Card>
@@ -254,6 +307,63 @@ function EmptySlot() {
 }
 
 const styles = StyleSheet.create({
+  planSection: {
+    marginTop: 18,
+    gap: 2,
+  },
+  boundaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: color.rule,
+  },
+  box: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: color.outlineStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  boxOn: {
+    backgroundColor: color.accent,
+    borderColor: color.accent,
+  },
+  check: {
+    fontSize: 12,
+    lineHeight: 14,
+    color: '#fff',
+    fontWeight: '700',
+  },
+  boundaryLabel: {
+    flex: 1,
+    fontSize: 14.5,
+    color: color.ink,
+  },
+  boundaryOff: {
+    color: color.faint,
+    textDecorationLine: 'line-through',
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 11,
+    borderTopWidth: 1,
+    borderTopColor: color.rule,
+  },
+  contactName: {
+    fontSize: 15,
+    color: color.ink,
+  },
+  contactAction: {
+    fontSize: 13.5,
+    fontWeight: '600',
+    color: color.accent,
+  },
   practiceCard: {
     marginTop: 22,
     padding: 18,

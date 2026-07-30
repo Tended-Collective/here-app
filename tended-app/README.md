@@ -143,12 +143,25 @@ part that actually helps them. The feed shows a prompt instead, and `VerifySheet
 form from inside the app. `src/components/VerifyForm.tsx` is shared by both so the flow, and the
 promise made beside it, cannot drift.
 
-**The practice editor.** The prototype has no screen behind "Edit my practices" / "Add one" — it
-assumes the three practices were chosen once, at an onboarding the app now has.
-`src/components/PracticeEditor.tsx` is the minimum needed to make both buttons real: a sheet to
-remove a practice or add one, built from the app's own card/pill/divider vocabulary rather than a
-new visual language. Practices now live in the store (`practices: Practice[]`), not as a fixed
-constant; a practice added beyond the original three is assigned the next tint in a five-hue
+**The self-care plan.** One card on the Support tab holds all three parts —
+`src/components/PlanBuilder.tsx` builds it in three steps, and the card summarises it.
+
+Habits are the app's existing practices rather than a second tracker beside them. The tab already
+had a seven-day grid; two habit systems on one screen would be one too many, and the grid is
+already the quick daily toggle. `savePlan` matches habits by label, so an edit that keeps a habit
+keeps its colour and its tick history, and ticks belonging to a dropped habit go with it.
+
+Boundaries are the new shape: a standing rule is in force or it is not, where a habit is ticked on
+a given day. They toggle straight from the card. Contacts are the only place the app holds a name
+and a number — the teacher's own address book, not ours, stored beside the check-ins and never
+sent anywhere. One with a number is a tap to dial.
+
+Everything persists under the same `tended.v1` key as the check-ins.
+
+**Where the practices came from.** The prototype had no screen behind "Edit my practices" / "Add
+one" — it assumed the three were chosen once, at an onboarding the app now has. Both buttons are
+replaced by the plan builder, which is why `PracticeEditor` no longer exists. Practices live in the
+store (`practices: Practice[]`), not as a fixed constant; a practice added beyond the original three is assigned the next tint in a five-hue
 palette computed at the same recipe as the design's three (`oklch(.72 .08 H)` fill over
 `oklch(.6 .08 H)` border), so it still reads as part of the same system.
 

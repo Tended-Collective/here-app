@@ -34,7 +34,7 @@ export function SheetShell({
   );
 }
 
-export type SheetName = 'plus' | 'practices' | 'verify';
+export type SheetName = 'plus' | 'plan' | 'verify';
 
 type SheetsValue = {
   current: SheetName | null;
