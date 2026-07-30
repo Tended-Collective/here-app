@@ -7,6 +7,7 @@ import {
   AD_SLOTS,
   CRISIS_LINES,
   POSTS,
+  postUrl,
   RESOURCE_LINK,
   SHOW_UNSOLD_SLOTS,
   SITE,
@@ -135,7 +136,7 @@ export function SupportScreen() {
             key={post.id}
             accessibilityRole="link"
             accessibilityLabel={`${post.title}, opens tendedcollective.com`}
-            onPress={() => openLink(post.url)}
+            onPress={() => openLink(postUrl(post.slug))}
           >
             <Card style={styles.postCard}>
               <StripedPlaceholder />
@@ -152,6 +153,21 @@ export function SupportScreen() {
         ))}
       </View>
 
+      {/* Tended Collective's other feed. Editorial, not a placement. */}
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel="Tended Collective, the podcast, on Apple Podcasts"
+        onPress={() => openLink(SITE.podcast)}
+      >
+        <Card style={styles.podcastCard}>
+          <View style={styles.helpCopy}>
+            <Text style={styles.helpTitle}>Tended Collective · the podcast</Text>
+            <Text style={styles.helpSub}>Listen on Apple Podcasts</Text>
+          </View>
+          <Text style={styles.helpArrow}>→</Text>
+        </Card>
+      </Pressable>
+
       <MonoLabel style={{ marginTop: 26 }}>IF IT’S URGENT</MonoLabel>
       <Card style={styles.helpCard}>
         {CRISIS_LINES.map((line, i) => {
@@ -166,8 +182,8 @@ export function SupportScreen() {
             </>
           );
 
-          // A line without an href has nowhere to go — the EAP is your
-          // district's. It reads as text rather than pretending to be a button.
+          // A line without an href has nowhere to go, so it reads as text
+          // rather than pretending to be a button.
           return line.href ? (
             <Pressable
               key={line.id}
@@ -358,6 +374,14 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     paddingHorizontal: 16,
+  },
+  podcastCard: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
   },
   resourceCard: {
     marginTop: 12,

@@ -84,6 +84,12 @@ entire vocabulary. The 140-character cap in `UPDATE_MAX_LENGTH` is what keeps it
 rather than a message board. Reactions are words rather than emoji because the app has no emoji
 anywhere else.
 
+**What the free tier gets of the feed.** `FREE_FEED_VIEWS` updates — three — and then a line
+saying how many are behind Tended+. Posting is Plus only; the composer is replaced by a note
+explaining that. Reacting is free at every tier, deliberately: answering someone's bad day is not
+the thing to charge for, and a feed where only paying teachers can respond would be a worse feed
+for the people still on free.
+
 Your own sentences persist to `AsyncStorage` alongside the check-ins and can be deleted. The
 reactions you send persist too, and are counted on top of the sample counts in `data/mock.ts` — the
 other teachers' updates and their existing counts are still fixed sample content, as is everything
@@ -93,15 +99,22 @@ else on this tab.
 tendedcollective.com links; `src/lib/links.ts` opens them and swallows failures, since a resource
 list that throws because a device has no dialler is worse than one that does nothing.
 
-The reading cards and "All posts" open the blog. `SITE.blog` is the one unverified link in the
-app — the sandbox this was built in cannot reach the domain, so if the blog does not live at
-`/blog` that constant is the only line to change. Each `POSTS` entry carries its own `url`, so real
-per-post slugs can replace the shared link without touching the screen.
+The reading cards open their post at `postUrl(slug)` — `${SITE.blog}/${slug}` — and "All posts"
+opens the index. The slugs in `POSTS` are placeholders in the shape the real ones will take, so
+updating the website means changing a slug (or `SITE.blog`) and nothing else.
+
+`SITE.podcast` is the show on Apple Podcasts, linked from under the reading list. A show's
+permalink is `https://podcasts.apple.com/us/podcast/<slug>/id<showId>`; until the show ID is to
+hand this points at an Apple Podcasts search that resolves, rather than a guessed ID that would
+404.
 
 **The support section is a crisis block and an ad shelf, and they are kept apart.** "If it's
-urgent" holds 988 and the EAP and is never sold — someone reaching for a crisis line should not
-have to work out which row on the screen was paid for. "Help when you need it" below it is the
-inventory.
+urgent" holds the crisis lines and is never sold — someone reaching for one should not have to work
+out which row on the screen was paid for. "Help when you need it" below it is the inventory.
+
+Only nationally reachable lines go in the crisis block. Anything that varies by district — an EAP,
+a union scheme — cannot be resolved from inside the app, so it belongs on the Tended Collective
+resource page the first slot below points at, not in a row the app cannot make true for everyone.
 
 Its first slot is Tended Collective's own resource page. It is never sold and carries the accent
 border, so the section opens on something editorial rather than bought. The remaining `AD_SLOTS`
@@ -113,8 +126,7 @@ than advertise that nobody bought it.
 
 Everything in both blocks follows the same rule as the rest of the resource lists: a line with an
 `href` opens it and shows an arrow; a line without one reads as text rather than pretending to be a
-button. That is why "Your EAP" is not pressable — the EAP is your district's and the app has no
-address for it. 988 dials.
+button. 988 dials.
 
 **Tended+ and the trial.** "Try 30 days free" and the locked six-week chart both open
 `src/components/PlusSheet.tsx`: what you get, the price, one button, and — once a trial is running —

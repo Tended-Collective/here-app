@@ -14,7 +14,20 @@ export const SITE = {
   home: 'https://www.tendedcollective.com',
   freeTherapyResources: 'https://www.tendedcollective.com/free-therapy-resources',
   blog: 'https://www.tendedcollective.com/blog',
+  /**
+   * The podcast on Apple Podcasts. A show's permalink is
+   * `https://podcasts.apple.com/us/podcast/<slug>/id<showId>` — replace this
+   * with it once the show ID is to hand. Until then this is a real Apple
+   * Podcasts URL that resolves rather than a guessed ID that would 404.
+   */
+  podcast: 'https://podcasts.apple.com/us/search?term=Tended%20Collective',
 } as const;
+
+/**
+ * Where a post lives on the site. Change `SITE.blog` or a post's `slug` and the
+ * app follows — nothing else needs touching when the website is updated.
+ */
+export const postUrl = (slug: string) => `${SITE.blog}/${slug}`;
 
 /** 6 rows × 8 columns of ZIP tiles. 0 renders as a gap; 1–7 index HEAT_RAMP. */
 export const HEAT_CELLS: number[][] = [
@@ -104,6 +117,13 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
   },
 ];
 
+/**
+ * How much of the feed the free tier sees. Reacting stays free at any tier —
+ * answering someone's bad day is not something to charge for — but posting and
+ * the rest of the feed are part of Tended+.
+ */
+export const FREE_FEED_VIEWS = 3;
+
 /** Behind "See the last hour" — older than the four above, same shape. */
 export const LAST_HOUR_UPDATES: FeedUpdate[] = [
   {
@@ -130,27 +150,29 @@ export const LAST_HOUR_UPDATES: FeedUpdate[] = [
 ];
 
 /**
- * The reading list. Every card hands off to Tended Collective on the web —
- * `url` is per-post so real slugs can replace the shared blog link.
+ * The reading list. Every card opens its post on tendedcollective.com.
+ *
+ * The slugs below are placeholders in the shape the real ones will take — swap
+ * each for the published post's slug and the card points at the real article.
  */
 export const POSTS = [
   {
     id: '1',
     kicker: 'HELD STORIES · 6 MIN',
     title: 'The year I stopped answering emails after six',
-    url: SITE.blog,
+    slug: 'the-year-i-stopped-answering-emails-after-six',
   },
   {
     id: '2',
     kicker: 'THE SAFETY · 11 MIN AUDIO',
     title: 'Guided audio for the drive home',
-    url: SITE.blog,
+    slug: 'guided-audio-for-the-drive-home',
   },
   {
     id: '3',
     kicker: 'PRACTICAL · 4 MIN',
     title: 'How to ask for a mental-health day',
-    url: SITE.blog,
+    slug: 'how-to-ask-for-a-mental-health-day',
   },
 ];
 
@@ -159,8 +181,10 @@ export const POSTS = [
  * never sold: someone reaching for 988 should not have to work out which row
  * on the screen was paid for.
  *
- * A line with an `href` opens it; one without is there to be read — the EAP is
- * your district's, so the app has no address for it and doesn't pretend to.
+ * Only nationally reachable lines belong here — anything that varies by
+ * district (an EAP, a union scheme) cannot be resolved from inside the app and
+ * lives on the Tended Collective resource page instead. A line with an `href`
+ * opens it; one without is there to be read.
  */
 export const CRISIS_LINES: { id: string; title: string; sub: string; href?: string }[] = [
   {
@@ -169,7 +193,6 @@ export const CRISIS_LINES: { id: string; title: string; sub: string; href?: stri
     sub: 'Call or text, 24/7',
     href: 'tel:988',
   },
-  { id: 'eap', title: 'Your EAP · 6 free sessions', sub: 'No referral needed' },
 ];
 
 /**
