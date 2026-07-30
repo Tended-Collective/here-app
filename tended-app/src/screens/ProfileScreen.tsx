@@ -1,0 +1,357 @@
+/**
+ * The teacher's own page: what their check-ins add up to, and the self-care
+ * list they are working from.
+ *
+ * The list is the app's only to-do. Items arrive two ways — typed here, or
+ * saved off someone else's post in the feed — and there is no distinction
+ * between the two once they land, because a boundary someone else holds is
+ * just a line on your list once you have taken it.
+ *
+ * Ticking is per day and writes on the tap. The week grid on the same rows is
+ * the history, so ticking here and reading the week are the same object.
+ */
+
+import React, { useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { InviteCard } from '../components/InviteCard';
+import { useSheets } from '../components/Sheet';
+import { Body, Card, Display, MonoLabel } from '../components/ui';
+import { WEEKDAY_INITIALS, todayISO, weekDates, weekdayIndex } from '../lib/dates';
+import { useStore } from '../store';
+import { color, radius } from '../theme';
+import { RecordScreen } from './RecordScreen';
+
+const DAY_COL = 22;
+
+export function ProfileScreen() {
+  const {
+    practices,
+    practiceDays,
+    togglePracticeDay,
+    addPractice,
+    removePractice,
+    renamePractice,
+    educator,
+    zip,
+    entries,
+  } = useStore();
+  const { open } = useSheets();
+
+  const week = useMemo(() => weekDates(), []);
+  const today = todayISO();
+  const todayIdx = weekdayIndex();
+  const [draft, setDraft] = useState('');
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+
+  const checkIns = Object.keys(entries).length;
+  const keptThisWeek = practices.reduce(
+    (sum, p) => sum + week.filter((d, i) => i <= todayIdx && (practiceDays[p.id] ?? []).includes(d)).length,
+    0,
+  );
+
+  const add = () => {
+    if (!draft.trim()) return;
+    addPractice(draft);
+    setDraft('');
+  };
+
+  const commitEdit = (id: string) => {
+    if (editText.trim()) renamePractice(id, editText);
+    setEditing(null);
+  };
+
+  return (
+    <View>
+      <MonoLabel>YOUR PROFILE</MonoLabel>
+      <Display size={32} style={{ marginTop: 10 }}>
+        Anonymous teacher
+      </Display>
+
+      <View style={styles.badges}>
+        <Pressable
+          accessibilityRole={educator.verified ? undefined : 'button'}
+          onPress={educator.verified ? undefined : () => open('verify')}
+          style={[styles.badge, educator.verified && styles.badgeOn]}
+        >
+          <MonoLabel size={9} em={0.1} tone={educator.verified ? color.accent : color.muted}>
+            {educator.verified ? 'VERIFIED EDUCATOR' : 'NOT VERIFIED · TAP TO VERIFY'}
+          </MonoLabel>
+        </Pressable>
+        {/* Only states a ZIP the teacher actually gave us. It used to fall back
+            to the sample ZIP and label it "yours", which read as the app having
+            quietly found their location. */}
+        <View style={styles.badge}>
+          <MonoLabel size={9} em={0.1} tone={color.muted}>
+            {zip ? `ZIP ${zip}` : 'NO ZIP SET'}
+          </MonoLabel>
+        </View>
+      </View>
+
+      <View style={styles.tally}>
+        <Stat value={String(checkIns)} label={checkIns === 1 ? 'CHECK-IN' : 'CHECK-INS'} />
+        <Stat value={String(practices.length)} label="ON YOUR LIST" />
+        <Stat value={String(keptThisWeek)} label="DONE THIS WEEK" />
+      </View>
+
+      {/* The week chart, the insight and the Tended+ lock. */}
+      <View style={{ marginTop: 26 }}>
+        <RecordScreen />
+      </View>
+
+      <MonoLabel style={{ marginTop: 30 }}>MY SELF-CARE LIST</MonoLabel>
+      <Card style={styles.listCard}>
+        <View style={styles.dayHeader}>
+          <View style={styles.spacer} />
+          {WEEKDAY_INITIALS.map((d, i) => (
+            <MonoLabel key={i} size={9} em={0} tone={color.faint} style={styles.dayHeaderCell}>
+              {d}
+            </MonoLabel>
+          ))}
+        </View>
+
+        {practices.length === 0 && (
+          <Body size={13.5} tone={color.muted} style={{ paddingVertical: 14 }}>
+            Nothing on your list yet. Add one below, or save what another teacher did straight from
+            the feed.
+          </Body>
+        )}
+
+        {practices.map((p) => {
+          const done = practiceDays[p.id] ?? [];
+          const isEditing = editing === p.id;
+          return (
+            <View key={p.id} style={styles.row}>
+              <View style={styles.rowTop}>
+                {isEditing ? (
+                  <TextInput
+                    value={editText}
+                    onChangeText={setEditText}
+                    onBlur={() => commitEdit(p.id)}
+                    onSubmitEditing={() => commitEdit(p.id)}
+                    autoFocus
+                    style={styles.editInput}
+                    accessibilityLabel={`Edit ${p.label}`}
+                  />
+                ) : (
+                  <Pressable
+                    style={styles.labelHit}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Edit ${p.label}`}
+                    onPress={() => {
+                      setEditText(p.label);
+                      setEditing(p.id);
+                    }}
+                  >
+                    <Text style={styles.label}>{p.label}</Text>
+                  </Pressable>
+                )}
+                <Pressable
+                  onPress={() => removePractice(p.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${p.label}`}
+                  hitSlop={10}
+                >
+                  <Text style={styles.removeLabel}>Remove</Text>
+                </Pressable>
+              </View>
+
+              <View style={styles.ticks}>
+                <View style={styles.spacer} />
+                {week.map((date, di) => {
+                  const on = done.includes(date);
+                  return (
+                    <Pressable
+                      key={date}
+                      onPress={() => togglePracticeDay(p.id, date)}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: on }}
+                      accessibilityLabel={`${p.label}, ${WEEKDAY_INITIALS[di]}`}
+                      style={[
+                        styles.tick,
+                        {
+                          backgroundColor: on ? p.fill : 'transparent',
+                          borderColor: on
+                            ? p.border
+                            : date === today
+                              ? 'rgba(0,0,0,0.28)'
+                              : color.outline,
+                        },
+                      ]}
+                    />
+                  );
+                })}
+              </View>
+            </View>
+          );
+        })}
+
+        <View style={styles.addRow}>
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            onSubmitEditing={add}
+            placeholder="Add something to your list"
+            placeholderTextColor={color.faint}
+            style={styles.addInput}
+            returnKeyType="done"
+            accessibilityLabel="Add an item to your self-care list"
+          />
+          <Pressable
+            onPress={add}
+            disabled={!draft.trim()}
+            accessibilityRole="button"
+            style={[styles.addButton, { opacity: draft.trim() ? 1 : 0.4 }]}
+          >
+            <Text style={styles.addButtonLabel}>Add</Text>
+          </Pressable>
+        </View>
+      </Card>
+
+      <InviteCard />
+    </View>
+  );
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <Card style={styles.statCard}>
+      <Display size={26} weight="regular">
+        {value}
+      </Display>
+      <MonoLabel size={8.5} em={0.1} tone={color.faint} style={{ marginTop: 4 }}>
+        {label}
+      </MonoLabel>
+    </Card>
+  );
+}
+
+const styles = StyleSheet.create({
+  badges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7,
+    marginTop: 14,
+  },
+  badge: {
+    height: 24,
+    paddingHorizontal: 10,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: color.outline,
+    justifyContent: 'center',
+  },
+  badgeOn: {
+    borderColor: color.accentBorderSoft,
+    backgroundColor: 'rgba(23,96,107,0.06)',
+  },
+  tally: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 18,
+  },
+  statCard: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+  },
+  listCard: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  dayHeader: {
+    flexDirection: 'row',
+    gap: 5,
+    paddingTop: 12,
+  },
+  spacer: {
+    flex: 1,
+  },
+  dayHeaderCell: {
+    width: DAY_COL,
+    textAlign: 'center',
+  },
+  row: {
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: color.rule,
+  },
+  rowTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  labelHit: {
+    flex: 1,
+  },
+  label: {
+    fontSize: 14.5,
+    lineHeight: 21,
+    color: color.ink,
+  },
+  editInput: {
+    flex: 1,
+    fontSize: 14.5,
+    lineHeight: 21,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: color.accentBorderSoft,
+    backgroundColor: color.ground,
+    color: color.ink,
+    outlineColor: color.accent,
+    outlineWidth: 2,
+  },
+  removeLabel: {
+    fontSize: 12,
+    color: color.label,
+  },
+  ticks: {
+    flexDirection: 'row',
+    gap: 5,
+    marginTop: 9,
+  },
+  tick: {
+    width: DAY_COL,
+    height: DAY_COL,
+    borderRadius: 99,
+    borderWidth: 1,
+  },
+  addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: color.rule,
+  },
+  addInput: {
+    flex: 1,
+    height: 40,
+    paddingHorizontal: 12,
+    borderRadius: radius.row,
+    borderWidth: 1,
+    borderColor: color.outline,
+    backgroundColor: color.ground,
+    fontSize: 14,
+    color: color.ink,
+    outlineColor: color.accent,
+    outlineWidth: 2,
+    outlineOffset: 1,
+  },
+  addButton: {
+    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: radius.pill,
+    backgroundColor: color.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+});

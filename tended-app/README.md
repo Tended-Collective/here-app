@@ -147,33 +147,40 @@ it is computed on device from data that needs no verification. An unverified tea
 and receive everything the paywall lists, which is why the paywall names no feed benefit: the two
 gates are deliberately independent, one on proof and one on payment.
 
-**Verification is skippable, and gates only the feed.** The personal record — check-ins, practices,
-the week chart — works without it, so a teacher who won't use their work address doesn't lose the
-part that actually helps them. The feed shows a prompt instead, and `VerifySheet` runs the same
-form from inside the app. `src/components/VerifyForm.tsx` is shared by both so the flow, and the
-promise made beside it, cannot drift.
+**Verification is skippable, and gates only posting.** Reading the feed, saving what other
+teachers did, the check-in and the whole personal record all work without it, so a teacher who
+won't use their work address doesn't lose the part that helps them. The composer shows a prompt
+instead, and `VerifySheet` runs the same form from inside the app. `src/components/VerifyForm.tsx`
+is shared by both so the flow, and the promise made beside it, cannot drift.
 
-**The self-care plan.** One card on the Support tab holds all three parts —
-`src/components/PlanBuilder.tsx` builds it in three steps, and the card summarises it.
+Reading is open because the feed is now the app's front page: gating it would leave an unverified
+teacher looking at nothing. Posting stays gated because that is what keeps the feed teachers
+talking to teachers.
 
-Habits are the app's existing practices rather than a second tracker beside them. The tab already
-had a seven-day grid; two habit systems on one screen would be one too many, and the grid is
-already the quick daily toggle. `savePlan` matches habits by label, so an edit that keeps a habit
-keeps its colour and its tick history, and ticks belonging to a dropped habit go with it.
+**The self-care list.** One editable checklist on the profile, and it is the app's only to-do.
+Items arrive two ways — typed into the row at the bottom of the card, or saved off someone else's
+post in the feed — and once they land there is no distinction between the two, because a boundary
+someone else holds is just a line on your list once you have taken it. Tapping a line edits it in
+place; `renamePractice` keeps the row's id, so an edited line keeps every tick it already had.
 
-Boundaries are the new shape: a standing rule is in force or it is not, where a habit is ticked on
-a given day. They toggle straight from the card. Contacts are the only place the app holds a name
-and a number — the teacher's own address book, not ours, stored beside the check-ins and never
-sent anywhere. One with a number is a tap to dial.
+The three-step plan builder that used to hold boundaries, habits and contacts is gone. It asked
+for a planning session up front, which is exactly the "one more thing to do" that teacher feedback
+named as the reason the app would not get used. One list that grows by tapping the feed asks for
+nothing.
 
 Everything persists under the same `tended.v1` key as the check-ins.
 
-**Where the practices came from.** The prototype had no screen behind "Edit my practices" / "Add
-one" — it assumed the three were chosen once, at an onboarding the app now has. Both buttons are
-replaced by the plan builder, which is why `PracticeEditor` no longer exists. Practices live in the
-store (`practices: Practice[]`), not as a fixed constant; a practice added beyond the original three is assigned the next tint in a five-hue
-palette computed at the same recipe as the design's three (`oklch(.72 .08 H)` fill over
-`oklch(.6 .08 H)` border), so it still reads as part of the same system.
+**Where the list items came from.** The prototype had no screen behind "Edit my practices" / "Add
+one" — it assumed the three were chosen once, at an onboarding the app now has. Items live in the
+store (`practices: Practice[]`), not as a fixed constant; one added beyond the original three is
+assigned the next tint in a five-hue palette computed at the same recipe as the design's three
+(`oklch(.72 .08 H)` fill over `oklch(.6 .08 H)` border), so it still reads as part of the same
+system.
+
+That palette used to walk 150 → 25, which is the mood ramp's own path, so the fifth item on the
+list came out the exact red that means "Rough" everywhere else — a kept habit drawn in the colour
+of a bad day. The walk now runs 150 → 210 and stops before the warm half. These are five ways to
+tell rows apart, not a scale.
 
 **First run.** A fresh install opens on onboarding. `SEED_FIRST_RUN` in `src/store.tsx` then seeds
 this week's earlier weekdays with the design's sample week, so the record is populated rather than
@@ -184,19 +191,32 @@ that no longer exist.
 **Dates.** The prototype hardcoded "THURSDAY 9 OCTOBER" and marked Thursday as today. Both are now
 derived from the real date, and the record runs the school week, Monday to Friday.
 
-**The nearby feed opt-in.** The transcript left this open. One switch — "Include my check-ins" —
-governs both the ZIP map and the live feed; with it off, the feed card explains that it reads from
-the same pool and hides the composer too. Splitting it into a second toggle would be a small
-change in `AreaScreen`.
+**The feed is the app.** The v3 design had it as a reduction of check-ins — a number and a tag,
+no free text, nothing to answer — on a tab behind three others. It is now the front page
+(`src/screens/FeedScreen.tsx`), and it carries the entire daily loop: the five-face check-in at the
+top, the composer under it, everyone else's posts below.
 
-**The nearby feed is words now, not check-in echoes.** The v3 design had the feed as a reduction of
-check-ins — a number and a tag, no free text, nothing to answer. It is now what teachers actually
-say: one sentence, and three reactions to send back (`src/components/NearbyFeed.tsx`).
+Every post is one thing a teacher did for themselves, optionally with a photo, and every one can
+be saved onto your own list. That is the difference between a feed that gives you company and one
+that gives you something to copy.
 
 Two of the design's guardrails are kept deliberately, because they are what stopped the feed
 becoming a staffroom argument: nothing carries a name, and there are no replies — a reaction is the
-entire vocabulary. The 140-character cap in `UPDATE_MAX_LENGTH` is what keeps it a feed of days
+entire vocabulary. The 140-character cap in `UPDATE_MAX_LENGTH` is what keeps it a feed of actions
 rather than a message board.
+
+**Photos.** `src/lib/photo.ts` picks one, draws it down to 1080px on the long edge and re-encodes
+it as JPEG before it is ever stored. Two reasons: the whole app state lives in one AsyncStorage
+row, and re-encoding through a canvas drops the EXIF block — which on a photo taken in a classroom
+carries GPS coordinates and a capture time. An anonymous feed cannot pass those on. Web is
+implemented because that is what the preview runs; the native branch wants `expo-image-picker` and
+is a no-op behind `PICKER_CONFIGURED` until it is installed.
+
+**The check-in is one tap.** Five faces, saved on the tap, no button to reach and no confirm step.
+This is a direct answer to the sharpest piece of teacher feedback the project has had — that
+against three uninterrupted minutes in a quiet classroom, a form loses, correctly. Tags are no
+longer collected on the way in; `saveCheckIn` preserves any already stored for the day rather than
+clearing them.
 
 Reactions are emoji, each keeping its wording as the accessible name so a screen reader says
 "Holding you" rather than reading out a codepoint. 🫂 was the obvious pick for that one and is the

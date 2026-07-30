@@ -31,16 +31,21 @@ export type Practice = {
 
 /**
  * Five tints at the practice ramp's own recipe — oklch(.72 .08 H) fill over
- * oklch(.6 .08 H) border — one step past the three hues the design specified
- * (150/100/75), so a practice added beyond the original three still reads as
+ * oklch(.6 .08 H) border — so an item added beyond the first still reads as
  * part of the same system rather than reaching for an arbitrary colour.
+ *
+ * The hue walk runs green to blue, and deliberately stops before the warm half.
+ * It used to run 150 → 25, which is the mood ramp's own path: the fifth item on
+ * the list came out the exact red that means "Rough" everywhere else in the
+ * app, so a kept habit was drawn in the colour of a bad day. These are five
+ * ways to tell rows apart, not a scale, and nothing here should imply a verdict.
  */
 const PRACTICE_PALETTE: { fill: string; border: string }[] = [
   { fill: 'rgba(128,179,138,0.6)', border: 'rgba(92,142,103,0.5)' }, // 150
-  { fill: 'rgba(176,166,107,0.6)', border: 'rgba(139,129,71,0.5)' }, // 100
-  { fill: 'rgba(194,158,107,0.6)', border: 'rgba(156,121,71,0.5)' }, // 75
-  { fill: 'rgba(209,148,127,0.6)', border: 'rgba(170,112,91,0.5)' }, // 40
-  { fill: 'rgba(210,145,139,0.6)', border: 'rgba(171,109,104,0.5)' }, // 25
+  { fill: 'rgba(120,180,152,0.6)', border: 'rgba(86,143,118,0.5)' }, // 165
+  { fill: 'rgba(112,180,168,0.6)', border: 'rgba(80,143,133,0.5)' }, // 180
+  { fill: 'rgba(108,178,184,0.6)', border: 'rgba(76,141,147,0.5)' }, // 195
+  { fill: 'rgba(112,175,197,0.6)', border: 'rgba(80,138,158,0.5)' }, // 210
 ];
 
 /** The three practices the user set up during onboarding — the seed default. */
@@ -62,12 +67,18 @@ export type Boundary = { id: string; label: string; active: boolean };
  */
 export type Contact = { id: string; name: string; phone: string };
 
-/** One sentence the teacher posted to the nearby feed. */
+/** One sentence the teacher posted to the feed. */
 export type Update = {
   id: string;
   text: string;
   /** Epoch milliseconds, so the feed can age the label as time passes. */
   at: number;
+  /**
+   * Optional photo, held as a data URI. Downscaled and stripped of EXIF before
+   * it gets here (see lib/photo.ts) — a classroom photo carries GPS in its
+   * metadata, which an anonymous feed cannot pass on.
+   */
+  photo?: string;
 };
 
 type Persisted = {
@@ -169,13 +180,16 @@ type StoreValue = Persisted & {
   plusActive: boolean;
   /** Whole days remaining, 0 when there is no trial. */
   trialDaysLeft: number;
-  saveCheckIn: (score: number, tags: string[]) => void;
+  /** Tags are optional: the feed asks the question with faces and nothing else. */
+  saveCheckIn: (score: number, tags?: string[]) => void;
   clearCheckIn: () => void;
   togglePracticeDay: (practiceId: string, date: ISODate) => void;
   addPractice: (label: string) => void;
   removePractice: (practiceId: string) => void;
+  /** Edit an item on the list in place, keeping its tick history. */
+  renamePractice: (practiceId: string, label: string) => void;
   setContributing: (on: boolean) => void;
-  postUpdate: (text: string) => void;
+  postUpdate: (text: string, photo?: string | null) => void;
   removeUpdate: (id: string) => void;
   toggleReaction: (updateId: string, reactionId: string) => void;
   startTrial: () => void;
@@ -190,8 +204,11 @@ type StoreValue = Persisted & {
   savePlan: (input: { boundaries: string[]; habits: string[]; contacts: Contact[] }) => void;
   /** Quick on/off from the summary card. */
   toggleBoundary: (id: string) => void;
-  /** Takes something from the feed into this teacher's own plan. */
-  adoptFromFeed: (kind: 'boundary' | 'habit', label: string) => void;
+  /**
+   * Saves what someone else did onto this teacher's own list. De-duplicates by
+   * label, so tapping twice does not put the same line on the list twice.
+   */
+  saveToList: (label: string) => void;
 };
 
 /** Whole days left on a trial that began at `startedAt`. */
@@ -252,7 +269,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       saveCheckIn: (score, tags) =>
         update((prev) => {
           const date = todayISO();
-          return { ...prev, entries: { ...prev.entries, [date]: { date, score, tags } } };
+          // Tapping a face is the whole check-in, and it must not wipe tags a
+          // teacher added earlier in the day from somewhere that collects them.
+          const kept = tags ?? prev.entries[date]?.tags ?? [];
+          return { ...prev, entries: { ...prev.entries, [date]: { date, score, tags: kept } } };
         }),
       clearCheckIn: () =>
         update((prev) => {
@@ -286,8 +306,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             practiceDays,
           };
         }),
+      renamePractice: (practiceId, label) =>
+        update((prev) => {
+          const trimmed = label.trim();
+          if (!trimmed) return prev;
+          return {
+            ...prev,
+            // The id is untouched, so practiceDays still points at this row and
+            // an edited line keeps everything it was ticked for.
+            practices: prev.practices.map((p) =>
+              p.id === practiceId ? { ...p, label: trimmed } : p,
+            ),
+          };
+        }),
       setContributing: (on) => update((prev) => ({ ...prev, contributing: on })),
-      postUpdate: (text) =>
+      postUpdate: (text, photo) =>
         update((prev) => {
           const trimmed = text.trim().slice(0, UPDATE_MAX_LENGTH);
           if (!trimmed) return prev;
@@ -295,6 +328,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             id: `u${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
             text: trimmed,
             at: Date.now(),
+            ...(photo ? { photo } : {}),
           };
           return { ...prev, updates: [entry, ...prev.updates] };
         }),
@@ -376,27 +410,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             })),
           };
         }),
-      adoptFromFeed: (kind, label) =>
+      saveToList: (label) =>
         update((prev) => {
-          if (kind === 'boundary') {
-            // Adding the same rule twice would just clutter the card.
-            if (prev.boundaries.some((b) => b.label === label)) return prev;
-            return {
-              ...prev,
-              boundaries: [
-                ...prev.boundaries,
-                { id: `b${Date.now().toString(36)}`, label, active: true },
-              ],
-            };
-          }
-          if (prev.practices.some((p) => p.label === label)) return prev;
+          const trimmed = label.trim();
+          if (!trimmed || prev.practices.some((p) => p.label === trimmed)) return prev;
           return {
             ...prev,
             practices: [
               ...prev.practices,
               {
-                id: `p${Date.now().toString(36)}`,
-                label,
+                id: `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+                label: trimmed,
                 ...PRACTICE_PALETTE[prev.practices.length % PRACTICE_PALETTE.length],
               },
             ],

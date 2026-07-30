@@ -48,7 +48,7 @@ const STORY = [
   {
     kicker: 'WHAT YOU GET',
     title: 'Proof of which of your own habits actually move a day.',
-    body: 'Weeks you kept your boundaries, next to weeks you did not. Plus dates, a trend line, and the reasons you named yourself — enough to take to a doctor, a union rep, or an administrator when you need to.',
+    body: 'Weeks you kept your list, next to weeks you did not. Plus dates and a trend line — enough to take to a doctor, a union rep, or an administrator when you need to. And a feed of what other teachers nearby are actually doing, which you can take from.',
   },
 ];
 
@@ -64,7 +64,7 @@ const PROMISES = [
   },
   {
     title: 'Nothing carries a name',
-    body: 'If you post to the nearby feed it goes out with no name, handle, or account ID attached.',
+    body: 'If you post to the feed it goes out with no name, handle, or account ID attached. A photo is downscaled and stripped of its location data first.',
   },
   {
     title: 'ZIP-level only, never your school',
@@ -166,9 +166,9 @@ export function Onboarding() {
               Pick what you are trying to keep.
             </Display>
             <Body style={{ marginTop: 14 }}>
-              How you felt is one tap. These are the other half — up to {MAX_PRACTICES} habits you
-              tick off beside it. Pick ones you could still manage on a bad day. Change them any
-              time.
+              How you felt is one tap. This is the other half — your self-care list, up to{' '}
+              {MAX_PRACTICES} things you tick off as you do them. Pick ones you could still manage
+              on a bad day. Edit the list any time.
             </Body>
 
             <View style={styles.chips}>
@@ -192,7 +192,7 @@ export function Onboarding() {
             <TextInput
               value={zip}
               onChangeText={setZip}
-              placeholder="47404"
+              placeholder="e.g. 20002"
               placeholderTextColor={color.faint}
               style={styles.input}
               keyboardType="number-pad"
@@ -217,8 +217,9 @@ export function Onboarding() {
             // it costs. The primary action on this step lives inside VerifyForm.
             <>
               <Text style={styles.skipNote}>
-                Without verifying you cannot see or post to the nearby feed. Check-ins, tracking, the
-                record and resources all work.
+                Without verifying you can still read the feed, save what other teachers did, and
+                keep your own record. You will not be able to post, and your check-ins stay out of
+                the area figures.
               </Text>
               <Pressable
                 onPress={next}

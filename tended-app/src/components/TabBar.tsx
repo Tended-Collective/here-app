@@ -4,17 +4,17 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { color } from '../theme';
 import { useChrome } from './PhoneFrame';
 
-export type TabKey = 'today' | 'record' | 'area' | 'support';
+export type TabKey = 'feed' | 'profile' | 'resources';
 
 /**
- * "My Plan" is the Support tab, which is where the self-care plan lives, so it
- * moves ahead of the area view — the order follows the labels.
+ * Three tabs, and the first one is the app. The feed carries the check-in, the
+ * composer and everyone else's posts, so a teacher who never leaves it has
+ * still done everything the product asks of them.
  */
 const TABS: { key: TabKey; label: string }[] = [
-  { key: 'today', label: 'Today' },
-  { key: 'record', label: 'Stats' },
-  { key: 'support', label: 'My Plan' },
-  { key: 'area', label: 'More' },
+  { key: 'feed', label: 'Feed' },
+  { key: 'profile', label: 'Profile' },
+  { key: 'resources', label: 'Resources' },
 ];
 
 export function TabBar({

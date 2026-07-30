@@ -2,15 +2,13 @@ import React, { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useChrome } from './components/PhoneFrame';
 import { PlusSheet } from './components/PlusSheet';
-import { PlanBuilder } from './components/PlanBuilder';
 import { SheetsProvider, useSheets } from './components/Sheet';
 import { VerifySheet } from './components/VerifySheet';
 import { TabBar, TabKey } from './components/TabBar';
-import { AreaScreen } from './screens/AreaScreen';
+import { FeedScreen } from './screens/FeedScreen';
 import { Onboarding } from './screens/Onboarding';
-import { RecordScreen } from './screens/RecordScreen';
-import { SupportScreen } from './screens/SupportScreen';
-import { TodayScreen } from './screens/TodayScreen';
+import { ProfileScreen } from './screens/ProfileScreen';
+import { ResourcesScreen } from './screens/ResourcesScreen';
 import { useStore } from './store';
 import { color, SCREEN_PADDING } from './theme';
 
@@ -30,7 +28,7 @@ export function AppShell() {
 }
 
 function Shell() {
-  const [tab, setTab] = useState<TabKey>('today');
+  const [tab, setTab] = useState<TabKey>('feed');
   const { topInset, tabBarHeight } = useChrome();
   const scroller = useRef<ScrollView>(null);
 
@@ -47,10 +45,9 @@ function Shell() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {tab === 'today' && <TodayScreen />}
-        {tab === 'record' && <RecordScreen />}
-        {tab === 'area' && <AreaScreen />}
-        {tab === 'support' && <SupportScreen />}
+        {tab === 'feed' && <FeedScreen />}
+        {tab === 'profile' && <ProfileScreen />}
+        {tab === 'resources' && <ResourcesScreen />}
       </ScrollView>
 
       <TabBar active={tab} onChange={select} />
@@ -74,7 +71,6 @@ function Sheets() {
 
   return (
     <>
-      <PlanBuilder visible={current === 'plan'} onClose={close} />
       <VerifySheet
         visible={current === 'verify'}
         onClose={close}

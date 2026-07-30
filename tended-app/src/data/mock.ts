@@ -75,7 +75,7 @@ export const AREA = {
 export const NAMED_CAUSES = [
   { label: 'Workload', share: 0.88, color: 'rgba(180,103,98,0.6)' },
   { label: 'No break in the day', share: 0.71, color: 'rgba(207,139,116,0.6)' },
-  { label: 'Behaviour support', share: 0.54, color: 'rgba(214,177,125,0.7)' },
+  { label: 'Student behavior', share: 0.54, color: 'rgba(214,177,125,0.7)' },
   { label: 'Admin asks', share: 0.41, color: 'rgba(182,172,113,0.7)' },
 ];
 
@@ -102,20 +102,34 @@ export type FeedUpdate = {
   /**
    * One thing a teacher did for themselves, written so another teacher could
    * do the same. This is the whole point of the feed: you should be able to
-   * take it, not just recognise it.
+   * take it, not just recognize it.
    */
   text: string;
-  /** Where it belongs in a plan, and therefore what "add to my plan" adds it to. */
-  kind: 'boundary' | 'habit';
   /** How long they have held it. Evidence that it is possible, not a score. */
   streak?: string;
   /** Distance and time. */
   meta: string;
   /** Tint, so the feed still reads at a glance. */
   dot: string;
+  /** Optional photo, as a data URI. See the samples below. */
+  photo?: string;
   /** What other people have already sent. The user's own tap adds to these. */
   reactions: Partial<Record<ReactionId, number>>;
 };
+
+/**
+ * Sample photos: soft two-stop washes, generated as PNG rather than shipped as
+ * image files. There are no real photographs to use, and a stock classroom
+ * photo would be a lie about who posted it — these read as "a photo is here"
+ * without pretending to be one. A real post carries a downscaled JPEG from the
+ * picker (lib/photo.ts), and the feed renders both the same way.
+ */
+const SAMPLE_PHOTO_PARK =
+  'data:image/png;base64,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';
+const SAMPLE_PHOTO_DRAWER =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAB4CAIAAAA48Cq8AAAFIUlEQVR42u3aB3LbMBSEYdz/RunNKerF6rIdt/gcIQVKFCCAoognyyT+mT3CN/s44Kp3rcV+3ltpZ/nQnjvz0ZNPHXc+d2bOfNmla+SrJ9+6Uzu9NN89+eHJVW9y1Xfkpye/9jPI83tw7cwfZ4bXLU/aw7EzHZ2Rna4nvdHIyDhL35OBJ8ProTMjT8bbKC+pVlVS7aqkOlVJdYtIoer1VY0nW1gU1Qmk+lVJDaqSqpuqFJZUUXH+KCpNygOrEeeviFTvBFKoqqbKhMX5awap0RFSr6DqejJQr1lUqGp8USWkdNQFiuptn79Tv9NRdagqh8X5o6gEVaWw6vKdjqpaFNURWE0oql4NnqmaqsoNi/NHUYWQSjKxYNX9mQpVF1c12UZRVJchNSxLqo6qMlinFhWqKKoCUhms2P7S/ELV+VVNph5YFFUzSF1KlQOWVFGhKs6iSjLdRF24qLpNeKZClaXKgMX5o6gqqpraqjJYjIlRJVVUOSzGxIyJxVV5YXH+KKoypHyqHLAYE6MqpKiSzKb9JIqiYkwsriqHxZiYopIilcNiTIwqWVUpLIqKMbG4KjcsxsQUVQipJPNDWIyJox0TC6qaz0xYnL+Yx8QnPVN5Vc2yKMbEnD/BojJgUVSMiWVVpbBQRVGVIVXm/LlgMSZGlURR6SxSWBQVY2JpVTYsVFFU4aQMWE0dE6PqIqoyWBRVdGPiM6tKYTEmpqhkSXlhMSZGVaCq5aynOH+MiSs8UxWrMmAxJqaowotqF0VRMSYWV7Wcb2ChiqIqQ6qUqnkWxZgYVYJF5YFFUUU8JhZUtTJgoYqiCialVW1hMSZGlVBRrXJYFBVjYmlVKSzGxBSVLKkiWG+L1IAxcc1UuWFRVHGOiU96pipWtbZgMSamqAKLar2NoqgYE4urymGhiqIKP38GLMbEqBIsqiOwKCpZUqM6jIkFVa0XLliooqhCSCW5WXQVY2JUCapKSOkoiooxceB3+qGqDJbvOx1VFFUFUhksxsSoEle1gUVRMSaupmrhVeWAxZiYogopqiS3myiKijGxuCoDFqoiHxOHn79bCxZjYs6fVFHlsCgqxsTiqrywUEVRlSHlU+WAxZgYVSFFleRuE0VRMSYO/E4/VHW33MJiTExRiRRVQkpHMSZGlbiqFBZFxZhY4Pwt7SjGxBSVYFHp/F12FEXFmFhc1QYWqqIpqnOfv52qHBZjYs6fSFEZsCgqxsSyqlJYqKKoypAqc/6OwHprY2JU1eX87XJ/CIuiinZMLFJUWpUNC1UUVWBR3VuwGBOjSlBVBouiYkwscv6yrNIoxsQUlWBRaVUuWBTVOcbEkal6sGGhKuIxcfj526kyYDEm5vyFF9WDAYuiYkwsqmoDC1UUldD5M2AxJkaVYFEVwaKo4hwTixSVzuOqrVBFUQkWlVZlwGJMjKpAVZqUAYuiYkwcfv4MWIyJKSrBojoCizFxhGNiQVVuWBRVnGPi8POXZd1+WpuwTv1Lw5iY82flaZ1FUVQlSc2aPiYWVJXDQhVFFX7+DFiMiVElWFQmLIqKMbFQUe3BQhVFVamoClQ9W7AYE6Mq5PxpUs8WLIoq8jFx+Pl7tmAxJqaopIoqh8WYmDGxuCovLIoqwjFx+PkrgsWYmPMXUlRJ/q1bSRRFxZhYXJUBC1WRj4nDz1+m6iaNYkzM+RMsKq0qhUVRMSYWLCoPLFRRVBKq9mAxJo5+TBx+/nReNlEUFWPiR7mieslhoYrzJ1dUu/wH7VB7zFsgXUsAAAAASUVORK5CYII=';
+const SAMPLE_PHOTO_SUNDAY =
+  'data:image/png;base64,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';
 
 /**
  * The nearby feed. Every entry is something a teacher actually did for
@@ -129,8 +143,7 @@ export type FeedUpdate = {
 export const NEARBY_UPDATES: FeedUpdate[] = [
   {
     id: '1',
-    text: 'Left at 4:30 and did the marking at home with the TV on.',
-    kind: 'boundary',
+    text: 'Left at 4:30 and did the grading at home with the TV on.',
     streak: 'HELD 9 DAYS',
     meta: '3 MILES · 40 MIN AGO',
     dot: 'rgba(117,174,129,0.65)',
@@ -139,28 +152,27 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
   {
     id: '2',
     text: 'Ate lunch in the park instead of at my desk.',
-    kind: 'habit',
     streak: 'KEPT 4 DAYS',
     meta: '6 MILES · 2 HR AGO',
-    dot: 'rgba(182,172,113,0.65)',
+    dot: 'rgba(120,180,152,0.65)',
+    photo: SAMPLE_PHOTO_PARK,
     reactions: { felt: 21, same: 9 },
   },
   {
     id: '3',
-    text: 'Said no to covering another duty this week.',
-    kind: 'boundary',
+    text: 'Said no to covering another class this week.',
     streak: 'FIRST TIME',
     meta: '4 MILES · 3 HR AGO',
-    dot: 'rgba(117,174,129,0.65)',
+    dot: 'rgba(112,180,168,0.65)',
     reactions: { felt: 30, holding: 11, same: 4 },
   },
   {
     id: '4',
     text: 'Phone goes in a drawer at 7pm and stays there.',
-    kind: 'boundary',
     streak: 'HELD 12 DAYS',
     meta: '9 MILES · 5 HR AGO',
-    dot: 'rgba(122,173,132,0.6)',
+    dot: 'rgba(108,178,184,0.6)',
+    photo: SAMPLE_PHOTO_DRAWER,
     reactions: { felt: 17, holding: 2, same: 12 },
   },
 ];
@@ -177,16 +189,14 @@ export const LAST_HOUR_UPDATES: FeedUpdate[] = [
   {
     id: '5',
     text: 'Walked the long way to the car. Fifteen minutes, no phone.',
-    kind: 'habit',
     streak: 'KEPT 6 DAYS',
     meta: '12 MILES · 6 HR AGO',
-    dot: 'rgba(182,172,113,0.65)',
+    dot: 'rgba(120,180,152,0.65)',
     reactions: { felt: 12, same: 7 },
   },
   {
     id: '6',
     text: 'Booked the therapy appointment I had been putting off since March.',
-    kind: 'habit',
     meta: '2 MILES · 7 HR AGO',
     dot: 'rgba(117,174,129,0.65)',
     reactions: { felt: 41, holding: 9, same: 3 },
@@ -194,10 +204,10 @@ export const LAST_HOUR_UPDATES: FeedUpdate[] = [
   {
     id: '7',
     text: 'No school work before noon on Sundays.',
-    kind: 'boundary',
     streak: 'HELD 3 WEEKS',
     meta: '7 MILES · 8 HR AGO',
-    dot: 'rgba(122,173,132,0.6)',
+    dot: 'rgba(112,175,197,0.6)',
+    photo: SAMPLE_PHOTO_SUNDAY,
     reactions: { felt: 9, holding: 4, same: 15 },
   },
 ];

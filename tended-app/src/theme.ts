@@ -40,6 +40,12 @@ export const color = {
 
 export type Mood = {
   label: string;
+  /**
+   * How the day is answered on the feed: one tap on a face. The label is still
+   * the accessible name, so the button announces "Worn down" rather than the
+   * codepoint's own description, and it is what the record reads back.
+   */
+  emoji: string;
   /** Solid swatch — used for the selection ring and the row dot. */
   color: string;
   /** Same hue at the alpha the charts use. */
@@ -62,11 +68,11 @@ export type Mood = {
  * beside it.
  */
 export const MOODS: Mood[] = [
-  { label: 'Great', color: '#7aad84', fill: 'rgba(122,173,132,0.5)' }, //     oklch(.7 .08 150)
-  { label: 'Good', color: '#a5b278', fill: 'rgba(165,178,120,0.5)' }, //      oklch(.74 .08 119)
-  { label: 'Okay', color: '#cdb57b', fill: 'rgba(205,181,123,0.5)' }, //      oklch(.78 .08 88)
-  { label: 'Worn down', color: '#d79c73', fill: 'rgba(215,156,115,0.5)' }, // oklch(.74 .09 56)
-  { label: 'Rough', color: '#b46762', fill: 'rgba(180,103,98,0.5)' }, //      oklch(.6 .1 25)
+  { label: 'Great', emoji: '😄', color: '#7aad84', fill: 'rgba(122,173,132,0.5)' }, //     oklch(.7 .08 150)
+  { label: 'Good', emoji: '🙂', color: '#a5b278', fill: 'rgba(165,178,120,0.5)' }, //      oklch(.74 .08 119)
+  { label: 'Okay', emoji: '😐', color: '#cdb57b', fill: 'rgba(205,181,123,0.5)' }, //      oklch(.78 .08 88)
+  { label: 'Worn down', emoji: '😮‍💨', color: '#d79c73', fill: 'rgba(215,156,115,0.5)' }, // oklch(.74 .09 56)
+  { label: 'Rough', emoji: '😞', color: '#b46762', fill: 'rgba(180,103,98,0.5)' }, //      oklch(.6 .1 25)
 ];
 
 export const TAGS = ['Workload', 'No break', 'Behaviour', 'Admin asks', 'Parents', 'Sleep'];
