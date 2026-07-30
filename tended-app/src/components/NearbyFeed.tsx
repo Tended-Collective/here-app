@@ -3,7 +3,7 @@
  *
  * The v3 design had this as an echo of check-ins — a number and a tag, no words,
  * nothing to answer. It is now what teachers actually say: one sentence, and
- * three named reactions to send back.
+ * three reactions to send back.
  *
  * Two of the design's guardrails are deliberately kept. There is still no name
  * on anything, and there is still no reply — a reaction is the whole vocabulary,
@@ -85,8 +85,9 @@ export function NearbyFeed() {
             accessibilityLabel="Your update, one sentence"
           />
           <View style={styles.composerFoot}>
-            <MonoLabel size={9.5} em={0.08} tone={left <= 20 ? color.muted : color.fainter}>
-              {left <= 20 ? `${left} LEFT` : 'NO NAME IS ATTACHED'}
+            {/* Only speaks up when the cap is close. */}
+            <MonoLabel size={9.5} em={0.08} tone={color.muted}>
+              {left <= 20 ? `${left} LEFT` : ''}
             </MonoLabel>
             <Pressable
               onPress={submit}
@@ -106,9 +107,6 @@ export function NearbyFeed() {
           onPress={() => open('plus')}
         >
           <Text style={styles.lockedTitle}>Posting is part of Tended+</Text>
-          <Text style={styles.lockedSub}>
-            You can send reactions on the free plan. Adding your own sentence needs Plus.
-          </Text>
         </Pressable>
       )}
 
@@ -209,9 +207,9 @@ function FeedRow({
                 accessibilityLabel={`${r.label}${on ? ', sent' : ''}`}
                 style={[styles.reaction, on && styles.reactionOn]}
               >
-                <Text style={[styles.reactionLabel, on && styles.reactionLabelOn]}>{r.label}</Text>
+                <Text style={styles.reactionEmoji}>{r.emoji}</Text>
                 {count > 0 && (
-                  <Text style={[styles.reactionCount, on && styles.reactionLabelOn]}>{count}</Text>
+                  <Text style={[styles.reactionCount, on && styles.reactionCountOn]}>{count}</Text>
                 )}
               </Pressable>
             );
@@ -267,12 +265,6 @@ const styles = StyleSheet.create({
     fontSize: 14.5,
     fontWeight: '600',
     color: color.ink,
-  },
-  lockedSub: {
-    fontSize: 12.5,
-    lineHeight: 19,
-    color: color.muted,
-    marginTop: 4,
   },
   gate: {
     paddingVertical: 14,
@@ -353,9 +345,9 @@ const styles = StyleSheet.create({
   reaction: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    height: 30,
-    paddingHorizontal: 10,
+    gap: 6,
+    height: 32,
+    paddingHorizontal: 12,
     borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: color.outline,
@@ -364,16 +356,16 @@ const styles = StyleSheet.create({
     borderColor: color.accentBorderSoft,
     backgroundColor: 'rgba(23,96,107,0.06)',
   },
-  reactionLabel: {
-    fontSize: 12.5,
-    color: color.body,
-  },
-  reactionLabelOn: {
-    color: color.accent,
+  reactionEmoji: {
+    fontSize: 17,
+    lineHeight: 22,
   },
   reactionCount: {
     fontSize: 12,
     color: color.faint,
+  },
+  reactionCountOn: {
+    color: color.accent,
   },
   more: {
     paddingVertical: 13,

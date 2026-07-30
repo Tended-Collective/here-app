@@ -114,12 +114,6 @@ export function AreaScreen() {
       </View>
 
       <NearbyFeed />
-
-      <Body size={12} lineHeight={1.6} tone={color.label} style={{ marginTop: 10 }}>
-        A rolling feed from teachers within 15 miles: one sentence each, and three ways to answer.
-        No names on anything, and no replies — a reaction is all you can send, so it can’t turn
-        into a place to argue or to vent about a colleague.
-      </Body>
     </View>
   );
 }

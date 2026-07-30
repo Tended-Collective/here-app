@@ -77,12 +77,15 @@ export const NAMED_CAUSES = [
  * response the feed allows: there are no replies and no free-text answers, so a
  * hard day can be met without the feed turning into a thread to argue in.
  *
- * They are words rather than emoji because the app has no emoji anywhere else.
+ * The emoji is what you see; the label is what a screen reader says, so the
+ * button still announces "Holding you" rather than the codepoint's own name.
  */
 export const REACTIONS = [
-  { id: 'felt', label: 'Felt that' },
-  { id: 'holding', label: 'Holding you' },
-  { id: 'same', label: 'Same here' },
+  // Chosen to stay legible at pill size: 🫂 collapses into an unreadable blob
+  // once it is small, where a face still reads.
+  { id: 'felt', label: 'Felt that', emoji: '❤️' },
+  { id: 'holding', label: 'Holding you', emoji: '🤗' },
+  { id: 'same', label: 'Same here', emoji: '🙋' },
 ] as const;
 
 export type ReactionId = (typeof REACTIONS)[number]['id'];
