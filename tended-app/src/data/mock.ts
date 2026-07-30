@@ -90,64 +90,85 @@ export const NAMED_CAUSES = [
 export const REACTIONS = [
   // Chosen to stay legible at pill size: 🫂 collapses into an unreadable blob
   // once it is small, where a face still reads.
-  { id: 'felt', label: 'Felt that', emoji: '❤️' },
-  { id: 'holding', label: 'Holding you', emoji: '🤗' },
-  { id: 'same', label: 'Same here', emoji: '🙋' },
+  { id: 'felt', label: 'Good idea', emoji: '❤️' },
+  { id: 'holding', label: 'Needed this', emoji: '🤗' },
+  { id: 'same', label: 'Doing this too', emoji: '🙋' },
 ] as const;
 
 export type ReactionId = (typeof REACTIONS)[number]['id'];
 
 export type FeedUpdate = {
   id: string;
-  /** One sentence, written by a teacher within 15 miles. Never a name. */
+  /**
+   * One thing a teacher did for themselves, written so another teacher could
+   * do the same. This is the whole point of the feed: you should be able to
+   * take it, not just recognise it.
+   */
   text: string;
+  /** Where it belongs in a plan, and therefore what "add to my plan" adds it to. */
+  kind: 'boundary' | 'habit';
+  /** How long they have held it. Evidence that it is possible, not a score. */
+  streak?: string;
   /** Distance and time. */
   meta: string;
-  /** Mood tint, so the feed still reads at a glance. */
+  /** Tint, so the feed still reads at a glance. */
   dot: string;
   /** What other people have already sent. The user's own tap adds to these. */
   reactions: Partial<Record<ReactionId, number>>;
 };
 
 /**
- * The live nearby feed: one sentence from a teacher within 15 miles, and what
- * other people sent back. No names and no replies.
+ * The nearby feed. Every entry is something a teacher actually did for
+ * themselves — a boundary they held or a habit they kept — rather than a report
+ * of how their day went.
+ *
+ * The difference matters. A feed of hard days gives you company; a feed of what
+ * worked gives you something to try, and every row here can be added straight
+ * to your own plan.
  */
 export const NEARBY_UPDATES: FeedUpdate[] = [
   {
     id: '1',
-    text: 'Third fire drill this week, right in the middle of the only lesson I was proud of.',
-    meta: '3 MILES · 2 MIN AGO',
-    dot: 'rgba(209,136,130,0.65)',
+    text: 'Left at 4:30 and did the marking at home with the TV on.',
+    kind: 'boundary',
+    streak: 'HELD 9 DAYS',
+    meta: '3 MILES · 40 MIN AGO',
+    dot: 'rgba(117,174,129,0.65)',
     reactions: { felt: 14, holding: 3, same: 6 },
   },
   {
     id: '2',
-    text: 'I ate lunch sitting down today and it genuinely fixed something.',
-    meta: '6 MILES · 11 MIN AGO',
-    dot: 'rgba(117,174,129,0.65)',
+    text: 'Ate lunch in the park instead of at my desk.',
+    kind: 'habit',
+    streak: 'KEPT 4 DAYS',
+    meta: '6 MILES · 2 HR AGO',
+    dot: 'rgba(182,172,113,0.65)',
     reactions: { felt: 21, same: 9 },
   },
   {
     id: '3',
-    text: 'Second week of covering someone else’s class on my only free period.',
-    meta: '4 MILES · 24 MIN AGO',
-    dot: 'rgba(207,139,116,0.65)',
-    reactions: { felt: 8, holding: 11, same: 12 },
+    text: 'Said no to covering another duty this week.',
+    kind: 'boundary',
+    streak: 'FIRST TIME',
+    meta: '4 MILES · 3 HR AGO',
+    dot: 'rgba(117,174,129,0.65)',
+    reactions: { felt: 30, holding: 11, same: 4 },
   },
   {
     id: '4',
-    text: 'A parent emailed at 11pm and I did not answer it, and I am counting that as a win.',
-    meta: '9 MILES · 38 MIN AGO',
-    dot: 'rgba(191,150,93,0.65)',
-    reactions: { felt: 17, holding: 2, same: 4 },
+    text: 'Phone goes in a drawer at 7pm and stays there.',
+    kind: 'boundary',
+    streak: 'HELD 12 DAYS',
+    meta: '9 MILES · 5 HR AGO',
+    dot: 'rgba(122,173,132,0.6)',
+    reactions: { felt: 17, holding: 2, same: 12 },
   },
 ];
 
 /**
  * How much of the feed the free tier sees. Reacting stays free at any tier —
- * answering someone's bad day is not something to charge for — but posting and
- * the rest of the feed are part of Tended+.
+ * encouraging someone who did the hard thing is not something to charge for —
+ * but posting and the rest of the feed are part of Tended+.
  */
 export const FREE_FEED_VIEWS = 3;
 
@@ -155,24 +176,29 @@ export const FREE_FEED_VIEWS = 3;
 export const LAST_HOUR_UPDATES: FeedUpdate[] = [
   {
     id: '5',
-    text: 'Report cards are done and I have forgotten what I used to do in the evenings.',
-    meta: '12 MILES · 44 MIN AGO',
-    dot: 'rgba(207,139,116,0.65)',
+    text: 'Walked the long way to the car. Fifteen minutes, no phone.',
+    kind: 'habit',
+    streak: 'KEPT 6 DAYS',
+    meta: '12 MILES · 6 HR AGO',
+    dot: 'rgba(182,172,113,0.65)',
     reactions: { felt: 12, same: 7 },
   },
   {
     id: '6',
-    text: 'One of mine read a whole page out loud today without stopping.',
-    meta: '2 MILES · 51 MIN AGO',
+    text: 'Booked the therapy appointment I had been putting off since March.',
+    kind: 'habit',
+    meta: '2 MILES · 7 HR AGO',
     dot: 'rgba(117,174,129,0.65)',
-    reactions: { felt: 30, holding: 1, same: 3 },
+    reactions: { felt: 41, holding: 9, same: 3 },
   },
   {
     id: '7',
-    text: 'Told my head of year I could not take another duty and she just said okay.',
-    meta: '7 MILES · 58 MIN AGO',
-    dot: 'rgba(182,172,113,0.65)',
-    reactions: { felt: 9, holding: 4, same: 5 },
+    text: 'No school work before noon on Sundays.',
+    kind: 'boundary',
+    streak: 'HELD 3 WEEKS',
+    meta: '7 MILES · 8 HR AGO',
+    dot: 'rgba(122,173,132,0.6)',
+    reactions: { felt: 9, holding: 4, same: 15 },
   },
 ];
 

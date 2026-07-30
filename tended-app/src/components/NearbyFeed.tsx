@@ -2,8 +2,12 @@
  * The live nearby feed.
  *
  * The v3 design had this as an echo of check-ins — a number and a tag, no words,
- * nothing to answer. It is now what teachers actually say: one sentence, and
- * three reactions to send back.
+ * nothing to answer. It is now a feed of what teachers actually did for
+ * themselves: one boundary held or habit kept per post, and a way to take it.
+ *
+ * That is the point of the change. A feed of hard days gives you company; a
+ * feed of what worked gives you something to try, and "add to my plan" puts it
+ * straight into your own boundaries or habits.
  *
  * Two of the design's guardrails are deliberately kept. There is still no name
  * on anything, and there is still no reply — a reaction is the whole vocabulary,
@@ -37,7 +41,12 @@ export function NearbyFeed() {
     toggleReaction,
     plusActive,
     educator,
+    boundaries,
+    practices,
+    adoptFromFeed,
   } = useStore();
+  // What is already in the plan, so a row can say so rather than adding twice.
+  const inPlan = new Set([...boundaries.map((b) => b.label), ...practices.map((p) => p.label)]);
   const { open } = useSheets();
   const [draft, setDraft] = useState('');
   const [showLastHour, setShowLastHour] = useState(false);
@@ -95,7 +104,7 @@ export function NearbyFeed() {
           <TextInput
             value={draft}
             onChangeText={(t) => setDraft(t.slice(0, UPDATE_MAX_LENGTH))}
-            placeholder="Sum up today in one sentence"
+            placeholder="What did you do for yourself today?"
             placeholderTextColor={color.faint}
             style={styles.input}
             multiline
@@ -127,7 +136,7 @@ export function NearbyFeed() {
           style={styles.composerLocked}
           onPress={() => open('plus')}
         >
-          <Text style={styles.lockedTitle}>Posting is part of Tended+</Text>
+          <Text style={styles.lockedTitle}>Sharing what you did is part of Tended+</Text>
         </Pressable>
       )}
 
@@ -140,6 +149,8 @@ export function NearbyFeed() {
           key={item.id}
           update={item}
           mine={reactions[item.id] ?? []}
+          adopted={inPlan.has(item.text)}
+          onAdopt={() => adoptFromFeed(item.kind, item.text)}
           onReact={(reactionId) => toggleReaction(item.id, reactionId)}
         />
       ))}
@@ -199,10 +210,14 @@ function OwnUpdate({ update, onRemove }: { update: Update; onRemove: () => void 
 function FeedRow({
   update,
   mine,
+  adopted,
+  onAdopt,
   onReact,
 }: {
   update: FeedUpdate;
   mine: string[];
+  adopted: boolean;
+  onAdopt: () => void;
   onReact: (reactionId: string) => void;
 }) {
   return (
@@ -211,7 +226,7 @@ function FeedRow({
       <View style={styles.copy}>
         <Text style={styles.text}>{update.text}</Text>
         <MonoLabel size={9.5} em={0} tone={color.faint} style={{ marginTop: 4 }}>
-          {update.meta}
+          {update.streak ? `${update.streak} · ${update.meta}` : update.meta}
         </MonoLabel>
 
         <View style={styles.reactions}>
@@ -235,6 +250,22 @@ function FeedRow({
               </Pressable>
             );
           })}
+
+          {/* The reason this feed exists: you can take the thing, not just
+              admire it. */}
+          <Pressable
+            onPress={onAdopt}
+            disabled={adopted}
+            accessibilityRole="button"
+            accessibilityLabel={
+              adopted ? 'Already in your plan' : `Add "${update.text}" to your plan`
+            }
+            style={[styles.adopt, adopted && styles.adoptDone]}
+          >
+            <Text style={[styles.adoptLabel, adopted && styles.adoptLabelDone]}>
+              {adopted ? 'In your plan' : '+ Add to my plan'}
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -393,6 +424,27 @@ const styles = StyleSheet.create({
   },
   reactionCountOn: {
     color: color.accent,
+  },
+  adopt: {
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: color.accentBorderSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  adoptDone: {
+    borderColor: color.outline,
+  },
+  adoptLabel: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: color.accent,
+  },
+  adoptLabelDone: {
+    fontWeight: '400',
+    color: color.faint,
   },
   more: {
     paddingVertical: 13,

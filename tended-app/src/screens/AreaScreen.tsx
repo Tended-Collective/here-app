@@ -123,7 +123,7 @@ export function AreaScreen() {
       )}
 
       <View style={styles.feedHead}>
-        <MonoLabel>LIVE NEARBY</MonoLabel>
+        <MonoLabel>WHAT’S WORKING NEARBY</MonoLabel>
         <View style={styles.badge}>
           <MonoLabel size={9} em={0.08} tone={color.accent}>
             EXPLORING

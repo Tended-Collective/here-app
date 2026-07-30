@@ -190,6 +190,8 @@ type StoreValue = Persisted & {
   savePlan: (input: { boundaries: string[]; habits: string[]; contacts: Contact[] }) => void;
   /** Quick on/off from the summary card. */
   toggleBoundary: (id: string) => void;
+  /** Takes something from the feed into this teacher's own plan. */
+  adoptFromFeed: (kind: 'boundary' | 'habit', label: string) => void;
 };
 
 /** Whole days left on a trial that began at `startedAt`. */
@@ -372,6 +374,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               // A rule already in place stays as the teacher left it.
               active: existing.get(label)?.active ?? true,
             })),
+          };
+        }),
+      adoptFromFeed: (kind, label) =>
+        update((prev) => {
+          if (kind === 'boundary') {
+            // Adding the same rule twice would just clutter the card.
+            if (prev.boundaries.some((b) => b.label === label)) return prev;
+            return {
+              ...prev,
+              boundaries: [
+                ...prev.boundaries,
+                { id: `b${Date.now().toString(36)}`, label, active: true },
+              ],
+            };
+          }
+          if (prev.practices.some((p) => p.label === label)) return prev;
+          return {
+            ...prev,
+            practices: [
+              ...prev.practices,
+              {
+                id: `p${Date.now().toString(36)}`,
+                label,
+                ...PRACTICE_PALETTE[prev.practices.length % PRACTICE_PALETTE.length],
+              },
+            ],
           };
         }),
       toggleBoundary: (id) =>
