@@ -34,21 +34,31 @@ export function SheetShell({
   );
 }
 
-export type SheetName = 'plus' | 'practices';
+export type SheetName = 'plus' | 'practices' | 'crisis';
 
 type SheetsValue = {
   current: SheetName | null;
-  open: (name: SheetName) => void;
+  /** Whatever the opener passed — the crisis sheet uses it to carry its line. */
+  payload: unknown;
+  open: (name: SheetName, payload?: unknown) => void;
   close: () => void;
 };
 
 const SheetsContext = createContext<SheetsValue | null>(null);
 
 export function SheetsProvider({ children }: { children: React.ReactNode }) {
-  const [current, setCurrent] = useState<SheetName | null>(null);
+  const [state, setState] = useState<{ current: SheetName | null; payload: unknown }>({
+    current: null,
+    payload: undefined,
+  });
   const value = useMemo<SheetsValue>(
-    () => ({ current, open: setCurrent, close: () => setCurrent(null) }),
-    [current],
+    () => ({
+      current: state.current,
+      payload: state.payload,
+      open: (name, payload) => setState({ current: name, payload }),
+      close: () => setState({ current: null, payload: undefined }),
+    }),
+    [state],
   );
   return <SheetsContext.Provider value={value}>{children}</SheetsContext.Provider>;
 }

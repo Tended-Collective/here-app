@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { CrisisSheet } from './components/CrisisSheet';
 import { useChrome } from './components/PhoneFrame';
 import { PlusSheet } from './components/PlusSheet';
 import { PracticeEditor } from './components/PracticeEditor';
@@ -9,6 +10,7 @@ import { AreaScreen } from './screens/AreaScreen';
 import { RecordScreen } from './screens/RecordScreen';
 import { SupportScreen } from './screens/SupportScreen';
 import { TodayScreen } from './screens/TodayScreen';
+import { CrisisLine } from './data/mock';
 import { useStore } from './store';
 import { color, SCREEN_PADDING } from './theme';
 
@@ -54,7 +56,7 @@ function Shell() {
 }
 
 function Sheets() {
-  const { current, close } = useSheets();
+  const { current, payload, close } = useSheets();
   const {
     practices,
     addPractice,
@@ -73,6 +75,11 @@ function Sheets() {
         practices={practices}
         onAdd={addPractice}
         onRemove={removePractice}
+      />
+      <CrisisSheet
+        visible={current === 'crisis'}
+        line={(payload as CrisisLine | undefined) ?? null}
+        onClose={close}
       />
       <PlusSheet
         visible={current === 'plus'}

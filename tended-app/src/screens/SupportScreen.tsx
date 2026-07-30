@@ -15,7 +15,7 @@ import {
   Sponsor,
   SPONSORS,
 } from '../data/mock';
-import { WEEKDAY_INITIALS, weekDates, weekdayIndex } from '../lib/dates';
+import { WEEKDAY_INITIALS, weekDates, weekdayIndex, weekOf } from '../lib/dates';
 import { openLink } from '../lib/links';
 import { useStore } from '../store';
 import { color, radius } from '../theme';
@@ -34,14 +34,33 @@ export function SupportScreen() {
   const total = kept.reduce((a, b) => a + b, 0);
   const weakest = practices[kept.indexOf(Math.min(...kept))];
 
+  /**
+   * The best any earlier week managed, or null if this is the first week on
+   * record. Read off the stored dates rather than asserted — the note used to
+   * claim "your best run since August" on any week that cleared five, which the
+   * app had no way of knowing.
+   */
+  const priorBest = useMemo(() => {
+    const thisWeek = weekOf(week[0]);
+    const totals = new Map<string, number>();
+    Object.values(practiceDays)
+      .flat()
+      .forEach((date) => {
+        const key = weekOf(date);
+        if (key === thisWeek) return;
+        totals.set(key, (totals.get(key) ?? 0) + 1);
+      });
+    return totals.size ? Math.max(...totals.values()) : null;
+  }, [practiceDays, week]);
+
   const note =
     practices.length === 0
       ? 'No practices yet. Add one below to start tracking.'
       : total === 0
         ? 'Nothing marked yet this week. One is enough to start.'
-        : total < 5
-          ? `${total} kept this week. ${weakest.label} is the one you miss most.`
-          : `${total} kept this week — your best run since August.`;
+        : priorBest !== null && total > priorBest
+          ? `${total} kept this week — your best week yet.`
+          : `${total} kept this week. ${weakest.label} is the one you miss most.`;
 
   return (
     <View>
@@ -161,32 +180,38 @@ export function SupportScreen() {
       <Card style={styles.helpCard}>
         {CRISIS_LINES.map((line, i) => {
           const divider = i < CRISIS_LINES.length - 1 && styles.helpDivider;
+          // A line reachable two ways asks which first, rather than dialling
+          // straight from a pocket. One with a plain href opens it. One with
+          // neither reads as text rather than pretending to be a button.
+          const asks = Boolean(line.call || line.text);
           const copy = (
             <>
               <View style={styles.helpCopy}>
                 <Text style={styles.helpTitle}>{line.title}</Text>
                 <Text style={styles.helpSub}>{line.sub}</Text>
               </View>
-              {line.href && <Text style={styles.helpArrow}>→</Text>}
+              {(asks || line.href) && <Text style={styles.helpArrow}>→</Text>}
             </>
           );
 
-          // A line without an href has nowhere to go, so it reads as text
-          // rather than pretending to be a button.
-          return line.href ? (
+          if (!asks && !line.href) {
+            return (
+              <View key={line.id} style={[styles.helpRow, divider]}>
+                {copy}
+              </View>
+            );
+          }
+
+          return (
             <Pressable
               key={line.id}
-              accessibilityRole="link"
+              accessibilityRole="button"
               accessibilityLabel={line.title}
-              onPress={() => openLink(line.href!)}
+              onPress={() => (asks ? open('crisis', line) : openLink(line.href!))}
               style={[styles.helpRow, divider]}
             >
               {copy}
             </Pressable>
-          ) : (
-            <View key={line.id} style={[styles.helpRow, divider]}>
-              {copy}
-            </View>
           );
         })}
       </Card>

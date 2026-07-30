@@ -47,6 +47,13 @@ comment so the ramp can be retuned against the design. The accent `oklch(.45 .07
 CSS `letter-spacing` is em-relative and React Native's is absolute, so `monoLabel()` multiplies the
 em value through by the font size.
 
+**The practice note is computed, all of it.** It used to end "your best run since August" on any
+week that cleared five kept days — a superlative the app had no way of checking, since it never
+looked at August or at any week but this one. It now reads the stored practice dates, groups them
+by week, and only claims a best week when this week genuinely beats every earlier one on record.
+Where there is no earlier week — a fresh install, which is most of them — it says what it can:
+the count, and which practice is slipping.
+
 **What is real and what is sample data.** Check-ins and practices are the user's own — they
 persist to `AsyncStorage` under `tended.v1` and genuinely drive the week chart, the insight line,
 the save-button state and the practice note. The heatmap, the ZIP card, the named causes, the
@@ -136,7 +143,14 @@ than advertise that nobody bought it.
 
 Everything in both blocks follows the same rule as the rest of the resource lists: a line with an
 `href` opens it and shows an arrow; a line without one reads as text rather than pretending to be a
-button. 988 dials.
+button.
+
+**988 asks before it dials.** A line with `call`/`text` rather than an `href` opens a confirm sheet
+offering both (`src/components/CrisisSheet.tsx`). It reads as a choice — 988 answers a text as well
+as a call, so the row has to ask which regardless — but the reason is the pocket: a crisis line is
+the last number that should be one accidental tap away, and a butt-dial costs a counsellor's time
+on someone who is not there. Neither route is discouraged; both are full-width buttons and
+cancelling is the quiet one.
 
 **Tended+ and the trial.** "Try 30 days free" and the locked six-week chart both open
 `src/components/PlusSheet.tsx`: what you get, the price, one button, and — once a trial is running —

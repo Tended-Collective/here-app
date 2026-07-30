@@ -200,12 +200,28 @@ export const POSTS = [
  * lives on the Tended Collective resource page instead. A line with an `href`
  * opens it; one without is there to be read.
  */
-export const CRISIS_LINES: { id: string; title: string; sub: string; href?: string }[] = [
+export type CrisisLine = {
+  id: string;
+  title: string;
+  sub: string;
+  /** Opened directly on tap. */
+  href?: string;
+  /**
+   * A line that can be reached two ways asks which, first. Tapping the row
+   * opens a confirm sheet rather than dialling — a crisis line is the last
+   * number that should be reachable by a pocket.
+   */
+  call?: string;
+  text?: string;
+};
+
+export const CRISIS_LINES: CrisisLine[] = [
   {
     id: '988',
     title: '988 · Suicide & Crisis Lifeline',
     sub: 'Call or text, 24/7',
-    href: 'tel:988',
+    call: 'tel:988',
+    text: 'sms:988',
   },
 ];
 

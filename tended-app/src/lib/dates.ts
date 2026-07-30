@@ -29,6 +29,12 @@ export function weekDates(from: Date = new Date()): ISODate[] {
   });
 }
 
+/** The Monday of the week an ISO date falls in, as an ISO date — a week's key. */
+export function weekOf(iso: ISODate): ISODate {
+  const [y, m, d] = iso.split('-').map(Number);
+  return toISO(mondayOf(new Date(y, m - 1, d)));
+}
+
 /** 0 = Monday … 6 = Sunday. */
 export function weekdayIndex(d: Date = new Date()): number {
   return (d.getDay() + 6) % 7;
