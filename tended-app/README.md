@@ -19,7 +19,7 @@ device from the design canvas, scaled down if the window is shorter than the dev
 
 | Tab | What it does |
 | --- | --- |
-| **Today** | "Log how work went today." — five-step mood ramp, one tap, plus optional tags. Saves to the device. |
+| **Today** | "How was your day?" — five-step mood ramp, one tap, plus optional tags. Saves to the device. |
 | **Record** | This week's bars, an insight line read back from your own entries, the Tended+ card at $4.99, and the six-week chart behind the lock. |
 | **Your area** | ZIP heatmap with the steady→rough legend, your-ZIP card, what people named here, the contribution toggle, and the live nearby feed — post a sentence, react to other people's. |
 | **Support** | The self-care practice tracker (seven tappable days per practice), two reading cards and the podcast's episodes, both opening Tended Collective, and the sponsored shelf below them. |
@@ -83,14 +83,24 @@ the save-button state and the practice note. The heatmap, the ZIP card, the name
 nearby feed and the reading list are fixed sample content standing in for what a backend would
 return.
 
-**Onboarding.** `src/screens/Onboarding.tsx` is the flow the design assumed had already happened —
-its tracker opens with three practices "chosen once", and its area view needs a ZIP. Four steps:
-what this is, what it does with what you tell it, the educator check, then the practices and ZIP.
-`onboardedAt` in the store is what the app routes on.
+**Onboarding makes the case before it asks for anything.** Six steps: three that argue for keeping
+a record, one that states what happens to it, then the educator check and the setup the design
+assumed had already happened — its tracker opens with habits "chosen once", its area view needs a
+ZIP. `onboardedAt` is what the app routes on.
 
-The privacy step comes *before* the educator check on purpose. The first thing the app asks for is
-a school email address, and a teacher has every reason to be wary of putting a wellness app on a
-district-monitored account. The promise has to be made before the ask.
+The three story slides are concrete rather than inspirational. The argument is that memory is a poor
+record and a record is worth having — six weeks into a hard term you know it was rough but not how
+rough, when it started, or what kept causing it — not that teaching is difficult, which the
+audience already knows.
+
+The promise slide is next, and it lists mechanisms rather than assurances: stored on the device, no
+account and no email, nothing carries a name, ZIP-level only with a 40-teacher floor. It comes
+*before* the educator check on purpose. The first thing the app asks for is a school email address,
+and a teacher has every reason to be wary of putting a wellness app on a district-monitored
+account — so both the reason to bother and the promise land first.
+
+`STORY` and `PROMISES` are arrays at the top of the file; the step indices derive from their
+lengths, so adding a slide is one entry rather than a renumbering.
 
 **Verifying an educator without learning who they are.** A code goes to a school address and the
 teacher types it back; then the address is gone. What persists is `educator.verified` and a

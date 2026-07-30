@@ -36,7 +36,7 @@ export function TodayScreen() {
   return (
     <View>
       <MonoLabel>{longDateLabel()}</MonoLabel>
-      <Display style={{ marginTop: 12 }}>Log how work went today.</Display>
+      <Display style={{ marginTop: 12 }}>How was your day?</Display>
 
       <View style={styles.moods}>
         {MOODS.map((m, i) => {

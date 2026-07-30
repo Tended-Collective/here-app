@@ -1,19 +1,15 @@
 /**
- * Onboarding — the screens the v3 design assumed had already happened. Its
- * practice tracker opens with three practices "chosen once", and its area view
- * needs a ZIP; both arrive here, along with the educator check.
+ * Onboarding — the story first, then what the app needs to work.
  *
- * Four steps, in the order that earns the next one:
+ * Six steps: three that make the case for keeping a record, one that states
+ * what happens to it, then the educator check and the setup the design assumed
+ * had already happened (its tracker opens with habits "chosen once", its area
+ * view needs a ZIP).
  *
- *   1. what this is
- *   2. what it does with what you tell it — before asking for anything
- *   3. the educator check, skippable
- *   4. the practices
- *
- * Step 2 comes before step 3 deliberately. The first thing the app asks for is
- * a school email address, and a teacher has every reason to be wary of putting
- * a wellness app on a district-monitored account. The promise has to be made
- * before the ask, not after.
+ * The order is deliberate. The app asks for a school email address at step 5,
+ * and a teacher has every reason to be wary of putting a wellness app on a
+ * district-monitored account. Both the reason to bother and the promise about
+ * what is kept are made before anything is asked for.
  */
 
 import React, { useState } from 'react';
@@ -25,9 +21,55 @@ import { PRACTICE_SUGGESTIONS } from '../data/mock';
 import { useStore } from '../store';
 import { color, radius, SCREEN_PADDING } from '../theme';
 
-const STEPS = 4;
-/** Enough to be a practice, few enough to stay a habit. */
+/** Enough to be a habit, few enough to keep. */
 const MAX_PRACTICES = 5;
+
+/**
+ * The case for the app, in three slides. Concrete rather than inspirational —
+ * the argument is that memory is a poor record and a record is worth having,
+ * not that teaching is hard.
+ */
+const STORY = [
+  {
+    kicker: 'TENDED',
+    title: 'Track your workload and well-being in seconds.',
+    body: 'Tap once a day to log how work went. That is the whole daily ask.',
+  },
+  {
+    kicker: 'WHY KEEP A RECORD',
+    title: 'Memory is a bad record of a hard term.',
+    body: 'Six weeks in you know it was rough, but not how rough, or when it started, or what kept causing it. “It has been a lot lately” is not something anyone can act on — including you.',
+  },
+  {
+    kicker: 'WHAT YOU GET',
+    title: 'Something you can put in front of someone.',
+    body: 'Dates, a trend line, and the reasons you named yourself. Enough to ask for a schedule change, back up a leave conversation, show a doctor what the term actually looked like, or decide something has to give before you are certain it already has.',
+  },
+];
+
+/** The promise, as mechanisms rather than assurances. */
+const PROMISES = [
+  {
+    title: 'Stored on your device',
+    body: 'Check-ins are saved locally and never sent to a server. There is no copy of them for anyone to ask us for.',
+  },
+  {
+    title: 'No account, no email',
+    body: 'Nothing to sign up for. We do not know your name, and we have no way to find out.',
+  },
+  {
+    title: 'Nothing carries a name',
+    body: 'If you post to the nearby feed it goes out with no name, handle, or account ID attached.',
+  },
+  {
+    title: 'ZIP-level only, never your school',
+    body: 'Area figures group by ZIP code, and a ZIP needs 40+ teachers before it appears at all — so no number can ever be traced to one classroom.',
+  },
+];
+
+const VERIFY_STEP = STORY.length + 1;
+const SETUP_STEP = VERIFY_STEP + 1;
+const STEPS = SETUP_STEP + 1;
 
 export function Onboarding() {
   const { completeOnboarding } = useStore();
@@ -35,7 +77,6 @@ export function Onboarding() {
   const [step, setStep] = useState(0);
 
   const [verified, setVerified] = useState(false);
-
   const [zip, setZip] = useState('');
   const [chosen, setChosen] = useState<string[]>(PRACTICE_SUGGESTIONS.slice(0, 3));
 
@@ -52,6 +93,7 @@ export function Onboarding() {
     );
 
   const finish = () => completeOnboarding({ practices: chosen, zip, verified });
+  const story = step < STORY.length ? STORY[step] : null;
 
   return (
     <View style={[styles.root, { paddingTop: topInset }]}>
@@ -62,46 +104,40 @@ export function Onboarding() {
           ))}
         </View>
 
-        {step === 0 && (
+        {story && (
           <>
-            <MonoLabel>TENDED</MonoLabel>
-            <Display size={34} style={{ marginTop: 12 }}>
-              Track your workload and well-being in seconds.
+            <MonoLabel>{story.kicker}</MonoLabel>
+            <Display size={step === 0 ? 32 : 29} style={{ marginTop: 12 }}>
+              {story.title}
             </Display>
             <Body size={15} style={{ marginTop: 16 }}>
-              Tap once a day to log how work went. Over time you get clear data on stress and workload
-              — to show a union rep or a doctor, or to keep for yourself.
+              {story.body}
             </Body>
           </>
         )}
 
-        {step === 1 && (
+        {step === STORY.length && (
           <>
-            <MonoLabel>HOW YOUR DATA IS HANDLED</MonoLabel>
-            <Display size={30} style={{ marginTop: 12 }}>
-              Your data stays on your device.
+            <MonoLabel>OUR PROMISE</MonoLabel>
+            <Display size={29} style={{ marginTop: 12 }}>
+              None of it leaves your phone.
             </Display>
+            <Body size={13.5} tone={color.muted} style={{ marginTop: 10 }}>
+              A record of how work is going is only worth keeping if it cannot be used against you.
+              Here is how that is enforced, not just promised.
+            </Body>
             <View style={styles.promises}>
-              <Promise
-                title="Stored locally"
-                body="Check-ins are saved on your device and never sent to a server."
-              />
-              <Promise
-                title="No names or identifiers"
-                body="Nothing you post carries a name, handle, or account ID."
-              />
-              <Promise
-                title="ZIP-level only"
-                body="The map groups by ZIP code, never by school. A ZIP needs 40+ teachers before it appears."
-              />
+              {PROMISES.map((p) => (
+                <Promise key={p.title} title={p.title} body={p.body} />
+              ))}
             </View>
           </>
         )}
 
-        {step === 2 && (
+        {step === VERIFY_STEP && (
           <>
             <MonoLabel>VERIFY</MonoLabel>
-            <Display size={30} style={{ marginTop: 12 }}>
+            <Display size={29} style={{ marginTop: 12 }}>
               Verify your school email to join.
             </Display>
             <Body style={{ marginTop: 14 }}>
@@ -118,10 +154,10 @@ export function Onboarding() {
           </>
         )}
 
-        {step === 3 && (
+        {step === SETUP_STEP && (
           <>
             <MonoLabel>SET UP TRACKING</MonoLabel>
-            <Display size={30} style={{ marginTop: 12 }}>
+            <Display size={29} style={{ marginTop: 12 }}>
               Choose what to track.
             </Display>
             <Body style={{ marginTop: 14 }}>
@@ -162,33 +198,34 @@ export function Onboarding() {
             </Text>
           </>
         )}
-      <View style={styles.footer}>
-        {step === STEPS - 1 ? (
-          <Primary
-            label={chosen.length ? 'Start tracking' : 'Pick at least one'}
-            disabled={!chosen.length}
-            onPress={finish}
-          />
-        ) : step === 2 ? (
-          // Skipping is a real choice, so it gets a real button and states what
-          // it costs. The primary action on this step lives inside VerifyForm.
-          <>
-            <Text style={styles.skipNote}>
-              Without verifying you cannot see or post to the nearby feed. Check-ins, tracking, the
-              record and resources all work.
-            </Text>
-            <Pressable
-              onPress={next}
-              accessibilityRole="button"
-              accessibilityLabel="Skip verification. The nearby feed stays locked."
-              style={styles.secondary}
-            >
-              <Text style={styles.secondaryLabel}>Skip verification</Text>
-            </Pressable>
-          </>
-        ) : (
-          <Primary label="Continue" onPress={next} />
-        )}
+
+        <View style={styles.footer}>
+          {step === SETUP_STEP ? (
+            <Primary
+              label={chosen.length ? 'Start tracking' : 'Pick at least one'}
+              disabled={!chosen.length}
+              onPress={finish}
+            />
+          ) : step === VERIFY_STEP ? (
+            // Skipping is a real choice, so it gets a real button and states what
+            // it costs. The primary action on this step lives inside VerifyForm.
+            <>
+              <Text style={styles.skipNote}>
+                Without verifying you cannot see or post to the nearby feed. Check-ins, tracking, the
+                record and resources all work.
+              </Text>
+              <Pressable
+                onPress={next}
+                accessibilityRole="button"
+                accessibilityLabel="Skip verification. The nearby feed stays locked."
+                style={styles.secondary}
+              >
+                <Text style={styles.secondaryLabel}>Skip verification</Text>
+              </Pressable>
+            </>
+          ) : (
+            <Primary label="Continue" onPress={next} />
+          )}
 
           <View style={styles.footerRow}>
             {step > 0 ? (
