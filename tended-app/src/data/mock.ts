@@ -32,8 +32,8 @@ export const SITE = {
  */
 export const PODCAST_SHOW_ID: string | null = '1872481883';
 
-/** How many episodes the reading list shows. */
-export const PODCAST_EPISODES = 2;
+/** Just the latest episode. */
+export const PODCAST_EPISODES = 1;
 
 /** The show's page, derived from the ID when there is one. */
 export function podcastUrl(showId: string | null = PODCAST_SHOW_ID): string {
@@ -189,12 +189,6 @@ export const POSTS = [
     title: 'The year I stopped answering emails after six',
     slug: 'the-year-i-stopped-answering-emails-after-six',
   },
-  {
-    id: '2',
-    kicker: 'THE SAFETY · 11 MIN AUDIO',
-    title: 'Guided audio for the drive home',
-    slug: 'guided-audio-for-the-drive-home',
-  },
 ];
 
 /**
@@ -229,9 +223,19 @@ export const SPONSORS: Sponsor[] = [
   {
     id: 'grow',
     advertiser: 'Grow Therapy',
-    title: 'Therapists who take your plan',
-    sub: 'Evenings and weekends · most major insurance',
+    // Written from what the service actually does. Their own tagline is
+    // trademarked wording that could not be checked from where this was built —
+    // drop the real one in here when you have it.
+    title: 'Find a therapist who takes your insurance',
+    sub: 'Book in days, not months · evenings and weekends',
     href: 'https://growtherapy.com',
+  },
+  {
+    id: 'happy-coffee',
+    advertiser: 'The Happy Coffee Company',
+    title: 'Free coffee for teachers, every Friday',
+    sub: 'Show your school badge in store · all locations',
+    href: 'https://www.thehappycoffeecompany.com',
   },
 ];
 

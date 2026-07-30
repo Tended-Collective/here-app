@@ -73,8 +73,8 @@ export function PodcastSection() {
         >
           <Card style={styles.showCard}>
             <View style={styles.showCopy}>
-              <Text style={styles.showTitle}>Tended Collective · the podcast</Text>
-              <Text style={styles.showSub}>Listen on Apple Podcasts</Text>
+              <Text style={styles.showTitle}>Latest episode</Text>
+              <Text style={styles.showSub}>Open the show in Apple Podcasts</Text>
             </View>
             <Text style={styles.arrow}>→</Text>
           </Card>

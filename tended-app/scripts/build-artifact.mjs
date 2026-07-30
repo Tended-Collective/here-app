@@ -49,12 +49,20 @@ const inlined = bundle.replace(/<\/script/gi, '<\\/script').replace(/<!--/g, '<\
 // the iframe from the content's scrollHeight, so a `vh`/`svh` height is circular
 // and settles at zero. PhoneFrame also scales the device by window height, so a
 // collapsed box would shrink the mock to nothing even if the page were painted.
-const PAGE_HEIGHT = 920; // 402×874 device + bezel (894) + breathing room
+const PAGE_HEIGHT = 920; //  402×874 device + bezel (894) + breathing room
+const PHONE_HEIGHT = 680; // a real phone, where there is no device mock to fit
 
+// The narrow case is a media query rather than a viewport unit for the same
+// reason the base height is fixed: `svh` would depend on the frame the frame is
+// being sized from. On a phone the device mock is not drawn at all, so 920px
+// only bought a screenful of empty space above the content.
 const html = `<title>Tended</title>
 <style>
   body { margin: 0; }
   #root { display: flex; height: ${PAGE_HEIGHT}px; overflow: hidden; }
+  @media (max-width: 500px) {
+    #root { height: ${PHONE_HEIGHT}px; }
+  }
 </style>
 <div id="root"></div>
 <script>${inlined}</script>

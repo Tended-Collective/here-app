@@ -19,7 +19,7 @@ device from the design canvas, scaled down if the window is shorter than the dev
 
 | Tab | What it does |
 | --- | --- |
-| **Today** | "How are you doing, right now?" — five-step mood ramp, one tap, plus optional tags. Saves to the device. |
+| **Today** | "Log how work went today." — five-step mood ramp, one tap, plus optional tags. Saves to the device. |
 | **Record** | This week's bars, an insight line read back from your own entries, the Tended+ card at $4.99, and the six-week chart behind the lock. |
 | **Your area** | ZIP heatmap with the steady→rough legend, your-ZIP card, what people named here, the contribution toggle, and the live nearby feed — post a sentence, react to other people's. |
 | **Support** | The self-care practice tracker (seven tappable days per practice), two reading cards and the podcast's episodes, both opening Tended Collective, and the sponsored shelf below them. |
@@ -203,9 +203,14 @@ reactions you send persist too, and are counted on top of the sample counts in `
 other teachers' updates and their existing counts are still fixed sample content, as is everything
 else on this tab.
 
-**Where the app hands off to the web.** `SITE` in `src/data/mock.ts` holds the three
+**Where the app hands off to the web.** `SITE` in `src/data/mock.ts` holds the
 tendedcollective.com links; `src/lib/links.ts` opens them and swallows failures, since a resource
 list that throws because a device has no dialler is worse than one that does nothing.
+
+On the web it goes through a real anchor rather than `Linking.openURL`, which calls `window.open`.
+A sandboxed iframe blocks `window.open` unless it was granted popups, so in the published preview
+every outbound link silently did nothing — no error, no navigation, just a button that looked
+broken. An anchor click is what the host page listens for and what a plain browser handles itself.
 
 The reading cards open their post at `postUrl(slug)` — `${SITE.blog}/${slug}` — and "All posts"
 opens the index. The slugs in `POSTS` are placeholders in the shape the real ones will take, so

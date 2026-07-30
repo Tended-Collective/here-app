@@ -55,7 +55,7 @@ export function SupportScreen() {
 
   const note =
     practices.length === 0
-      ? 'No practices yet. Add one below to start tracking.'
+      ? 'No habits yet. Build your plan to start tracking.'
       : total === 0
         ? 'Nothing logged yet this week.'
         : priorBest !== null && total > priorBest

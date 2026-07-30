@@ -162,8 +162,6 @@ export function Onboarding() {
             </Text>
           </>
         )}
-      </ScrollView>
-
       <View style={styles.footer}>
         {step === STEPS - 1 ? (
           <Primary
@@ -192,16 +190,17 @@ export function Onboarding() {
           <Primary label="Continue" onPress={next} />
         )}
 
-        <View style={styles.footerRow}>
-          {step > 0 ? (
-            <Pressable onPress={back} accessibilityRole="button" hitSlop={8}>
-              <Text style={styles.quiet}>Back</Text>
-            </Pressable>
-          ) : (
-            <View />
-          )}
+          <View style={styles.footerRow}>
+            {step > 0 ? (
+              <Pressable onPress={back} accessibilityRole="button" hitSlop={8}>
+                <Text style={styles.quiet}>Back</Text>
+              </Pressable>
+            ) : (
+              <View />
+            )}
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -249,6 +248,10 @@ const styles = StyleSheet.create({
   content: {
     ...SCREEN_PADDING,
     paddingBottom: 24,
+    // Centred rather than top-aligned: on a phone the step content is short and
+    // a bottom-pinned button ended up far below the fold, off screen.
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   progress: {
     flexDirection: 'row',
@@ -353,9 +356,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   footer: {
-    paddingHorizontal: 24,
-    paddingBottom: 22,
-    paddingTop: 6,
+    // Travels with the content instead of being pinned to the bottom of a box
+    // that is taller than the screen.
+    marginTop: 28,
   },
   footerRow: {
     flexDirection: 'row',

@@ -6,11 +6,15 @@ import { useChrome } from './PhoneFrame';
 
 export type TabKey = 'today' | 'record' | 'area' | 'support';
 
+/**
+ * "My Plan" is the Support tab, which is where the self-care plan lives, so it
+ * moves ahead of the area view — the order follows the labels.
+ */
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'today', label: 'Today' },
-  { key: 'record', label: 'Record' },
-  { key: 'area', label: 'Your area' },
-  { key: 'support', label: 'Support' },
+  { key: 'record', label: 'Stats' },
+  { key: 'support', label: 'My Plan' },
+  { key: 'area', label: 'More' },
 ];
 
 export function TabBar({
