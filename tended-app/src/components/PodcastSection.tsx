@@ -34,7 +34,7 @@ export function PodcastSection() {
   return (
     <>
       <View style={styles.sectionHead}>
-        <MonoLabel>WORTH LISTENING TO</MonoLabel>
+        <MonoLabel>PODCAST</MonoLabel>
         <Pressable
           accessibilityRole="link"
           accessibilityLabel="All episodes on Apple Podcasts"

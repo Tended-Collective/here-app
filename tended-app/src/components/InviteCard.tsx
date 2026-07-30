@@ -25,10 +25,10 @@ export function InviteCard() {
 
   return (
     <>
-      <MonoLabel style={{ marginTop: 26 }}>BRING SOMEONE IN</MonoLabel>
+      <MonoLabel style={{ marginTop: 26 }}>INVITE A COLLEAGUE</MonoLabel>
       <Card style={styles.card}>
         <Body size={13.5} tone={color.muted}>
-          A code lets a colleague in without a school email — nothing arrives in their work inbox.
+          Each code verifies one colleague without a school email. Nothing reaches their work inbox.
         </Body>
 
         {invites.length > 0 && (

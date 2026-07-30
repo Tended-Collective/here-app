@@ -22,13 +22,13 @@ export function VerifySheet({
   return (
     <SheetShell visible={visible} onClose={onClose}>
       <View style={styles.body}>
-        <MonoLabel tone={color.accent}>ONE CHECK</MonoLabel>
+        <MonoLabel tone={color.accent}>VERIFY</MonoLabel>
         <Display size={26} lineHeight={1.2} style={{ marginTop: 10 }}>
-          Are you an educator?
+          Verify your school email
         </Display>
         <Body style={{ marginTop: 10 }}>
-          The nearby feed is teachers only. A code to your school address is how we keep it that way
-          — then the address is discarded. We keep that you verified, and nothing else.
+          We check your work address once to confirm you are an educator, then delete it. We store
+          only that you verified and the date.
         </Body>
         <VerifyForm
           onVerified={() => {

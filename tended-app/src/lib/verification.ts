@@ -54,20 +54,58 @@ export const PROVIDER_CONFIGURED = false;
 export const CODE_LENGTH = 6;
 
 /**
- * Domains that plausibly belong to a school. Deliberately generous — an
- * educator on a domain this misses can still use the whole personal record, so
- * a false negative costs them the feed, not the app.
+ * ─── Why this does not try to list school domains ────────────────────────────
+ *
+ * It cannot be done. DC's district is `k12.dc.gov`, Los Angeles Unified is
+ * `lausd.net`, Houston ISD is `houstonisd.org`. Any allowlist of shapes rejects
+ * real teachers, and rejecting a teacher at the door is a worse failure than
+ * letting a non-teacher reach a code they will never receive.
+ *
+ * So the gate is inverted: block mail providers that are definitely not a
+ * school, let everything else through, and let the code itself do the proving.
+ * Only an address that receives the mail can pass, whatever its domain.
+ */
+const CONSUMER_DOMAINS = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'yahoo.com',
+  'ymail.com',
+  'hotmail.com',
+  'outlook.com',
+  'live.com',
+  'msn.com',
+  'icloud.com',
+  'me.com',
+  'mac.com',
+  'aol.com',
+  'proton.me',
+  'protonmail.com',
+  'gmx.com',
+  'mail.com',
+  'zoho.com',
+  'yandex.com',
+]);
+
+/**
+ * Shapes we recognise as a school. Used only to decide whether to reassure the
+ * teacher or warn them — never to refuse. A domain missing from this list is
+ * accepted just the same.
  */
 const EDUCATOR_PATTERNS: RegExp[] = [
-  /\.edu$/i, //                     US higher ed and many districts
-  /\.k12\.[a-z]{2}\.us$/i, //       US K-12, e.g. lincoln.k12.in.us
-  /\.edu\.[a-z]{2}$/i, //           .edu.au, .edu.mx …
-  /\.ac\.[a-z]{2}$/i, //            .ac.uk, .ac.nz …
-  /\.sch\.[a-z]{2}$/i, //           .sch.uk …
+  /\.edu$/i, //                            US higher ed and many districts
+  /(^|\.)k12\.[a-z]{2}\.(us|gov)$/i, //    lincoln.k12.in.us, k12.dc.gov
+  /\.edu\.[a-z]{2}$/i, //                  .edu.au, .edu.mx …
+  /\.ac\.[a-z]{2}$/i, //                   .ac.uk, .ac.nz …
+  /\.sch\.[a-z]{2}$/i, //                  .sch.uk …
   /\.school$/i,
   /\.college$/i,
   /\.academy$/i,
 ];
+
+export function isConsumerDomain(email: string): boolean {
+  const domain = domainOf(email);
+  return domain ? CONSUMER_DOMAINS.has(domain) : false;
+}
 
 export function domainOf(email: string): string | null {
   const at = email.trim().toLowerCase().lastIndexOf('@');
@@ -89,11 +127,12 @@ export function looksLikeEducatorDomain(email: string): boolean {
 
 export type RequestResult =
   | { ok: true; sent: boolean }
-  | { ok: false; reason: 'invalid-email' | 'not-a-school-domain' | 'failed' };
+  | { ok: false; reason: 'invalid-email' | 'consumer-domain' | 'failed' };
 
 export async function requestCode(email: string): Promise<RequestResult> {
   if (!isPlausibleEmail(email)) return { ok: false, reason: 'invalid-email' };
-  if (!looksLikeEducatorDomain(email)) return { ok: false, reason: 'not-a-school-domain' };
+  // The only refusal: mail that is definitely personal, not work.
+  if (isConsumerDomain(email)) return { ok: false, reason: 'consumer-domain' };
 
   if (!PROVIDER_CONFIGURED) return { ok: true, sent: false };
 

@@ -119,7 +119,7 @@ export function RecordScreen() {
             {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left in your trial.
           </Display>
           <Body style={{ marginTop: 10 }}>
-            The six-week chart below is open, and the term views come with it.
+            The six-week chart below is unlocked, along with term views.
           </Body>
           <Pressable
             accessibilityRole="button"
@@ -133,12 +133,11 @@ export function RecordScreen() {
         <View style={styles.plusCard}>
           <MonoLabel tone={color.accent}>BEYOND SEVEN DAYS</MonoLabel>
           <Display size={27} lineHeight={1.15} style={{ marginTop: 10 }}>
-            See the shape of a whole term.
+            Get month and term views.
           </Display>
           <Body style={{ marginTop: 10 }}>
-            The free record keeps your last seven days. Tended+ keeps everything: month and term
-            views, October against last October, the patterns behind your heavy days, and an export
-            you can hand a therapist.
+            The free plan keeps 7 days. Tended+ keeps everything: month and term views, this year
+            against last, the tags behind your hardest days, and a file you can export.
           </Body>
           <View style={styles.priceRow}>
             <Text style={styles.price}>{PRICING.price}</Text>

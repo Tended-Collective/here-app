@@ -60,9 +60,9 @@ export function NearbyFeed() {
           style={styles.composerLocked}
           onPress={() => open('verify')}
         >
-          <Text style={styles.lockedTitle}>The nearby feed is teachers only</Text>
+          <Text style={styles.lockedTitle}>Verify to use the feed</Text>
           <Text style={styles.lockedSub}>
-            Verify with a school address to see it. Everything else works without.
+            The feed is verified educators only. Everything else in the app works without it.
           </Text>
         </Pressable>
       </Card>
@@ -74,8 +74,7 @@ export function NearbyFeed() {
       <Card style={styles.card}>
         <View style={styles.off}>
           <Body size={13.5} tone={color.muted}>
-            The nearby feed reads from the same pool as the map. Turn on “Include my check-ins” to
-            see it and to post.
+            Turn on “Include my check-ins” to see the feed and post to it.
           </Body>
         </View>
       </Card>
@@ -96,7 +95,7 @@ export function NearbyFeed() {
           <TextInput
             value={draft}
             onChangeText={(t) => setDraft(t.slice(0, UPDATE_MAX_LENGTH))}
-            placeholder="How was today, in one sentence?"
+            placeholder="Sum up today in one sentence"
             placeholderTextColor={color.faint}
             style={styles.input}
             multiline

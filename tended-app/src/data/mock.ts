@@ -204,7 +204,7 @@ export const POSTS = [
  */
 export const RESOURCE_LINK = {
   title: 'Tended Collective · free therapy resources',
-  sub: 'Low-cost and free options, gathered for teachers',
+  sub: 'Free and low-cost therapy options for teachers',
   href: SITE.freeTherapyResources,
 };
 
@@ -271,9 +271,9 @@ export const PRACTICE_SUGGESTIONS = [
 /** What the paywall says you get. The first three are what the design promised. */
 export const PLUS_BENEFITS = [
   'Month and term views, not just the last seven days',
-  'This October against last October',
-  'The patterns behind your heavy days',
-  'An export you can hand a therapist',
+  'Compare this year against last',
+  'See which tags drive your hardest days',
+  'Export your full record as a file',
 ];
 
 /** Six-week trend line behind the Tended+ lock, in a 300×90 viewBox. */

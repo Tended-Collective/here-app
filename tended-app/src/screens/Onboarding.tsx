@@ -66,33 +66,33 @@ export function Onboarding() {
           <>
             <MonoLabel>TENDED</MonoLabel>
             <Display size={34} style={{ marginTop: 12 }}>
-              A record of how teaching is actually going.
+              Track your workload and well-being in seconds.
             </Display>
             <Body size={15} style={{ marginTop: 16 }}>
-              One tap a day. Over a term it becomes something you can point at — in a meeting, at an
-              appointment, or just to yourself on a week when you can’t tell any more.
+              Tap once a day to log how work went. Over time you get clear data on stress and workload
+              — to show a union rep or a doctor, or to keep for yourself.
             </Body>
           </>
         )}
 
         {step === 1 && (
           <>
-            <MonoLabel>BEFORE YOU START</MonoLabel>
+            <MonoLabel>HOW YOUR DATA IS HANDLED</MonoLabel>
             <Display size={30} style={{ marginTop: 12 }}>
-              Your days stay yours.
+              Your data stays on your device.
             </Display>
             <View style={styles.promises}>
               <Promise
-                title="Your check-ins stay on this device"
-                body="They are not sent anywhere, and nobody can ask us for them."
+                title="Stored locally"
+                body="Check-ins are saved on your device and never sent to a server."
               />
               <Promise
-                title="No name, ever"
-                body="Nothing you write carries one, including in the nearby feed."
+                title="No names or identifiers"
+                body="Nothing you post carries a name, handle, or account ID."
               />
               <Promise
-                title="Your area, not your school"
-                body="The map works on ZIP codes, and a ZIP needs 40+ teachers before it appears at all."
+                title="ZIP-level only"
+                body="The map groups by ZIP code, never by school. A ZIP needs 40+ teachers before it appears."
               />
             </View>
           </>
@@ -100,13 +100,13 @@ export function Onboarding() {
 
         {step === 2 && (
           <>
-            <MonoLabel>ONE CHECK</MonoLabel>
+            <MonoLabel>VERIFY</MonoLabel>
             <Display size={30} style={{ marginTop: 12 }}>
-              Are you an educator?
+              Verify your school email to join.
             </Display>
             <Body style={{ marginTop: 14 }}>
-              The nearby feed is teachers only. A code to your school address is how we keep it that
-              way — then the address is discarded. We keep that you verified, and nothing else.
+              We check your work address once to confirm you are an educator, then delete it. We store
+              only that you verified and the date.
             </Body>
 
             <VerifyForm
@@ -120,13 +120,13 @@ export function Onboarding() {
 
         {step === 3 && (
           <>
-            <MonoLabel>LAST THING</MonoLabel>
+            <MonoLabel>SET UP TRACKING</MonoLabel>
             <Display size={30} style={{ marginTop: 12 }}>
-              Pick a few practices.
+              Choose what to track.
             </Display>
             <Body style={{ marginTop: 14 }}>
-              Small things you want to hold onto. Choose up to {MAX_PRACTICES} — you can change them
-              whenever.
+              Pick up to {MAX_PRACTICES} daily habits to log alongside your check-ins. Change them any
+              time.
             </Body>
 
             <View style={styles.chips}>
@@ -146,7 +146,7 @@ export function Onboarding() {
               })}
             </View>
 
-            <MonoLabel style={{ marginTop: 26 }}>YOUR ZIP · OPTIONAL</MonoLabel>
+            <MonoLabel style={{ marginTop: 26 }}>ZIP CODE · OPTIONAL</MonoLabel>
             <TextInput
               value={zip}
               onChangeText={setZip}
@@ -158,7 +158,7 @@ export function Onboarding() {
               accessibilityLabel="Your ZIP code, optional"
             />
             <Text style={styles.hint}>
-              Only used to place you on the area map. Leave it blank and everything else still works.
+              Used only to group you on the area map. Leave blank and everything else still works.
             </Text>
           </>
         )}
@@ -167,14 +167,27 @@ export function Onboarding() {
       <View style={styles.footer}>
         {step === STEPS - 1 ? (
           <Primary
-            label={chosen.length ? 'Start' : 'Pick at least one'}
+            label={chosen.length ? 'Start tracking' : 'Pick at least one'}
             disabled={!chosen.length}
             onPress={finish}
           />
         ) : step === 2 ? (
-          // The verify step has its own primary action; a Continue here would
-          // be a second button doing exactly what "Skip for now" does.
-          null
+          // Skipping is a real choice, so it gets a real button and states what
+          // it costs. The primary action on this step lives inside VerifyForm.
+          <>
+            <Text style={styles.skipNote}>
+              Without verifying you cannot see or post to the nearby feed. Check-ins, tracking, the
+              record and resources all work.
+            </Text>
+            <Pressable
+              onPress={next}
+              accessibilityRole="button"
+              accessibilityLabel="Skip verification. The nearby feed stays locked."
+              style={styles.secondary}
+            >
+              <Text style={styles.secondaryLabel}>Skip verification</Text>
+            </Pressable>
+          </>
         ) : (
           <Primary label="Continue" onPress={next} />
         )}
@@ -186,11 +199,6 @@ export function Onboarding() {
             </Pressable>
           ) : (
             <View />
-          )}
-          {step === 2 && (
-            <Pressable onPress={next} accessibilityRole="button" hitSlop={8}>
-              <Text style={styles.quiet}>Skip for now</Text>
-            </Pressable>
           )}
         </View>
       </View>
@@ -361,6 +369,25 @@ const styles = StyleSheet.create({
     backgroundColor: color.ink,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  secondary: {
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: color.outlineStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: color.ink,
+  },
+  skipNote: {
+    fontSize: 12.5,
+    lineHeight: 19,
+    color: color.label,
+    marginBottom: 12,
   },
   primaryLabel: {
     fontSize: 16,

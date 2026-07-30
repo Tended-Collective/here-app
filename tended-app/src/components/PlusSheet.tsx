@@ -70,8 +70,8 @@ export function PlusSheet({
                 {daysLeft} {daysLeft === 1 ? 'day' : 'days'} left in your trial.
               </Display>
               <Body style={{ marginTop: 10 }}>
-                The term view and the six-week chart are open. Nothing has been charged — see the
-                note below.
+                Term views and the six-week chart are unlocked. Nothing has been charged — see
+                below.
               </Body>
 
               <Divider style={styles.divider} />
@@ -83,7 +83,7 @@ export function PlusSheet({
           ) : (
             <>
               <Display size={26} lineHeight={1.15} style={{ marginTop: 10 }}>
-                See the shape of a whole term.
+                Get month and term views.
               </Display>
 
               <View style={styles.benefits}>
@@ -115,7 +115,7 @@ export function PlusSheet({
 
               {failed && (
                 <Text style={styles.failed}>
-                  That didn’t go through. Nothing was charged — try again in a moment.
+                  That did not go through. Nothing was charged. Try again.
                 </Text>
               )}
             </>
@@ -128,7 +128,7 @@ export function PlusSheet({
               </MonoLabel>
               <Body size={12} lineHeight={1.55} tone={color.muted} style={{ marginTop: 5 }}>
                 No card is charged and no subscription is created. This unlocks Tended+ on this
-                device so the term views can be reviewed.
+                device only, for review.
               </Body>
             </View>
           )}

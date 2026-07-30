@@ -28,7 +28,7 @@ export function TodayScreen() {
   }, [hydrated, restored, stored]);
 
   const saved = !!stored && mood !== null && stored.score === mood + 1 && sameTags(stored.tags, tags);
-  const label = saved ? 'Saved for today' : mood === null ? 'Pick one to save' : 'Save today';
+  const label = saved ? 'Saved for today' : mood === null ? 'Select a rating to save' : 'Save today';
 
   const toggleTag = (tag: string) =>
     setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -36,7 +36,7 @@ export function TodayScreen() {
   return (
     <View>
       <MonoLabel>{longDateLabel()}</MonoLabel>
-      <Display style={{ marginTop: 12 }}>How are you doing, right now?</Display>
+      <Display style={{ marginTop: 12 }}>Log how work went today.</Display>
 
       <View style={styles.moods}>
         {MOODS.map((m, i) => {
@@ -67,7 +67,7 @@ export function TodayScreen() {
         })}
       </View>
 
-      <MonoLabel style={{ marginTop: 26 }}>WHAT MADE IT THAT WAY · OPTIONAL</MonoLabel>
+      <MonoLabel style={{ marginTop: 26 }}>WHAT AFFECTED IT · OPTIONAL</MonoLabel>
       <View style={styles.tags}>
         {TAGS.map((tag) => {
           const on = tags.includes(tag);

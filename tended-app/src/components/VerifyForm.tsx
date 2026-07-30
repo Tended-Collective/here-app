@@ -42,11 +42,11 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
       return;
     }
     setProblem(
-      result.reason === 'not-a-school-domain'
-        ? 'That doesn’t look like a school address. Use your work one, or skip this for now.'
+      result.reason === 'consumer-domain'
+        ? 'That is a personal email provider. Use your work address, or skip verification.'
         : result.reason === 'invalid-email'
-          ? 'That address doesn’t look right.'
-          : 'Couldn’t send a code just now.',
+          ? 'That address is not formatted correctly.'
+          : 'Could not send a code. Try again.',
     );
   };
 
@@ -75,10 +75,10 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
     }
     setProblem(
       result.reason === 'malformed'
-        ? 'That code doesn’t look right. Check it against the one you were sent.'
+        ? 'That code is not valid. Check it against the one you were sent.'
         : result.reason === 'used'
           ? 'That code has already been used.'
-          : 'Couldn’t check that code just now.',
+          : 'Could not check that code. Try again.',
     );
   };
 
@@ -131,13 +131,14 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
             accessibilityLabel="Your school email address"
           />
           <Primary
-            label={busy ? 'Sending…' : 'Send me a code'}
+            label={busy ? 'Sending…' : 'Send verification code'}
             disabled={busy || !isPlausibleEmail(email)}
             onPress={send}
           />
           {isPlausibleEmail(email) && !looksLikeEducatorDomain(email) && !problem && (
             <Text style={styles.hint}>
-              We’ll only accept a school domain — .edu, .k12, .ac.uk and the like.
+              We do not recognise that domain as a school, but districts use all sorts — lausd.net,
+              houstonisd.org, k12.dc.gov. Send the code and see if it arrives.
             </Text>
           )}
 
@@ -145,9 +146,9 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
               server. Naming it is worth more than any promise we could make
               about our own storage. */}
           <Text style={styles.hint}>
-            This lands in your work inbox, which your district may be able to see. The email says
-            only “Your Tended code is …” — no mention of what the app is for. If you’d rather it
-            didn’t arrive there at all, skip this; everything but the nearby feed still works.
+            This goes to your work inbox, which your district can usually see. The email reads only
+            “Your Tended code is …” and does not say what the app does. To avoid it entirely, use an
+            invite code or skip verification.
           </Text>
         </>
       ) : (
@@ -175,7 +176,7 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
       {problem && <Text style={styles.problem}>{problem}</Text>}
 
       <Pressable onPress={() => { setRoute('invite'); setProblem(null); }} accessibilityRole="button">
-        <Text style={styles.quiet}>I have an invite code from a colleague</Text>
+        <Text style={styles.quiet}>Use an invite code instead</Text>
       </Pressable>
 
       {!PROVIDER_CONFIGURED && (
@@ -184,7 +185,7 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
             NOT CONNECTED
           </MonoLabel>
           <Body size={12} lineHeight={1.55} tone={color.muted} style={{ marginTop: 5 }}>
-            No mail is sent yet, and any {CODE_LENGTH}-digit code will pass.
+            No mail is sent yet. Any {CODE_LENGTH}-digit code will pass.
           </Body>
         </View>
       )}

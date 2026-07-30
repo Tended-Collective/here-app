@@ -56,7 +56,7 @@ export function SupportScreen() {
     practices.length === 0
       ? 'No practices yet. Add one below to start tracking.'
       : total === 0
-        ? 'Nothing marked yet this week. One is enough to start.'
+        ? 'Nothing logged yet this week.'
         : priorBest !== null && total > priorBest
           ? `${total} kept this week — your best week yet.`
           : `${total} kept this week. ${weakest.label} is the one you miss most.`;
@@ -64,7 +64,7 @@ export function SupportScreen() {
   return (
     <View>
       <MonoLabel>SUPPORT</MonoLabel>
-      <Display style={{ marginTop: 10 }}>Looking after yourself</Display>
+      <Display style={{ marginTop: 10 }}>Habits and resources</Display>
 
       <Card style={styles.practiceCard}>
         <View style={styles.practiceHead}>
@@ -138,7 +138,7 @@ export function SupportScreen() {
 
 
       <View style={styles.sectionHead}>
-        <MonoLabel>WORTH READING</MonoLabel>
+        <MonoLabel>ARTICLES</MonoLabel>
         <Pressable
           accessibilityRole="link"
           accessibilityLabel="All posts on tendedcollective.com"
@@ -175,7 +175,7 @@ export function SupportScreen() {
       {/* Tended Collective's other feed. Editorial, not a placement. */}
       <PodcastSection />
 
-      <MonoLabel style={{ marginTop: 26 }}>HELP WHEN YOU NEED IT</MonoLabel>
+      <MonoLabel style={{ marginTop: 26 }}>RESOURCES</MonoLabel>
 
       {/* Tended Collective's own shelf holds the first slot and is never sold,
           so the section opens on something editorial rather than bought. */}
@@ -200,8 +200,8 @@ export function SupportScreen() {
       })}
 
       <Body size={12} lineHeight={1.6} tone={color.label} style={{ marginTop: 12 }}>
-        Sponsored placements are marked. They pay for the free tier, they never see your
-        check-ins, and nothing here tells anyone you looked.
+        Sponsored placements are labelled. Sponsors fund the free plan and never receive your data.
+        Opening one is not logged or shared.
       </Body>
     </View>
   );

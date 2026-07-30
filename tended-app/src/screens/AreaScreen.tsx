@@ -88,7 +88,7 @@ export function AreaScreen() {
           <View style={styles.toggleCopy}>
             <Text style={styles.toggleTitle}>Include my check-ins</Text>
             <Body size={12.5} tone={color.muted} style={{ marginTop: 3 }}>
-              ZIP only, never your school. A ZIP needs 40+ teachers before it appears at all.
+              Groups by ZIP code, never by school. A ZIP needs 40+ teachers before it appears.
             </Body>
           </View>
           <Toggle
@@ -100,7 +100,7 @@ export function AreaScreen() {
         <Text style={styles.toggleStatus}>
           {contributing
             ? `Included · ${counted} ${counted === 1 ? 'check-in' : 'check-ins'} counted`
-            : 'Not included. The map still works; your days stay only here.'}
+            : 'Not included. The map still works; your check-ins stay on this device.'}
         </Text>
       </Card>
 
