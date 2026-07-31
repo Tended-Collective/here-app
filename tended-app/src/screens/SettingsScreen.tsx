@@ -2,13 +2,12 @@
  * Setup, moved off the profile.
  *
  * Everything here is configured once and then left alone: how you appear, the
- * verified half of the account, who you have blocked, and the way out. On the
- * profile it sat between the teacher and the two things they open the app to
- * see — their trends and their list — so a page about a week of their own life
- * opened on a form.
+ * verified half of the account, and who you have blocked. On the profile it sat
+ * between the teacher and the two things they open the app to see — their trends
+ * and their list — so a page about a week of their own life opened on a form.
  *
- * It is a tab rather than a sheet because it is genuinely several sections deep,
- * and the last of them deletes the account.
+ * Deleting the account is not here. It sits at the foot of the profile, with the
+ * record it destroys.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -226,47 +225,29 @@ export function SettingsScreen() {
         </View>
       </Card>
 
-      {/* Everything to do with the account itself, at the bottom where a
-          settings section belongs. Blocked accounts are listed rather than
-          hidden in a submenu — a block made in a bad week should be easy to
-          find and undo later. */}
-      <MonoLabel style={{ marginTop: 34 }}>ACCOUNT</MonoLabel>
-
       {blocked.length > 0 && (
-        <Card style={styles.blockedCard}>
-          <MonoLabel size={9} em={0.1} tone={color.faint}>
-            BLOCKED · {blocked.length}
-          </MonoLabel>
-          {blocked.map((id) => {
-            const who = AUTHORS[id];
-            return (
-              <View key={id} style={styles.blockedRow}>
-                <Text style={styles.blockedName}>
-                  {who ? `@${who.username}` : 'An account'}
-                </Text>
-                <Pressable
-                  onPress={() => unblockAuthor(id)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Unblock ${who ? `@${who.username}` : 'this account'}`}
-                  hitSlop={10}
-                >
-                  <Text style={styles.unblock}>Unblock</Text>
-                </Pressable>
-              </View>
-            );
-          })}
-        </Card>
+        <>
+          <MonoLabel style={{ marginTop: 30 }}>BLOCKED ACCOUNTS</MonoLabel>
+          <Card style={styles.blockedCard}>
+            {blocked.map((id) => {
+              const who = AUTHORS[id];
+              return (
+                <View key={id} style={styles.blockedRow}>
+                  <Text style={styles.blockedName}>{who ? `@${who.username}` : 'An account'}</Text>
+                  <Pressable
+                    onPress={() => unblockAuthor(id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Unblock ${who ? `@${who.username}` : 'this account'}`}
+                    hitSlop={10}
+                  >
+                    <Text style={styles.unblock}>Unblock</Text>
+                  </Pressable>
+                </View>
+              );
+            })}
+          </Card>
+        </>
       )}
-
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Delete your account"
-        onPress={() => open('delete')}
-        style={styles.deleteRow}
-      >
-        <Text style={styles.deleteLabel}>Delete my account</Text>
-        <Text style={styles.deleteArrow}>→</Text>
-      </Pressable>
     </View>
   );
 }
@@ -419,25 +400,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: color.accent,
-  },
-  deleteRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    paddingHorizontal: 18,
-    paddingVertical: 17,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: 'rgba(180,103,98,0.4)',
-  },
-  deleteLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#a4574f',
-  },
-  deleteArrow: {
-    fontSize: 15,
-    color: '#a4574f',
   },
 });

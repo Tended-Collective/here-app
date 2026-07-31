@@ -355,6 +355,9 @@ two things they open that tab to look at. A page about their own week opened on 
 identity. All of it is now Settings, which is configured once and left alone; Profile is trends, the
 habit grid and the self-care list, which are opened daily.
 
+Deleting the account is the exception: it sits at the foot of Profile rather than in Settings,
+because it is not setup — it is the end of the record printed above it.
+
 **Three scopes: Everywhere, Near my school, Following.** Everywhere is the default because on day
 one it is the only one with anything in it. Near my school matches the first three digits of the
 school ZIP — roughly a metro or a rural county, which is the scale at which "near me" is true

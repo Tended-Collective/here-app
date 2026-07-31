@@ -272,6 +272,20 @@ export function ProfileScreen() {
         )}
       </Card>
 
+
+      {/* At the foot of the page whose contents it erases. Deleting is not
+          setup — it is the end of the record above it — so it lives with that
+          record rather than in a settings list. */}
+      <MonoLabel style={{ marginTop: 34 }}>ACCOUNT</MonoLabel>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Delete your account"
+        onPress={() => open('delete')}
+        style={styles.deleteRow}
+      >
+        <Text style={styles.deleteLabel}>Delete my account</Text>
+        <Text style={styles.deleteArrow}>→</Text>
+      </Pressable>
     </View>
   );
 }
@@ -290,6 +304,26 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
+  deleteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 17,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: 'rgba(180,103,98,0.4)',
+  },
+  deleteLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#a4574f',
+  },
+  deleteArrow: {
+    fontSize: 15,
+    color: '#a4574f',
+  },
   upgradeCard: {
     marginTop: 12,
     padding: 16,
