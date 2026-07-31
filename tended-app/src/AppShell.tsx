@@ -8,7 +8,6 @@ import { TabBar, TabKey } from './components/TabBar';
 import { FeedScreen } from './screens/FeedScreen';
 import { Onboarding } from './screens/Onboarding';
 import { ProfileScreen } from './screens/ProfileScreen';
-import { ResourcesScreen } from './screens/ResourcesScreen';
 import { useStore } from './store';
 import { color, SCREEN_PADDING } from './theme';
 
@@ -47,7 +46,6 @@ function Shell() {
       >
         {tab === 'feed' && <FeedScreen />}
         {tab === 'profile' && <ProfileScreen />}
-        {tab === 'resources' && <ResourcesScreen />}
       </ScrollView>
 
       <TabBar active={tab} onChange={select} />

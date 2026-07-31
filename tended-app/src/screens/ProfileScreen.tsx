@@ -14,8 +14,12 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { InviteCard } from '../components/InviteCard';
+import { PodcastSection } from '../components/PodcastSection';
 import { useSheets } from '../components/Sheet';
+import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
+import { POSTS, postUrl, SITE } from '../data/mock';
+import { openLink } from '../lib/links';
 import { WEEKDAY_INITIALS, todayISO, weekDates, weekdayIndex } from '../lib/dates';
 import { useStore } from '../store';
 import { color, radius } from '../theme';
@@ -209,6 +213,47 @@ export function ProfileScreen() {
       </Card>
 
       <InviteCard />
+
+      {/* Tended Collective's own writing and podcast. These had a tab of their
+          own; the ad inventory that shared it moved into the feed, and what is
+          left is reading rather than part of the daily loop, so it sits at the
+          foot of the teacher's own page instead of costing a fifth of the tab
+          bar. The free-therapy shelf is not here — it holds the first placement
+          in the feed, where it gets seen. */}
+      <View style={styles.sectionHead}>
+        <MonoLabel>FROM TENDED COLLECTIVE</MonoLabel>
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel="All posts on tendedcollective.com"
+          onPress={() => openLink(SITE.blog)}
+          hitSlop={8}
+        >
+          <Text style={styles.link}>All posts</Text>
+        </Pressable>
+      </View>
+
+      {POSTS.map((post) => (
+        <Pressable
+          key={post.id}
+          accessibilityRole="link"
+          accessibilityLabel={`${post.title}, opens tendedcollective.com`}
+          onPress={() => openLink(postUrl(post.slug))}
+        >
+          <Card style={styles.postCard}>
+            <StripedPlaceholder />
+            <View style={styles.postCopy}>
+              <MonoLabel size={9.5} em={0.1} tone={color.faint}>
+                {post.kicker}
+              </MonoLabel>
+              <Display size={19} lineHeight={1.2} weight="regular" style={{ marginTop: 6 }}>
+                {post.title}
+              </Display>
+            </View>
+          </Card>
+        </Pressable>
+      ))}
+
+      <PodcastSection />
     </View>
   );
 }
@@ -227,6 +272,27 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
+  sectionHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginTop: 30,
+    marginBottom: 12,
+  },
+  link: {
+    fontSize: 13,
+    color: color.accent,
+  },
+  postCard: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    overflow: 'hidden',
+  },
+  postCopy: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
   badges: {
     flexDirection: 'row',
     flexWrap: 'wrap',

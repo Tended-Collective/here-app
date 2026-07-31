@@ -4,17 +4,16 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { color } from '../theme';
 import { useChrome } from './PhoneFrame';
 
-export type TabKey = 'feed' | 'profile' | 'resources';
+export type TabKey = 'feed' | 'profile';
 
 /**
- * Three tabs, and the first one is the app. The feed carries the check-in, the
- * composer and everyone else's posts, so a teacher who never leaves it has
- * still done everything the product asks of them.
+ * Two tabs. The feed is the app — the check-in, the composer, everyone else's
+ * posts and the sponsor rack — so a teacher who never leaves it has still done
+ * everything the product asks of them. The profile is their own record.
  */
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'feed', label: 'Feed' },
   { key: 'profile', label: 'Profile' },
-  { key: 'resources', label: 'Resources' },
 ];
 
 export function TabBar({

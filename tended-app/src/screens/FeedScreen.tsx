@@ -19,6 +19,7 @@
 
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { PlacementCard, withPlacements } from '../components/Placements';
 import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
 import { FeedUpdate, LAST_HOUR_UPDATES, NEARBY_UPDATES, REACTIONS } from '../data/mock';
@@ -186,16 +187,27 @@ export function FeedScreen() {
         <OwnPost key={u.id} update={u} onRemove={() => removeUpdate(u.id)} />
       ))}
 
-      {feed.map((item) => (
-        <FeedCard
-          key={item.id}
-          update={item}
-          mine={reactions[item.id] ?? []}
-          saved={onList.has(item.text)}
-          onSave={() => saveToList(item.text)}
-          onReact={(id) => toggleReaction(item.id, id)}
-        />
-      ))}
+      {/* Posts with the placement rack dealt in — the Tended Collective shelf
+          first, then the sold slots. See components/Placements.tsx. */}
+      {withPlacements(feed).map((row, i) =>
+        'post' in row ? (
+          <FeedCard
+            key={row.post.id}
+            update={row.post}
+            mine={reactions[row.post.id] ?? []}
+            saved={onList.has(row.post.text)}
+            onSave={() => saveToList(row.post.text)}
+            onReact={(id) => toggleReaction(row.post.id, id)}
+          />
+        ) : (
+          <PlacementCard key={`p${i}`} placement={row.placement} />
+        ),
+      )}
+
+      <Body size={12} lineHeight={1.6} tone={color.label} style={{ marginTop: 14 }}>
+        Sponsored placements are labeled. Sponsors fund the free plan and never receive your data.
+        Opening one is not logged or shared.
+      </Body>
 
       {!showMore && (
         <Pressable accessibilityRole="button" style={styles.more} onPress={() => setShowMore(true)}>
