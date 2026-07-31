@@ -24,7 +24,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AUTHORS } from '../data/mock';
 import { useStore } from '../store';
 import { color, radius } from '../theme';
-import { SheetShell } from './Sheet';
+import { ReportSubject, SheetShell } from './Sheet';
 import { Body, Display } from './ui';
 
 /**
@@ -56,12 +56,15 @@ export function ReportSheet({
 }: {
   visible: boolean;
   onClose: () => void;
-  subject: { updateId: string; authorId: string } | null;
+  subject: ReportSubject | null;
 }) {
   const { reportPost, blockAuthor } = useStore();
   const [done, setDone] = useState(false);
 
   const author = subject ? AUTHORS[subject.authorId] : undefined;
+  // A message thread is not removed on report — the other person may be the one
+  // asking for help — so the confirmation cannot claim it has gone anywhere.
+  const isMessage = subject?.kind === 'message';
 
   const close = () => {
     onClose();
@@ -83,7 +86,7 @@ export function ReportSheet({
         {done ? (
           <>
             <Display size={24} lineHeight={1.15}>
-              Thanks. It is out of your feed.
+              {isMessage ? 'Thanks. A moderator will read it.' : 'Thanks. It is out of your feed.'}
             </Display>
             <Body size={13.5} tone={color.muted} style={{ marginTop: 10 }}>
               {MODERATION_SLA} Nobody is told who reported it.
@@ -114,7 +117,7 @@ export function ReportSheet({
                   key={r}
                   onPress={() => submit(r, false)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Report this post: ${r}`}
+                  accessibilityLabel={`Report this ${isMessage ? 'conversation' : 'post'}: ${r}`}
                   style={styles.reason}
                 >
                   <Text style={styles.reasonLabel}>{r}</Text>

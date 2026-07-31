@@ -68,6 +68,13 @@ export type Boundary = { id: string; label: string; active: boolean };
  */
 export type Contact = { id: string; name: string; phone: string };
 
+/**
+ * One message in a conversation. `mine` because the sender is either this
+ * teacher or the other party — there are no group threads, which keeps a
+ * private channel between two people from becoming a room.
+ */
+export type Message = { id: string; mine: boolean; text: string; at: number };
+
 /** One sentence the teacher posted to the feed. */
 export type Update = {
   id: string;
@@ -190,6 +197,14 @@ type Persisted = {
    */
   reactions: Record<string, string[]>;
   /**
+   * Conversations, keyed by the other person's author id. Only the teacher's own
+   * side is real; the opening messages come from CONVERSATIONS in data/mock.ts
+   * until there is a server. Local like everything else here.
+   */
+  messages: Record<string, Message[]>;
+  /** Author ids whose thread has been opened, so the inbox can mark unread. */
+  readThreads: string[];
+  /**
    * Posts this teacher has reported, and why. Kept locally so a reported post
    * disappears from their feed the instant they report it — waiting for a
    * moderator to agree before hiding it makes the reporter live with the thing
@@ -222,6 +237,8 @@ const EMPTY: Persisted = {
   contacts: [],
   reported: {},
   blocked: [],
+  messages: {},
+  readThreads: [],
 };
 
 /**
@@ -377,6 +394,10 @@ type StoreValue = Persisted & {
   updateShown: (patch: Partial<NonNullable<Persisted['account']>['shown']>) => void;
   follow: (authorId: string) => void;
   unfollow: (authorId: string) => void;
+  /** Adds this teacher's own message to a thread. */
+  sendMessage: (authorId: string, text: string) => void;
+  /** Marks a thread read, so the inbox stops flagging it. */
+  markThreadRead: (authorId: string) => void;
   /** Hides the post here and, with a backend, queues it for a moderator. */
   reportPost: (updateId: string, reason: string) => void;
   /** Hides everything by this author and drops any follow. */
@@ -687,6 +708,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           following: prev.following.filter((id) => id !== authorId),
         })),
+      sendMessage: (authorId, text) =>
+        update((prev) => {
+          const trimmed = text.trim();
+          if (!trimmed) return prev;
+          const entry: Message = {
+            id: `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+            mine: true,
+            text: trimmed,
+            at: Date.now(),
+          };
+          return {
+            ...prev,
+            messages: { ...prev.messages, [authorId]: [...(prev.messages[authorId] ?? []), entry] },
+          };
+        }),
+      markThreadRead: (authorId) =>
+        update((prev) =>
+          prev.readThreads.includes(authorId)
+            ? prev
+            : { ...prev, readThreads: [...prev.readThreads, authorId] },
+        ),
       reportPost: (updateId, reason) =>
         update((prev) => ({
           ...prev,

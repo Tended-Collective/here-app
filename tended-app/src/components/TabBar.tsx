@@ -1,57 +1,83 @@
-import { BlurView } from 'expo-blur';
+/**
+ * The navigation bar, rebuilt as the floating icon pill Threads uses.
+ *
+ * Two things change from the text-label version. It floats — the content scrolls
+ * underneath it rather than stopping above a full-width band, which gives a
+ * short screen back about 80px of reading height. And the items are icons, which
+ * is what makes five of them fit; "Feed / Messages / Profile / Settings" as
+ * words does not.
+ *
+ * Icons alone are a real cost for anyone who has not learned them, so every item
+ * carries an accessibility label and the centre item is the one glyph everybody
+ * already knows. The compose button is not a tab: it takes you to the feed and
+ * puts the cursor in the box, because that is where posting happens.
+ */
+
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { color } from '../theme';
+import { Icon, IconName } from './Icon';
 import { useChrome } from './PhoneFrame';
 
-export type TabKey = 'feed' | 'profile' | 'settings';
+export type TabKey = 'feed' | 'messages' | 'profile' | 'settings';
 
-/**
- * Three tabs. The feed is the app — the check-in, the composer, everyone else's
- * posts and the sponsor rack — so a teacher who never leaves it has still done
- * everything the product asks of them. Profile is their own record: trends and
- * the list, opened often. Settings is the setup, opened once.
- */
-const TABS: { key: TabKey; label: string }[] = [
-  { key: 'feed', label: 'Feed' },
-  { key: 'profile', label: 'Profile' },
-  { key: 'settings', label: 'Settings' },
+/** What the pill can ask for: a tab, or the compose action in the middle. */
+export type NavAction = TabKey | 'compose';
+
+const ITEMS: { key: NavAction; icon: IconName; label: string }[] = [
+  { key: 'feed', icon: 'home', label: 'Feed' },
+  { key: 'messages', icon: 'message', label: 'Messages' },
+  { key: 'compose', icon: 'plus', label: 'Write a post' },
+  { key: 'profile', icon: 'person', label: 'Profile' },
+  { key: 'settings', icon: 'gear', label: 'Settings' },
 ];
 
 export function TabBar({
   active,
-  onChange,
+  unread,
+  onSelect,
 }: {
   active: TabKey;
-  onChange: (key: TabKey) => void;
+  /** Threads on the messages tab with something unread. 0 hides the dot. */
+  unread: number;
+  onSelect: (action: NavAction) => void;
 }) {
   const { tabBarHeight } = useChrome();
 
   return (
-    <BlurView intensity={24} tint="light" style={[styles.bar, { height: tabBarHeight }]}>
-      <View style={styles.row}>
-        {TABS.map((tab) => {
-          const on = tab.key === active;
+    // box-none so the transparent margins either side of the pill do not eat
+    // taps meant for the post underneath.
+    <View style={[styles.bar, { height: tabBarHeight }]} pointerEvents="box-none">
+      <View style={styles.pill}>
+        {ITEMS.map((item) => {
+          const on = item.key === active;
           return (
             <Pressable
-              key={tab.key}
-              onPress={() => onChange(tab.key)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: on }}
-              accessibilityLabel={tab.label}
+              key={item.key}
+              onPress={() => onSelect(item.key)}
+              accessibilityRole={item.key === 'compose' ? 'button' : 'tab'}
+              accessibilityState={item.key === 'compose' ? undefined : { selected: on }}
+              accessibilityLabel={item.label}
               style={styles.item}
             >
-              <View
-                style={[styles.mark, { backgroundColor: on ? color.accent : 'transparent' }]}
+              <Icon
+                name={item.icon}
+                size={item.key === 'compose' ? 26 : 24}
+                tone={on ? color.ink : color.tabIdle}
+                filled={on && item.key === 'feed'}
               />
-              <Text style={[styles.label, { color: on ? color.ink : color.tabIdle }]}>
-                {tab.label}
-              </Text>
+              {/* Only on messages, and only a dot with a count — the number of
+                  unread threads is small by nature, so it never needs "9+". */}
+              {item.key === 'messages' && unread > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeCount}>{unread}</Text>
+                </View>
+              )}
             </Pressable>
           );
         })}
       </View>
-    </BlurView>
+    </View>
   );
 }
 
@@ -61,28 +87,59 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderTopWidth: 1,
-    borderTopColor: color.hairline,
-    backgroundColor: 'rgba(246,245,242,0.94)',
-    zIndex: 5,
+    justifyContent: 'center',
+    // Above the content, below the sheets.
+    zIndex: 7,
   },
-  row: {
+  pill: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingTop: 14,
+    alignItems: 'center',
+    alignSelf: 'center',
+    // Wide enough to be reachable, narrow enough to read as floating.
+    width: '86%',
+    maxWidth: 360,
+    height: 58,
+    marginBottom: 6,
+    paddingHorizontal: 6,
+    borderRadius: 99,
+    borderWidth: 1,
+    borderColor: color.hairline,
+    // Near-opaque rather than a blur: a blur over a photo in the feed turns the
+    // icons to mush, and this palette has no contrast to spare.
+    backgroundColor: 'rgba(252,251,249,0.96)',
+    ...Platform.select({
+      web: { boxShadow: '0 8px 24px rgba(0,0,0,0.10)' },
+      default: {
+        shadowColor: '#000',
+        shadowOpacity: 0.12,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 8,
+      },
+    }),
   },
   item: {
     flex: 1,
+    height: '100%',
     alignItems: 'center',
-    gap: 7,
+    justifyContent: 'center',
   },
-  mark: {
-    width: 20,
-    height: 2,
-    borderRadius: 2,
+  badge: {
+    position: 'absolute',
+    top: 13,
+    right: 12,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 4,
+    borderRadius: 99,
+    backgroundColor: color.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  label: {
-    fontSize: 12.5,
-    fontWeight: '600',
+  badgeCount: {
+    fontSize: 10,
+    fontWeight: '700',
+    lineHeight: 14,
+    color: '#fff',
   },
 });

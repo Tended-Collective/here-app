@@ -55,18 +55,20 @@ export const postUrl = (slug: string) => `${SITE.blog}/${slug}`;
 
 /**
  * The three ways to answer someone else's update. Reactions are the only
- * response the feed allows: there are no replies and no free-text answers, so a
- * hard day can be met without the feed turning into a thread to argue in.
+ * response the feed allows in public: there are no replies and no free-text
+ * answers under a post, so a hard day can be met without the feed turning into a
+ * thread to argue in. Anything longer than a reaction goes to messages, where it
+ * is between two people.
  *
- * The emoji is what you see; the label is what a screen reader says, so the
- * button still announces "Holding you" rather than the codepoint's own name.
+ * `icon` is what you see, drawn as a line glyph rather than an emoji so the three
+ * sit at one stroke weight and one size (see components/Icon.tsx). `label` is
+ * what a screen reader says, so the button announces "Needed this" rather than
+ * describing a shape.
  */
 export const REACTIONS = [
-  // Chosen to stay legible at pill size: 🫂 collapses into an unreadable blob
-  // once it is small, where a face still reads.
-  { id: 'felt', label: 'Good idea', emoji: '❤️' },
-  { id: 'holding', label: 'Needed this', emoji: '🤗' },
-  { id: 'same', label: 'Doing this too', emoji: '🙋' },
+  { id: 'felt', label: 'Good idea', icon: 'heart' },
+  { id: 'holding', label: 'Needed this', icon: 'hug' },
+  { id: 'same', label: 'Doing this too', icon: 'hand' },
 ] as const;
 
 export type ReactionId = (typeof REACTIONS)[number]['id'];
@@ -413,6 +415,58 @@ export const SPONSORS: Sponsor[] = [
  * than advertise that nobody bought it.
  */
 export const SHOW_UNSOLD_SLOTS = true;
+
+/**
+ * Sample conversations, so the inbox has something in it before there is a
+ * backend. The teacher's own replies are real and persist; these opening
+ * messages stand in for what a server would deliver.
+ *
+ * Every thread starts from something the other person posted. That is
+ * deliberate: a message you can only send after reading someone's post about
+ * their own week is a different object from a cold DM, and it is the only kind
+ * this app has a reason to carry.
+ */
+export type SampleMessage = { from: 'them' | 'me'; text: string; minutesAgo: number };
+
+export const CONVERSATIONS: { authorId: string; messages: SampleMessage[] }[] = [
+  {
+    authorId: 't3',
+    messages: [
+      {
+        from: 'them',
+        text: 'Saw you saved the 4:30 one. It took me a term to make it stick — the first fortnight was the hard part.',
+        minutesAgo: 95,
+      },
+      { from: 'me', text: 'That is reassuring. Three days in and it feels rude.', minutesAgo: 82 },
+      {
+        from: 'them',
+        text: 'It stops feeling rude. Nobody has ever once asked me where I went.',
+        minutesAgo: 74,
+      },
+    ],
+  },
+  {
+    authorId: 't5',
+    messages: [
+      {
+        from: 'them',
+        text: 'As an admin — if someone tells me they are leaving at 4:30, I would far rather know than guess. Say it out loud and it usually just becomes normal.',
+        minutesAgo: 400,
+      },
+    ],
+  },
+  {
+    authorId: 't6',
+    messages: [
+      { from: 'them', text: 'First year here. How do you stop taking the bad days home?', minutesAgo: 1500 },
+      {
+        from: 'me',
+        text: 'Badly, mostly. The walk to the car with no phone is the only thing that has worked.',
+        minutesAgo: 1440,
+      },
+    ],
+  },
+];
 
 export const PRICING = {
   price: '$4.99',

@@ -20,6 +20,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Avatar } from '../components/Avatar';
 import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
 import { FREE_LIST_LIMIT, yearsLabel } from '../data/mock';
@@ -36,7 +37,7 @@ import { RecordScreen } from './RecordScreen';
 
 const DAY_COL = 22;
 
-export function ProfileScreen() {
+export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void }) {
   const {
     practices,
     practiceDays,
@@ -88,20 +89,44 @@ export function ProfileScreen() {
 
   return (
     <View>
-      <MonoLabel>YOUR PROFILE</MonoLabel>
-      <Display size={32} style={{ marginTop: 10 }}>
-        {shown?.displayName || account?.name || 'Your account'}
-      </Display>
-      <Body size={13} tone={color.muted} style={{ marginTop: 6 }}>
-        {shown?.username ? `@${shown.username}` : 'No username yet'}
-        {bylinePreview ? ` · ${bylinePreview}` : ''}
-      </Body>
+      {/* Name left, avatar right, handle underneath — the Threads header, which
+          puts the name at display size instead of spending the top of the page
+          on a label saying which tab you are on. */}
+      <View style={styles.head}>
+        <View style={styles.headText}>
+          <Display size={30} lineHeight={1.1}>
+            {shown?.displayName || account?.name || 'Your account'}
+          </Display>
+          <Body size={13} tone={color.muted} style={{ marginTop: 6 }}>
+            {shown?.username ? `@${shown.username}` : 'No username yet'}
+            {bylinePreview ? ` · ${bylinePreview}` : ''}
+          </Body>
+        </View>
+        <Avatar
+          name={shown?.displayName || account?.name || '?'}
+          seed={shown?.username || account?.name || 'you'}
+          size={56}
+        />
+      </View>
 
       <View style={styles.tally}>
         <Stat value={String(checkIns)} label={checkIns === 1 ? 'CHECK-IN' : 'CHECK-INS'} />
         <Stat value={String(following.length)} label="FOLLOWING" />
         <Stat value={String(keptThisWeek)} label="DONE THIS WEEK" />
       </View>
+
+      {/* One button, not the pair Threads shows. There is nowhere to share a
+          profile to yet, and a button that does nothing is worse than a gap. */}
+      {onEditProfile && (
+        <Pressable
+          onPress={onEditProfile}
+          accessibilityRole="button"
+          accessibilityLabel="Edit your profile in Settings"
+          style={styles.edit}
+        >
+          <Text style={styles.editLabel}>Edit profile</Text>
+        </Pressable>
+      )}
 
       {/* The week chart, the insight and the Tended+ lock. */}
       <View style={{ marginTop: 26 }}>
@@ -366,6 +391,28 @@ const styles = StyleSheet.create({
   capArrow: {
     fontSize: 16,
     color: color.accent,
+  },
+  head: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+  },
+  headText: {
+    flex: 1,
+  },
+  edit: {
+    height: 42,
+    marginTop: 18,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: color.outline,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: color.ink,
   },
   tally: {
     flexDirection: 'row',

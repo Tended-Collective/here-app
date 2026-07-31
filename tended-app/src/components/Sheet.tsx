@@ -36,6 +36,12 @@ export function SheetShell({
 
 export type SheetName = 'plus' | 'verify' | 'report' | 'delete';
 
+export type ReportSubject = {
+  updateId: string;
+  authorId: string;
+  kind?: 'post' | 'message';
+};
+
 type SheetsValue = {
   current: SheetName | null;
   /**
@@ -43,9 +49,13 @@ type SheetsValue = {
    * particular post by a particular author, and the sheet is mounted at the app
    * root rather than in the card — so the subject travels with the request
    * instead of being duplicated as state in every screen that can open one.
+   *
+   * `kind` is what is being reported. It only changes the wording — a reported
+   * post leaves the feed, a reported message thread does not — but the two need
+   * different sentences and the sheet cannot tell them apart from the ids.
    */
-  subject: { updateId: string; authorId: string } | null;
-  open: (name: SheetName, subject?: { updateId: string; authorId: string }) => void;
+  subject: ReportSubject | null;
+  open: (name: SheetName, subject?: ReportSubject) => void;
   close: () => void;
 };
 

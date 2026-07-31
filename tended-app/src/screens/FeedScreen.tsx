@@ -21,15 +21,23 @@
  * What a post never carries is anything derived from the check-in record. The
  * record stays on the phone, and that includes counts drawn from it.
  *
- * The other guardrail survives: there are no replies. A reaction is the whole
- * vocabulary, so the feed cannot turn into somewhere to argue.
+ * The other guardrail survives: there are no replies under a post. A reaction is
+ * the whole public vocabulary, so the feed cannot turn into somewhere to argue.
+ * Anything longer goes to messages, in private, between two people.
+ *
+ * The cards are flat rows rather than raised cards — avatar in a left column,
+ * everything else stacked in a right one, hairline between posts. A feed of
+ * white cards on a near-white ground spends a lot of ink drawing boxes, and the
+ * boxes are not the content.
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Avatar } from '../components/Avatar';
+import { Icon } from '../components/Icon';
 import { PlacementCard, withPlacements } from '../components/Placements';
 import { useSheets } from '../components/Sheet';
-import { Body, Card, Display, MonoLabel } from '../components/ui';
+import { Card, Display, MonoLabel } from '../components/ui';
 import {
   AUTHORS,
   authorLine,
@@ -62,7 +70,14 @@ const SCOPES: { key: Scope; label: string }[] = [
   { key: 'following', label: 'Following' },
 ];
 
-export function FeedScreen() {
+export function FeedScreen({
+  composeAt = 0,
+  onMessage,
+}: {
+  composeAt?: number;
+  /** Open a message thread with this author. Provided by the shell. */
+  onMessage?: (authorId: string) => void;
+}) {
   const {
     entries,
     saveCheckIn,
@@ -79,7 +94,6 @@ export function FeedScreen() {
     follow,
     unfollow,
     listFull,
-    plusActive,
     reported,
     blocked,
   } = useStore();
@@ -94,6 +108,15 @@ export function FeedScreen() {
   const [picking, setPicking] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [scope, setScope] = useState<Scope>('everywhere');
+
+  // The + in the tab bar lands here. It only ever focuses the box — it never
+  // posts, and it never opens a separate compose screen, because the box is
+  // already on the first screen and a modal over it would be one more thing to
+  // dismiss.
+  const composer = useRef<TextInput>(null);
+  useEffect(() => {
+    if (composeAt > 0) composer.current?.focus();
+  }, [composeAt]);
 
   // What is already on the list, so a row can say so instead of saving twice.
   const onList = new Set(practices.map((p) => p.label));
@@ -197,6 +220,7 @@ export function FeedScreen() {
               typing — and where a screen reader may never announce it. */}
           <Text style={styles.composerQuestion}>How did you take care of yourself today?</Text>
           <TextInput
+            ref={composer}
             value={draft}
             onChangeText={(t) => setDraft(t.slice(0, UPDATE_MAX_LENGTH))}
             style={styles.input}
@@ -364,6 +388,7 @@ export function FeedScreen() {
                 ? unfollow(row.post.authorId)
                 : follow(row.post.authorId)
             }
+            onMessage={onMessage && (() => onMessage(row.post.authorId))}
           />
         ) : (
           <PlacementCard key={`p${i}`} placement={row.placement} />
@@ -395,41 +420,40 @@ function OwnPost({
   onRemove: () => void;
 }) {
   return (
-    <Card style={styles.card}>
-      <View style={styles.cardHead}>
-        <View style={[styles.dot, styles.dotMine]} />
-        <View style={styles.who}>
-          <View style={styles.nameRow}>
-            <Text style={styles.whoName} numberOfLines={1}>
-              {name}
-            </Text>
-            <VerifiedMark />
-          </View>
-          {/* Your own card carries a Delete button in the same row, so the
-              username goes on the meta line rather than squeezing the name
-              down to "Dana …". */}
-          <MonoLabel size={9} em={0.08} tone={color.faint}>
-            {[username && `@${username}`, line, `YOU · ${timeAgoLabel(update.at)}`]
-              .filter(Boolean)
-              .join(' · ')}
-          </MonoLabel>
-        </View>
-        <View style={styles.headSpacer} />
-        <Pressable
-          onPress={onRemove}
-          accessibilityRole="button"
-          accessibilityLabel="Delete your post"
-          hitSlop={10}
-        >
-          <Text style={styles.remove}>Delete</Text>
-        </Pressable>
-      </View>
+    <View style={styles.row}>
+      <Avatar name={name} seed={username || name} size={38} />
 
-      <Text style={styles.text}>{update.text}</Text>
-      {update.photo && (
-        <Image source={{ uri: update.photo }} style={styles.photo} resizeMode="cover" />
-      )}
-    </Card>
+      <View style={styles.rowBody}>
+        <View style={styles.nameRow}>
+          <Text style={styles.whoName} numberOfLines={1}>
+            {name}
+          </Text>
+          <VerifiedMark />
+          <View style={styles.headSpacer} />
+          <Pressable
+            onPress={onRemove}
+            accessibilityRole="button"
+            accessibilityLabel="Delete your post"
+            hitSlop={10}
+          >
+            <Text style={styles.remove}>Delete</Text>
+          </Pressable>
+        </View>
+
+        {/* Your own row carries a Delete button in the name row, so the username
+            goes on the meta line rather than squeezing the name to "Dana …". */}
+        <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 8 }}>
+          {[username && `@${username}`, line, `YOU · ${timeAgoLabel(update.at)}`]
+            .filter(Boolean)
+            .join(' · ')}
+        </MonoLabel>
+
+        <Text style={styles.text}>{update.text}</Text>
+        {update.photo && (
+          <Image source={{ uri: update.photo }} style={styles.photo} resizeMode="cover" />
+        )}
+      </View>
+    </View>
   );
 }
 
@@ -443,6 +467,7 @@ function FeedCard({
   onReport,
   following,
   onFollow,
+  onMessage,
 }: {
   update: FeedUpdate;
   mine: string[];
@@ -453,117 +478,159 @@ function FeedCard({
   onReport: () => void;
   following: boolean;
   onFollow: () => void;
+  /**
+   * Absent unless this is someone the teacher follows. Anyone can be followed,
+   * so this is friction rather than protection — the protection is the flag and
+   * the block, which work in the thread as well as here — but it does mean a
+   * message only ever starts from someone whose posts you chose to keep reading.
+   */
+  onMessage?: () => void;
 }) {
   const author = AUTHORS[update.authorId];
 
   return (
-    <Card style={styles.card}>
-      <View style={styles.cardHead}>
-        <View style={[styles.avatar, { backgroundColor: update.dot }]}>
-          <Text style={styles.avatarLetter}>
-            {(author?.displayName ?? '?').slice(0, 1).toUpperCase()}
+    <View style={styles.row}>
+      <Avatar
+        name={author?.displayName ?? '?'}
+        seed={author?.username ?? update.authorId}
+        size={38}
+      />
+
+      <View style={styles.rowBody}>
+        <View style={styles.nameRow}>
+          <Text style={styles.whoName} numberOfLines={1}>
+            {author?.displayName ?? 'Someone'}
           </Text>
-        </View>
-        <View style={styles.who}>
-          <View style={styles.nameRow}>
-            <Text style={styles.whoName} numberOfLines={1}>
-              {author?.displayName ?? 'Someone'}
+          <VerifiedMark />
+          <View style={styles.headSpacer} />
+          <Pressable
+            onPress={onFollow}
+            accessibilityRole="button"
+            accessibilityState={{ selected: following }}
+            accessibilityLabel={
+              following ? `Unfollow @${author?.username}` : `Follow @${author?.username}`
+            }
+            hitSlop={8}
+          >
+            <Text style={[styles.followLabel, following && styles.followLabelOn]}>
+              {following ? 'Following' : 'Follow'}
             </Text>
-            <VerifiedMark />
-          </View>
+          </Pressable>
+          {/* A flag rather than a "···" menu: the only thing behind it is
+              reporting, and a dots menu makes people open it to find out. Always
+              present, because a report button that has to be hunted for is one
+              people give up on — and Apple requires one on any app carrying posts
+              (guideline 1.2). */}
+          <Pressable
+            onPress={onReport}
+            accessibilityRole="button"
+            accessibilityLabel={`Report this post or block @${author?.username}`}
+            hitSlop={12}
+          >
+            <Icon name="flag" size={17} tone={color.faint} />
+          </Pressable>
         </View>
-        <Pressable
-          onPress={onFollow}
-          accessibilityRole="button"
-          accessibilityState={{ selected: following }}
-          accessibilityLabel={
-            following ? `Unfollow @${author?.username}` : `Follow @${author?.username}`
-          }
-          style={[styles.follow, following && styles.followOn]}
-        >
-          <Text style={[styles.followLabel, following && styles.followLabelOn]}>
-            {following ? 'Following' : 'Follow'}
-          </Text>
-        </Pressable>
-        {/* A flag rather than a "···" menu: the only thing behind it is
-            reporting, and a dots menu makes people open it to find out. Always
-            present, because a report button that has to be hunted for is one
-            people give up on — and Apple requires one on any app carrying posts
-            (guideline 1.2). */}
-        <Pressable
-          onPress={onReport}
-          accessibilityRole="button"
-          accessibilityLabel={`Report this post or block @${author?.username}`}
-          hitSlop={12}
-          style={styles.more}
-        >
-          <Text style={styles.flag}>⚑</Text>
-        </Pressable>
-      </View>
 
-      {/* The username sits here rather than beside the name. In the name row it
-          competed with Follow and ··· for about 250px and both the name and the
-          handle ended up truncated to "Marisa Ok… @marisa.ok…"; down here it
-          can wrap instead of being cut. Two people may both be "Ms P", so this
-          is the part that is theirs alone. */}
-      <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 8 }}>
-        {[`@${author?.username}`, authorLine(author)].filter(Boolean).join(' · ')}
-      </MonoLabel>
-      <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 10 }}>
-        {update.meta}
-      </MonoLabel>
+        {/* The username sits here rather than beside the name. In the name row it
+            competed with Follow and the flag for about 250px and both the name
+            and the handle ended up truncated to "Marisa Ok… @marisa.ok…"; down
+            here it can wrap instead of being cut. Two people may both be "Ms P",
+            so this is the part that is theirs alone. */}
+        <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 2 }}>
+          {[`@${author?.username}`, authorLine(author)].filter(Boolean).join(' · ')}
+        </MonoLabel>
+        <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 9 }}>
+          {update.meta}
+        </MonoLabel>
 
-      <Text style={styles.text}>{update.text}</Text>
-      {update.photo && (
-        <Image
-          source={{ uri: update.photo }}
-          style={styles.photo}
-          resizeMode="cover"
-          accessibilityLabel="Photo attached to this post"
-        />
-      )}
+        <Text style={styles.text}>{update.text}</Text>
+        {update.photo && (
+          <Image
+            source={{ uri: update.photo }}
+            style={styles.photo}
+            resizeMode="cover"
+            accessibilityLabel="Photo attached to this post"
+          />
+        )}
 
-      <View style={styles.actions}>
-        {REACTIONS.map((r) => {
-          const on = mine.includes(r.id);
-          const count = (update.reactions[r.id] ?? 0) + (on ? 1 : 0);
-          return (
+        {/* One row of line icons rather than pills of emoji. The pills were
+            three bordered boxes wide enough to push the save button onto its own
+            line; at this weight the row is quiet enough to sit under the
+            sentence, which is what should be loudest in a post. */}
+        <View style={styles.actions}>
+          {REACTIONS.map((r) => {
+            const on = mine.includes(r.id);
+            const count = (update.reactions[r.id] ?? 0) + (on ? 1 : 0);
+            return (
+              <Pressable
+                key={r.id}
+                onPress={() => onReact(r.id)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={`${r.label}${on ? ', sent' : ''}`}
+                hitSlop={8}
+                style={styles.action}
+              >
+                <Icon
+                  name={r.icon}
+                  size={20}
+                  tone={on ? color.accent : color.label}
+                  filled={on}
+                />
+                {count > 0 && (
+                  <Text style={[styles.actionCount, on && styles.actionCountOn]}>{count}</Text>
+                )}
+              </Pressable>
+            );
+          })}
+
+          {/* Only for someone you follow, and only ever a private thread — there
+              are still no replies under the post itself. */}
+          {following && onMessage && (
             <Pressable
-              key={r.id}
-              onPress={() => onReact(r.id)}
+              onPress={onMessage}
               accessibilityRole="button"
-              accessibilityState={{ selected: on }}
-              accessibilityLabel={`${r.label}${on ? ', sent' : ''}`}
-              style={[styles.reaction, on && styles.reactionOn]}
+              accessibilityLabel={`Message @${author?.username}`}
+              hitSlop={8}
+              style={styles.action}
             >
-              <Text style={styles.reactionEmoji}>{r.emoji}</Text>
-              {count > 0 && (
-                <Text style={[styles.reactionCount, on && styles.reactionCountOn]}>{count}</Text>
-              )}
+              <Icon name="message" size={19} tone={color.label} />
             </Pressable>
-          );
-        })}
-      </View>
+          )}
 
-      {/* The reason the feed exists: you can take the thing, not just read it. */}
-      <Pressable
-        onPress={onSave}
-        disabled={saved}
-        accessibilityRole="button"
-        accessibilityLabel={
-          saved
-            ? 'Already on your list'
-            : locked
-              ? 'Your list is full. Tended+ for an unlimited list'
-              : `Save "${update.text}" to your list`
-        }
-        style={[styles.save, saved && styles.saveDone]}
-      >
-        <Text style={[styles.saveLabel, saved && styles.saveLabelDone]}>
-          {saved ? '✓ On your list' : locked ? 'List full · Tended+' : '+ Save to my list'}
-        </Text>
-      </Pressable>
-    </Card>
+          <View style={styles.headSpacer} />
+
+          {/* The reason the feed exists: you can take the thing, not just read
+              it. A bookmark is the Threads shape for save, but the word stays —
+              "save this onto my own list" is the app's whole argument and an
+              unlabelled icon does not make it. */}
+          <Pressable
+            onPress={onSave}
+            disabled={saved}
+            accessibilityRole="button"
+            accessibilityLabel={
+              saved
+                ? 'Already on your list'
+                : locked
+                  ? 'Your list is full. Tended+ for an unlimited list'
+                  : `Save "${update.text}" to your list`
+            }
+            hitSlop={8}
+            style={styles.action}
+          >
+            <Icon
+              name="bookmark"
+              size={19}
+              tone={saved ? color.faint : color.accent}
+              filled={saved}
+            />
+            <Text style={[styles.saveLabel, saved && styles.saveLabelDone]}>
+              {saved ? 'On your list' : locked ? 'List full · Tended+' : 'Save'}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -769,26 +836,22 @@ const styles = StyleSheet.create({
     color: color.muted,
     marginTop: 4,
   },
-  avatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 99,
-    alignItems: 'center',
-    justifyContent: 'center',
+  row: {
+    flexDirection: 'row',
+    gap: 11,
+    paddingTop: 16,
+    paddingBottom: 18,
+    borderTopWidth: 1,
+    borderTopColor: color.rule,
   },
-  avatarLetter: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  who: {
+  rowBody: {
     flex: 1,
-    gap: 2,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 7,
+    marginBottom: 3,
   },
   verified: {
     width: 14,
@@ -815,17 +878,6 @@ const styles = StyleSheet.create({
     color: color.faint,
     flexShrink: 1,
   },
-  follow: {
-    height: 30,
-    paddingHorizontal: 13,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: color.accentBorderSoft,
-    justifyContent: 'center',
-  },
-  followOn: {
-    borderColor: color.outline,
-  },
   followLabel: {
     fontSize: 12.5,
     fontWeight: '600',
@@ -835,28 +887,8 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: color.faint,
   },
-  card: {
-    marginTop: 12,
-    padding: 16,
-  },
-  cardHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-    marginBottom: 10,
-  },
   headSpacer: {
     flex: 1,
-  },
-  dot: {
-    width: 9,
-    height: 9,
-    borderRadius: 99,
-  },
-  dotMine: {
-    borderWidth: 1,
-    borderColor: color.accentBorderSoft,
-    backgroundColor: 'transparent',
   },
   remove: {
     fontSize: 12.5,
@@ -876,62 +908,29 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+    alignItems: 'center',
+    gap: 18,
     marginTop: 14,
   },
-  reaction: {
+  action: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    height: 32,
-    paddingHorizontal: 12,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: color.outline,
   },
-  reactionOn: {
-    borderColor: color.accentBorderSoft,
-    backgroundColor: 'rgba(23,96,107,0.06)',
+  actionCount: {
+    fontSize: 12.5,
+    color: color.label,
   },
-  reactionEmoji: {
-    fontSize: 17,
-    lineHeight: 22,
-  },
-  reactionCount: {
-    fontSize: 12,
-    color: color.faint,
-  },
-  reactionCountOn: {
+  actionCountOn: {
     color: color.accent,
   },
-  save: {
-    height: 40,
-    marginTop: 10,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: color.accentBorderSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  saveDone: {
-    borderColor: color.outline,
-  },
   saveLabel: {
-    fontSize: 13.5,
+    fontSize: 13,
     fontWeight: '600',
     color: color.accent,
   },
   saveLabelDone: {
     fontWeight: '400',
-    color: color.faint,
-  },
-  more: {
-    paddingHorizontal: 2,
-  },
-  flag: {
-    fontSize: 15,
-    lineHeight: 18,
     color: color.faint,
   },
   seeMore: {

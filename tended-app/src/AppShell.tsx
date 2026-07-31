@@ -6,8 +6,9 @@ import { PlusSheet } from './components/PlusSheet';
 import { ReportSheet } from './components/ReportSheet';
 import { SheetsProvider, useSheets } from './components/Sheet';
 import { VerifySheet } from './components/VerifySheet';
-import { TabBar, TabKey } from './components/TabBar';
+import { NavAction, TabBar, TabKey } from './components/TabBar';
 import { FeedScreen } from './screens/FeedScreen';
+import { MessagesScreen, unreadThreadCount } from './screens/MessagesScreen';
 import { Onboarding } from './screens/Onboarding';
 import { ProfileScreen } from './screens/ProfileScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
@@ -31,11 +32,32 @@ export function AppShell() {
 
 function Shell() {
   const [tab, setTab] = useState<TabKey>('feed');
+  // Bumped by the compose button. The feed watches it and focuses its box —
+  // a counter rather than a boolean, so pressing + twice works twice.
+  const [composeAt, setComposeAt] = useState(0);
+  // Which thread the messages tab should open on. Set by tapping the message
+  // icon on a post; cleared by any deliberate navigation, so the tab bar always
+  // lands on the inbox.
+  const [thread, setThread] = useState<string | null>(null);
+  // Bumped on every tab-bar press. Tapping the tab you are already on returns
+  // that tab to its root — an open message thread back to the inbox — which is
+  // what a bottom bar is expected to do.
+  const [navAt, setNavAt] = useState(0);
   const { topInset, tabBarHeight } = useChrome();
   const scroller = useRef<ScrollView>(null);
+  const { messages, readThreads, blocked } = useStore();
 
-  const select = (next: TabKey) => {
-    setTab(next);
+  const select = (next: NavAction) => {
+    // Compose is not a place, it is an action: it takes you to the feed, where
+    // the box is, and puts the cursor in it.
+    if (next === 'compose') {
+      setTab('feed');
+      setComposeAt((n) => n + 1);
+    } else {
+      setTab(next);
+    }
+    setThread(null);
+    setNavAt((n) => n + 1);
     scroller.current?.scrollTo({ y: 0, animated: false });
   };
 
@@ -43,16 +65,28 @@ function Shell() {
     <View style={styles.root}>
       <ScrollView
         ref={scroller}
-        style={[styles.scroll, { marginTop: topInset, marginBottom: tabBarHeight }]}
-        contentContainerStyle={styles.content}
+        style={[styles.scroll, { marginTop: topInset }]}
+        // The tab bar floats, so content scrolls under it rather than stopping
+        // above a band — but the last card still has to clear the pill.
+        contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + 16 }]}
         showsVerticalScrollIndicator={false}
       >
-        {tab === 'feed' && <FeedScreen />}
-        {tab === 'profile' && <ProfileScreen />}
+        {tab === 'feed' && (
+          <FeedScreen
+            composeAt={composeAt}
+            onMessage={(authorId) => {
+              setThread(authorId);
+              setTab('messages');
+              scroller.current?.scrollTo({ y: 0, animated: false });
+            }}
+          />
+        )}
+        {tab === 'messages' && <MessagesScreen initialThread={thread} resetAt={navAt} />}
+        {tab === 'profile' && <ProfileScreen onEditProfile={() => select('settings')} />}
         {tab === 'settings' && <SettingsScreen />}
       </ScrollView>
 
-      <TabBar active={tab} onChange={select} />
+      <TabBar active={tab} unread={unreadThreadCount(messages, readThreads, blocked)} onSelect={select} />
 
       {/* Sheets live above the tab bar and inside the device, so they are
           mounted here rather than in the screen that opens them. */}
