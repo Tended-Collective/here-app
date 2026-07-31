@@ -1,7 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useChrome } from './components/PhoneFrame';
+import { DeleteAccountSheet } from './components/DeleteAccountSheet';
 import { PlusSheet } from './components/PlusSheet';
+import { ReportSheet } from './components/ReportSheet';
 import { SheetsProvider, useSheets } from './components/Sheet';
 import { VerifySheet } from './components/VerifySheet';
 import { TabBar, TabKey } from './components/TabBar';
@@ -58,7 +60,7 @@ function Shell() {
 }
 
 function Sheets() {
-  const { current, close } = useSheets();
+  const { current, subject, close } = useSheets();
   const {
     plusActive,
     trialDaysLeft,
@@ -69,6 +71,8 @@ function Sheets() {
 
   return (
     <>
+      <ReportSheet visible={current === 'report'} onClose={close} subject={subject} />
+      <DeleteAccountSheet visible={current === 'delete'} onClose={close} />
       <VerifySheet
         visible={current === 'verify'}
         onClose={close}

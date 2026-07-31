@@ -58,6 +58,8 @@ export function FeedScreen() {
     unfollow,
     listFull,
     plusActive,
+    reported,
+    blocked,
   } = useStore();
   const { open } = useSheets();
 
@@ -88,7 +90,11 @@ export function FeedScreen() {
     setPhoto(null);
   };
 
-  const all = showMore ? [...NEARBY_UPDATES, ...LAST_HOUR_UPDATES] : NEARBY_UPDATES;
+  const all = (showMore ? [...NEARBY_UPDATES, ...LAST_HOUR_UPDATES] : NEARBY_UPDATES)
+    // Reported and blocked come out before anything else looks at the list, so
+    // there is no path — scope switch, expansion, placement dealing — that can
+    // put one back on screen.
+    .filter((u) => !reported[u.id] && !blocked.includes(u.authorId));
   const feed = scope === 'following' ? all.filter((u) => following.includes(u.authorId)) : all;
   const left = UPDATE_MAX_LENGTH - draft.length;
 
@@ -289,6 +295,9 @@ export function FeedScreen() {
             locked={listFull && !onList.has(row.post.text)}
             onSave={() => (listFull ? open('plus') : saveToList(row.post.text))}
             onReact={(id) => toggleReaction(row.post.id, id)}
+            onReport={() =>
+              open('report', { updateId: row.post.id, authorId: row.post.authorId })
+            }
             following={following.includes(row.post.authorId)}
             onFollow={() =>
               following.includes(row.post.authorId)
@@ -307,7 +316,7 @@ export function FeedScreen() {
       </Body>
 
       {!showMore && (
-        <Pressable accessibilityRole="button" style={styles.more} onPress={() => setShowMore(true)}>
+        <Pressable accessibilityRole="button" style={styles.seeMore} onPress={() => setShowMore(true)}>
           <Text style={styles.moreLabel}>See earlier today</Text>
         </Pressable>
       )}
@@ -379,6 +388,7 @@ function FeedCard({
   locked,
   onSave,
   onReact,
+  onReport,
   following,
   onFollow,
 }: {
@@ -388,6 +398,7 @@ function FeedCard({
   locked: boolean;
   onSave: () => void;
   onReact: (reactionId: string) => void;
+  onReport: () => void;
   following: boolean;
   onFollow: () => void;
 }) {
@@ -433,6 +444,18 @@ function FeedCard({
           <Text style={[styles.followLabel, following && styles.followLabelOn]}>
             {following ? 'Following' : 'Follow'}
           </Text>
+        </Pressable>
+        {/* Small and always present. A report button that has to be hunted for
+            is a report button people give up on, and Apple requires one on any
+            app carrying posts (guideline 1.2). */}
+        <Pressable
+          onPress={onReport}
+          accessibilityRole="button"
+          accessibilityLabel={`Report this post or block @${author?.username}`}
+          hitSlop={10}
+          style={styles.more}
+        >
+          <Text style={styles.moreDots}>···</Text>
         </Pressable>
       </View>
 
@@ -868,6 +891,15 @@ const styles = StyleSheet.create({
     color: color.faint,
   },
   more: {
+    paddingHorizontal: 2,
+  },
+  moreDots: {
+    fontSize: 16,
+    lineHeight: 18,
+    fontWeight: '700',
+    color: color.faint,
+  },
+  seeMore: {
     paddingVertical: 16,
     alignItems: 'center',
   },

@@ -168,6 +168,26 @@ posts, outline tick becomes filled, invites unlock.
 typed a code" is a tick standing on nothing; one standing on "@marisa.okonjo vouched" is a claim
 with a person behind it, and one that can be withdrawn.
 
+**Reporting, blocking, and deletion.** Apple requires all three of an app like this, and each is
+also the right behaviour on its own terms.
+
+Every card carries a `···` that opens a report sheet (guideline 1.2). The reasons are written as
+things a moderator can act on — "Names a student or colleague" is checkable in four seconds,
+"Offensive" is a feeling and cannot be triaged. The post leaves the feed the moment it is reported
+rather than when someone agrees, because making a reporter keep looking at what they objected to is
+a punishment for reporting. Blocking is offered on the same sheet, since "I do not want to see this
+person again" is usually the real request and the only part the app can honour by itself; blocking
+also drops any follow. `MODERATION_SLA` is the single string stating the 24-hour commitment, shown
+in the sheet and again on the profile.
+
+Account deletion (guideline 5.1.1(v)) lists what is destroyed rather than asking "are you sure?",
+because the items are not equivalent — a follower list is an inconvenience, a year of check-ins is
+the only copy of something nobody wrote down anywhere else. Confirmation is typing DELETE, not a
+second button, since a second button is cleared by the same reflex that pressed the first. The
+username is held for `USERNAME_HOLD_DAYS` before release, so nobody can claim it that afternoon and
+post as the person who left. Deleting removes the storage row outright and returns the app to
+onboarding; the first-run sample data is deliberately not re-seeded.
+
 **Signing up is required, and the app is no longer anonymous.** Tended held nothing at all for a
 while: no name, no address, and the verification email discarded the moment it was checked. That
 was right for a feed of bad days, where the exposure was a colleague identified complaining about

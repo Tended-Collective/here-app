@@ -34,11 +34,18 @@ export function SheetShell({
   );
 }
 
-export type SheetName = 'plus' | 'verify';
+export type SheetName = 'plus' | 'verify' | 'report' | 'delete';
 
 type SheetsValue = {
   current: SheetName | null;
-  open: (name: SheetName) => void;
+  /**
+   * What the sheet is about, when it needs to know. Report is opened from a
+   * particular post by a particular author, and the sheet is mounted at the app
+   * root rather than in the card — so the subject travels with the request
+   * instead of being duplicated as state in every screen that can open one.
+   */
+  subject: { updateId: string; authorId: string } | null;
+  open: (name: SheetName, subject?: { updateId: string; authorId: string }) => void;
   close: () => void;
 };
 
@@ -46,9 +53,18 @@ const SheetsContext = createContext<SheetsValue | null>(null);
 
 export function SheetsProvider({ children }: { children: React.ReactNode }) {
   const [current, setCurrent] = useState<SheetName | null>(null);
+  const [subject, setSubject] = useState<SheetsValue['subject']>(null);
   const value = useMemo<SheetsValue>(
-    () => ({ current, open: setCurrent, close: () => setCurrent(null) }),
-    [current],
+    () => ({
+      current,
+      subject,
+      open: (name, next) => {
+        setSubject(next ?? null);
+        setCurrent(name);
+      },
+      close: () => setCurrent(null),
+    }),
+    [current, subject],
   );
   return <SheetsContext.Provider value={value}>{children}</SheetsContext.Provider>;
 }

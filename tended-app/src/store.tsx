@@ -188,6 +188,21 @@ type Persisted = {
    * to. The sample feed's own counts live in data/mock.ts; these add to them.
    */
   reactions: Record<string, string[]>;
+  /**
+   * Posts this teacher has reported, and why. Kept locally so a reported post
+   * disappears from their feed the instant they report it — waiting for a
+   * moderator to agree before hiding it makes the reporter live with the thing
+   * they just objected to.
+   *
+   * The report itself belongs on a server, where someone can act on it. This
+   * record is the reporter's own copy.
+   */
+  reported: Record<string, { reason: string; at: number }>;
+  /**
+   * Authors this teacher has blocked. Their posts vanish from the feed and any
+   * follow is dropped. Unlike a report, this needs nobody's agreement.
+   */
+  blocked: string[];
 };
 
 const EMPTY: Persisted = {
@@ -206,6 +221,8 @@ const EMPTY: Persisted = {
   invites: [],
   boundaries: [],
   contacts: [],
+  reported: {},
+  blocked: [],
 };
 
 /**
@@ -358,6 +375,18 @@ type StoreValue = Persisted & {
   updateShown: (patch: Partial<NonNullable<Persisted['account']>['shown']>) => void;
   follow: (authorId: string) => void;
   unfollow: (authorId: string) => void;
+  /** Hides the post here and, with a backend, queues it for a moderator. */
+  reportPost: (updateId: string, reason: string) => void;
+  /** Hides everything by this author and drops any follow. */
+  blockAuthor: (authorId: string) => void;
+  unblockAuthor: (authorId: string) => void;
+  /**
+   * Erases the account and everything on the device. Required by App Store
+   * guideline 5.1.1(v) for any app that lets you create an account, and the
+   * right thing regardless: an app holding a record of how your year went must
+   * let you end that record.
+   */
+  deleteAccount: () => void;
   /** For an account that verifies from inside the app rather than at sign-up. */
   setVerified: (input: { email: string } | { vouchedBy: string }) => void;
   /**
@@ -675,6 +704,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           following: prev.following.filter((id) => id !== authorId),
         })),
+      reportPost: (updateId, reason) =>
+        update((prev) => ({
+          ...prev,
+          reported: { ...prev.reported, [updateId]: { reason, at: Date.now() } },
+        })),
+      blockAuthor: (authorId) =>
+        update((prev) => ({
+          ...prev,
+          blocked: prev.blocked.includes(authorId) ? prev.blocked : [...prev.blocked, authorId],
+          // Blocking someone you follow and staying subscribed to them would be
+          // a contradiction the feed would have to resolve every render.
+          following: prev.following.filter((id) => id !== authorId),
+        })),
+      unblockAuthor: (authorId) =>
+        update((prev) => ({ ...prev, blocked: prev.blocked.filter((id) => id !== authorId) })),
+      deleteAccount: () => {
+        // Removed rather than overwritten: nothing of the old account should be
+        // recoverable from the row, and the next launch should be a first
+        // launch. The seed is deliberately not re-applied — a fresh install
+        // gets sample data, a deletion gets nothing.
+        AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+        setData(EMPTY);
+      },
       createInvite: () =>
         update((prev) =>
           // Guarded here as well as in the UI: a vouched account must not be
