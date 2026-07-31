@@ -19,7 +19,7 @@ import { Toggle } from '../components/Toggle';
 import { useSheets } from '../components/Sheet';
 import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
-import { FREE_LIST_LIMIT, POSTS, postUrl, SITE } from '../data/mock';
+import { FREE_LIST_LIMIT, JOBS, POSTS, postUrl, SITE, yearsLabel } from '../data/mock';
 import { openLink } from '../lib/links';
 import { WEEKDAY_INITIALS, todayISO, weekDates, weekdayIndex } from '../lib/dates';
 import { useStore } from '../store';
@@ -56,8 +56,10 @@ export function ProfileScreen() {
 
   const shown = account?.shown;
   const bylinePreview = [
+    shown?.showJob && shown.job,
     shown?.showRole && shown.role.trim(),
     shown?.showDistrict && shown.district.trim(),
+    shown?.showYears ? yearsLabel(shown.years) : '',
   ]
     .filter(Boolean)
     .join(' · ');
@@ -96,7 +98,7 @@ export function ProfileScreen() {
           style={[styles.badge, educator.verified && styles.badgeOn]}
         >
           <MonoLabel size={9} em={0.1} tone={educator.verified ? color.accent : color.muted}>
-            {educator.verified ? 'VERIFIED EDUCATOR' : 'NOT VERIFIED · TAP TO VERIFY'}
+            {educator.verified ? 'VERIFIED SCHOOL STAFF' : 'NOT VERIFIED · TAP TO VERIFY'}
           </MonoLabel>
         </Pressable>
         {/* Only states a ZIP the teacher actually gave us. It used to fall back
@@ -133,15 +135,63 @@ export function ProfileScreen() {
           accessibilityLabel="The name shown on your posts"
         />
 
+        <View style={styles.appearJobHead}>
+          <MonoLabel size={9} em={0.1} tone={color.faint}>
+            WHAT YOU DO
+          </MonoLabel>
+          <Toggle
+            value={!!shown?.showJob}
+            onChange={(v) => updateShown({ showJob: v })}
+            label="Show what I do"
+          />
+        </View>
+        <View style={[styles.jobChips, !shown?.showJob && styles.appearMuted]}>
+          {JOBS.map((label) => {
+            const on = shown?.job === label;
+            return (
+              <Pressable
+                key={label}
+                onPress={() => shown?.showJob && updateShown({ job: on ? '' : label })}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                style={[styles.jobChip, on && styles.jobChipOn]}
+              >
+                <Text style={[styles.jobChipLabel, on && styles.jobChipLabelOn]}>{label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.appearRow}>
+          <TextInput
+            value={shown?.years === null || shown?.years === undefined ? '' : String(shown.years)}
+            onChangeText={(t) => {
+              const digits = t.replace(/[^0-9]/g, '').slice(0, 2);
+              updateShown({ years: digits === '' ? null : Number(digits) });
+            }}
+            placeholder="Years in schools"
+            placeholderTextColor={color.faint}
+            keyboardType="number-pad"
+            style={[styles.appearInput, styles.appearGrow, !shown?.showYears && styles.appearMuted]}
+            editable={!!shown?.showYears}
+            accessibilityLabel="Years you have worked in schools"
+          />
+          <Toggle
+            value={!!shown?.showYears}
+            onChange={(v) => updateShown({ showYears: v })}
+            label="Show my years of experience"
+          />
+        </View>
+
         <View style={styles.appearRow}>
           <TextInput
             value={shown?.role ?? ''}
             onChangeText={(t) => updateShown({ role: t })}
-            placeholder="Grade or subject"
+            placeholder="Grade, subject or specialism"
             placeholderTextColor={color.faint}
             style={[styles.appearInput, styles.appearGrow, !shown?.showRole && styles.appearMuted]}
             editable={!!shown?.showRole}
-            accessibilityLabel="Your grade or subject"
+            accessibilityLabel="Your grade, subject or specialism"
           />
           <Toggle
             value={!!shown?.showRole}
@@ -173,7 +223,7 @@ export function ProfileScreen() {
 
         <View style={styles.verifiedBlock}>
           <MonoLabel size={9} em={0.1} tone={color.faint}>
-            NEVER SHOWN · HELD AS PROOF YOU TEACH
+            NEVER SHOWN · HELD AS PROOF YOU WORK IN A SCHOOL
           </MonoLabel>
           <Text style={styles.verifiedLine}>{account?.name || '—'}</Text>
           <Text style={styles.verifiedLine}>{account?.email || 'Verified by invite code'}</Text>
@@ -406,6 +456,36 @@ const styles = StyleSheet.create({
   },
   appearMuted: {
     opacity: 0.45,
+  },
+  appearJobHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  jobChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  jobChip: {
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: color.outline,
+  },
+  jobChipOn: {
+    borderColor: color.accentBorderSoft,
+    backgroundColor: 'rgba(23,96,107,0.06)',
+  },
+  jobChipLabel: {
+    fontSize: 13,
+    color: color.body,
+  },
+  jobChipLabelOn: {
+    color: color.accent,
+    fontWeight: '600',
   },
   verifiedBlock: {
     marginTop: 4,

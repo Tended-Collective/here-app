@@ -217,14 +217,15 @@ export function FeedScreen() {
       ) : (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Verify you are an educator to post"
+          accessibilityLabel="Verify you work in a school to post"
           onPress={() => open('verify')}
         >
           <Card style={styles.locked}>
             <Text style={styles.lockedTitle}>Verify to post</Text>
             <Text style={styles.lockedSub}>
-              Reading and saving are open to everyone. Posting is verified educators only, so the
-              feed stays teachers talking to teachers.
+              Reading and saving are open to everyone. Posting is verified school staff only —
+              teachers, counselors, paraeducators, administrators — so the feed stays people who
+              are actually in the building.
             </Text>
           </Card>
         </Pressable>
@@ -328,7 +329,16 @@ function OwnPost({
       <View style={styles.cardHead}>
         <View style={[styles.dot, styles.dotMine]} />
         <View style={styles.who}>
-          <Text style={styles.whoName}>{name}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.whoName} numberOfLines={1}>
+              {name}
+            </Text>
+            <View style={styles.verified}>
+              <Text style={styles.verifiedTick} accessibilityLabel="Verified school staff">
+                ✓
+              </Text>
+            </View>
+          </View>
           <MonoLabel size={9} em={0.08} tone={color.faint}>
             {[line, `YOU · ${timeAgoLabel(update.at)}`].filter(Boolean).join(' · ')}
           </MonoLabel>
@@ -382,12 +392,22 @@ function FeedCard({
           </Text>
         </View>
         <View style={styles.who}>
-          <Text style={styles.whoName}>{author?.handle ?? 'A teacher'}</Text>
-          {/* Whatever they chose to show, and nothing if they chose nothing.
-              The VERIFIED mark is the constant: it is what a handle with no
-              name attached is standing on. */}
+          <View style={styles.nameRow}>
+            <Text style={styles.whoName} numberOfLines={1}>
+              {author?.handle ?? 'A teacher'}
+            </Text>
+            {/* The constant under every byline, whatever the teacher chose to
+                reveal. A mark beside the name rather than a word in the line:
+                it applies to the person, not to the job title, and inline it
+                pushed the byline onto a second row. */}
+            <View style={styles.verified}>
+              <Text style={styles.verifiedTick} accessibilityLabel="Verified school staff">
+                ✓
+              </Text>
+            </View>
+          </View>
           <MonoLabel size={9} em={0.08} tone={color.faint}>
-            {[authorLine(author), 'VERIFIED'].filter(Boolean).join(' · ')}
+            {authorLine(author)}
           </MonoLabel>
         </View>
         <Pressable
@@ -659,6 +679,25 @@ const styles = StyleSheet.create({
   who: {
     flex: 1,
     gap: 2,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  verified: {
+    width: 14,
+    height: 14,
+    borderRadius: 99,
+    backgroundColor: color.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  verifiedTick: {
+    fontSize: 8.5,
+    lineHeight: 11,
+    fontWeight: '700',
+    color: '#fff',
   },
   whoName: {
     fontSize: 14.5,

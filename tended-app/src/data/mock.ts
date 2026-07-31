@@ -76,44 +76,86 @@ export type ReactionId = (typeof REACTIONS)[number]['id'];
  *
  * Everyone here cleared the same school-email check. What differs is how much
  * of themselves they decided to put on a post, and the range below is the
- * point: a full name with grade and district, a first name only, initials, a
- * handle with nothing attached. All four are verified educators.
+ * point: a full name with job, grade and district; a handle with a job and
+ * nothing else. All of them are verified school staff.
  *
- * That range is not decoration. A teacher posting "said no to covering another
+ * That range is not decoration. Someone posting "said no to covering another
  * class" is describing insubordination to some principals, and the option to
- * say it as "Ms R" is the difference between posting and staying quiet. The
- * floor underneath every one of these is identical, which is what keeps the
- * pseudonym from being a way in for someone who does not teach.
+ * say it as "Ms P · Social worker" is the difference between posting and
+ * staying quiet. The floor underneath every one is identical, which is what
+ * keeps the pseudonym from being a way in for someone who does not work in a
+ * school.
  */
+
+/**
+ * Who works in a school. Not everyone in the building teaches, and the ones who
+ * do not are often the people with the most useful answers about surviving it —
+ * a counselor knows what a boundary costs, an administrator knows which of them
+ * a principal will actually respect.
+ *
+ * "Other" is last and real: this list will always be missing somebody's title.
+ */
+export const JOBS = [
+  'Teacher',
+  'Paraeducator',
+  'Counselor',
+  'Social worker',
+  'School psychologist',
+  'Instructional coach',
+  'Administrator',
+  'Librarian',
+  'Nurse',
+  'Other school staff',
+];
+
 export type FeedAuthor = {
   id: string;
   /** Their chosen handle. Anything from a full name to two initials. */
   handle: string;
-  /** Grade or subject, if they chose to show it. */
+  /** What they do. One of JOBS, if they chose to show it. */
+  job?: string;
+  /** Grade, subject or specialism, if they chose to show it. */
   role?: string;
   /** District, if they chose to show it. Never the school building. */
   district?: string;
+  /**
+   * Years in schools. This is the credential the feed actually runs on: "no
+   * work email after six, held nine days" reads differently from someone in
+   * their first year than from someone in their twenty-second, and a reader
+   * deciding whether to copy a boundary is entitled to know which.
+   */
+  years?: number;
 };
 
 export const AUTHORS: Record<string, FeedAuthor> = {
   // Everything shown.
-  t1: { id: 't1', handle: 'Marisa Okonjo', role: '4th grade', district: 'DCPS' },
-  // Name, subject, no district.
-  t2: { id: 't2', handle: 'Dana W.', role: 'HS Biology' },
-  // A handle and a subject, no name at all.
-  t3: { id: 't3', handle: 'MrR_Math', role: 'MS Math', district: 'DCPS' },
-  // Role only, which is often the most useful thing anyway.
-  t4: { id: 't4', handle: 'Ms P', role: 'Special Education' },
-  // Full name, district, no grade.
-  t5: { id: 't5', handle: 'Jonah Feld', district: 'MCPS' },
-  // Handle alone. Nothing else revealed, still verified.
-  t6: { id: 't6', handle: 'quietroom', role: 'HS English' },
+  t1: { id: 't1', handle: 'Marisa Okonjo', job: 'Teacher', role: '4th grade', district: 'DCPS', years: 12 },
+  // Name, job, subject, no district.
+  t2: { id: 't2', handle: 'Dana W.', job: 'Teacher', role: 'HS Biology', years: 4 },
+  // Not a teacher, and the reason to read them.
+  t3: { id: 't3', handle: 'MrR_Counsel', job: 'Counselor', district: 'DCPS', years: 19 },
+  // A handle, a job, nothing else.
+  t4: { id: 't4', handle: 'Ms P', job: 'Social worker', years: 7 },
+  // An administrator, which is worth seeing in a feed about boundaries.
+  t5: { id: 't5', handle: 'Jonah Feld', job: 'Administrator', district: 'MCPS', years: 22 },
+  // First year, and saying so. The number is not a ranking.
+  t6: { id: 't6', handle: 'quietroom', job: 'Teacher', role: 'HS English', years: 1 },
 };
 
-/** The byline under a name: whichever of role and district they chose to show. */
+/** "12 YRS", or "FIRST YEAR" — which is a fact, not a lesser one. */
+export function yearsLabel(years: number | undefined | null): string {
+  if (years === undefined || years === null) return '';
+  if (years <= 0) return 'NEW THIS YEAR';
+  if (years === 1) return 'FIRST YEAR';
+  return `${years} YRS`;
+}
+
+/** The byline: whatever they chose to show, in a fixed order, joined with dots. */
 export function authorLine(author: FeedAuthor | undefined): string {
   if (!author) return '';
-  return [author.role, author.district].filter(Boolean).join(' · ');
+  return [author.job, author.role, author.district, yearsLabel(author.years)]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 export type FeedUpdate = {

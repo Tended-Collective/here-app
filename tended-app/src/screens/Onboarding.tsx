@@ -13,7 +13,11 @@
  * Verification is no longer skippable. It was, while the feed was anonymous and
  * a skipper simply lost access to it. Now that posts carry a name, an account
  * that has not been checked against a school address would be a stranger in a
- * feed whose whole value is that everyone in it teaches.
+ * feed whose whole value is that everyone in it works in a school.
+ *
+ * Not everyone in a school teaches. Counselors, social workers, paraeducators
+ * and administrators are all in JOBS, and the ones who do not teach often have
+ * the most useful answers about surviving the building.
  */
 
 import React, { useState } from 'react';
@@ -22,7 +26,7 @@ import { useChrome } from '../components/PhoneFrame';
 import { Body, Display, MonoLabel } from '../components/ui';
 import { Toggle } from '../components/Toggle';
 import { VerifyForm } from '../components/VerifyForm';
-import { FREE_LIST_LIMIT, PRACTICE_SUGGESTIONS } from '../data/mock';
+import { FREE_LIST_LIMIT, JOBS, PRACTICE_SUGGESTIONS, yearsLabel } from '../data/mock';
 import { useStore } from '../store';
 import { color, radius, SCREEN_PADDING } from '../theme';
 
@@ -72,7 +76,7 @@ const PROMISES = [
   },
   {
     title: 'You choose how you appear',
-    body: 'Post under your name, your initials, or a handle. Show your grade and district, or neither. Everyone here verified the same way — how much you reveal is separate from that.',
+    body: 'Post under your name, your initials, or a handle. Show what you do and how long you have done it, or not. Everyone here verified the same way — how much you reveal is separate from that.',
   },
   {
     title: 'Your school is never shown',
@@ -97,10 +101,14 @@ export function Onboarding() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [handle, setHandle] = useState('');
+  const [job, setJob] = useState('');
   const [role, setRole] = useState('');
   const [district, setDistrict] = useState('');
+  const [years, setYears] = useState('');
+  const [showJob, setShowJob] = useState(true);
   const [showRole, setShowRole] = useState(true);
   const [showDistrict, setShowDistrict] = useState(true);
+  const [showYears, setShowYears] = useState(true);
   const [zip, setZip] = useState('');
   const [chosen, setChosen] = useState<string[]>(PRACTICE_SUGGESTIONS.slice(0, 3));
 
@@ -122,17 +130,26 @@ export function Onboarding() {
       email,
       shown: {
         handle,
+        job: showJob ? job : '',
         role: showRole ? role : '',
         district: showDistrict ? district : '',
+        years: showYears && years.trim() ? Number(years) : null,
+        showJob,
         showRole,
         showDistrict,
+        showYears,
       },
       practices: chosen,
       zip,
     });
 
   // What the byline will look like, built the same way the feed builds it.
-  const preview = [showRole && role.trim(), showDistrict && district.trim()]
+  const preview = [
+    showJob && job,
+    showRole && role.trim(),
+    showDistrict && district.trim(),
+    showYears && years.trim() ? yearsLabel(Number(years)) : '',
+  ]
     .filter(Boolean)
     .join(' · ');
   const story = step < STORY.length ? STORY[step] : null;
@@ -183,8 +200,8 @@ export function Onboarding() {
               Sign up with your school email.
             </Display>
             <Body style={{ marginTop: 14 }}>
-              Your work address is how we know you teach. Everyone in the feed has done the same,
-              which is the whole reason it is worth reading.
+              Your work address is how we know you work in a school. Everyone in the feed has done
+              the same, which is the whole reason it is worth reading.
             </Body>
 
             <MonoLabel style={{ marginTop: 22 }}>YOUR NAME</MonoLabel>
@@ -230,12 +247,48 @@ export function Onboarding() {
               accessibilityLabel="The name shown on your posts"
             />
 
+            <MonoLabel style={{ marginTop: 22 }}>WHAT YOU DO</MonoLabel>
+            <View style={styles.chips}>
+              {JOBS.map((label) => {
+                const on = job === label;
+                return (
+                  <Pressable
+                    key={label}
+                    onPress={() => setJob(on ? '' : label)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: on }}
+                    style={[styles.chip, on && styles.chipOn]}
+                  >
+                    <Text style={[styles.chipLabel, on && styles.chipLabelOn]}>{label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Years is the one number the feed leans on, so it gets its own
+                row rather than being buried with the optional detail. */}
+            <View style={styles.optionRow}>
+              <View style={styles.optionCopy}>
+                <TextInput
+                  value={years}
+                  onChangeText={(t) => setYears(t.replace(/[^0-9]/g, '').slice(0, 2))}
+                  placeholder="Years in schools"
+                  placeholderTextColor={color.faint}
+                  style={[styles.input, { marginTop: 0 }, !showYears && styles.inputMuted]}
+                  keyboardType="number-pad"
+                  editable={showYears}
+                  accessibilityLabel="Years you have worked in schools"
+                />
+              </View>
+              <Toggle value={showYears} onChange={setShowYears} label="Show my years of experience" />
+            </View>
+
             <View style={styles.optionRow}>
               <View style={styles.optionCopy}>
                 <TextInput
                   value={role}
                   onChangeText={setRole}
-                  placeholder="Grade or subject"
+                  placeholder="Grade, subject or specialism"
                   placeholderTextColor={color.faint}
                   style={[styles.input, { marginTop: 0 }, !showRole && styles.inputMuted]}
                   editable={showRole}
@@ -261,7 +314,9 @@ export function Onboarding() {
             </View>
 
             <Text style={styles.hint}>
-              Your school building is never shown, and is not something we ask for.
+              Years in schools is what gives a post its weight — a boundary held for nine days
+              reads differently from a first-year than from someone twenty years in. Your school
+              building is never shown, and is not something we ask for.
             </Text>
 
             <MonoLabel style={{ marginTop: 24 }}>PREVIEW</MonoLabel>

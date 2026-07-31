@@ -175,9 +175,25 @@ to say so.
 
 Onboarding has a step for it with a live byline preview, and the profile has the same controls so
 it can be changed at any time — with the verified half printed beneath, read-only, under NEVER
-SHOWN · HELD AS PROOF YOU TEACH. The sample authors in `data/mock.ts` deliberately span the range:
-full name with grade and district, first name and initial, a handle with a subject, a handle
-alone. The school building is never offered as a field at all.
+SHOWN · HELD AS PROOF YOU WORK IN A SCHOOL. The school building is never offered as a field at all.
+
+**Not everyone in a school teaches.** `JOBS` covers teachers, paraeducators, counselors, social
+workers, school psychologists, instructional coaches, administrators, librarians, nurses and other
+staff. The ones who do not teach are often the people with the most useful answers about surviving
+the building — a counselor knows what a boundary costs, an administrator knows which ones a
+principal will actually respect. "Other school staff" is last and real: the list will always be
+missing somebody's title.
+
+**Years in schools is the credential the feed runs on.** "No work email after six, held nine days"
+reads differently from someone in their first year than from someone twenty-two years in, and a
+reader deciding whether to copy a boundary is entitled to know which. It sits in the byline, is
+optional like everything else, and `yearsLabel` renders 1 as FIRST YEAR and 0 as NEW THIS YEAR
+rather than a bare number — the figure is context, not a ranking.
+
+A byline is therefore `job · role · district · years`, any part of which may be absent, under a
+handle that may be a full name or two initials. The VERIFIED mark is a tick beside the name rather
+than a word in that line: it applies to the person rather than the job title, and inline it pushed
+the byline onto a second row.
 
 **Following.** `following: string[]` holds author ids; the feed has an Everyone / Following switch
 and every card has a Follow button. This is the replacement for the ZIP heat map, which is gone:

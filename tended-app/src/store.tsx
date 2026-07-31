@@ -127,12 +127,22 @@ type Persisted = {
     shown: {
       /** What appears on posts. Their name, a shortening of it, or a handle. */
       handle: string;
-      /** Grade or subject. Empty means they gave none. */
+      /** One of JOBS. Not everyone in a school teaches. */
+      job: string;
+      /** Grade, subject or specialism. Empty means they gave none. */
       role: string;
       /** District. Never the school building — that is not offered at all. */
       district: string;
+      /**
+       * Years working in schools. The one credential the feed genuinely runs
+       * on: a boundary held for nine days reads differently from someone in
+       * their first year than from someone in their twenty-second.
+       */
+      years: number | null;
+      showJob: boolean;
       showRole: boolean;
       showDistrict: boolean;
+      showYears: boolean;
     };
   } | null;
   educator: { verified: boolean; verifiedAt: number | null };
@@ -243,10 +253,14 @@ type StoreValue = Persisted & {
     email: string;
     shown: {
       handle: string;
+      job: string;
       role: string;
       district: string;
+      years: number | null;
+      showJob: boolean;
       showRole: boolean;
       showDistrict: boolean;
+      showYears: boolean;
     };
     practices: string[];
     zip: string;
@@ -454,10 +468,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                   email,
                   shown: prev.account?.shown ?? {
                     handle: prev.account?.name ?? '',
+                    job: '',
                     role: '',
                     district: '',
+                    years: null,
+                    showJob: true,
                     showRole: false,
                     showDistrict: false,
+                    showYears: true,
                   },
                 }
               : prev.account,
