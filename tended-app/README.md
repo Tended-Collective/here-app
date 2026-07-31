@@ -4,6 +4,29 @@ An Expo / React Native implementation of **Tended App v3** from the Claude Desig
 (`../project/Tended App v3.dc.html`) — the simplified four-tab teacher wellness app in the
 "quiet paper" treatment.
 
+## The shared preview
+
+The live link is
+**https://claude.ai/code/artifact/04c0a4af-0b5a-43df-8d01-7a3cd002f3b5**
+
+An artifact's URL is owned by the file path it was published from, so keeping that link current
+means always republishing the same path:
+
+```
+npx expo export --platform web --clear
+node scripts/build-artifact.mjs          # writes dist/artifact.html
+cp dist/artifact.html dist/tended-2026-07-31.html
+# then publish dist/tended-2026-07-31.html
+```
+
+The date in that filename is only how the path was first named — it is the permanent live link, not
+a snapshot. Publishing from any other path mints a *new* URL and silently leaves this one behind on
+whatever it last had, which is the failure worth avoiding: someone holds a link that stopped
+updating without ever appearing broken.
+
+An earlier link, `.../143bac7a-bcc9-4b64-af4b-15021d711219`, is still live and frozen at the same
+build. It is no longer updated.
+
 ## Running it
 
 ```
