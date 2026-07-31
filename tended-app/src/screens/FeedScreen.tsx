@@ -29,6 +29,7 @@ import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
 import {
   AUTHORS,
+  authorLine,
   FeedUpdate,
   LAST_HOUR_UPDATES,
   NEARBY_UPDATES,
@@ -253,7 +254,12 @@ export function FeedScreen() {
           <OwnPost
             key={u.id}
             update={u}
-            name={account?.name || 'You'}
+            name={account?.shown.handle || account?.name || 'You'}
+            line={
+              [account?.shown.showRole && account.shown.role, account?.shown.showDistrict && account.shown.district]
+                .filter(Boolean)
+                .join(' · ')
+            }
             onRemove={() => removeUpdate(u.id)}
           />
         ))}
@@ -309,10 +315,12 @@ export function FeedScreen() {
 function OwnPost({
   update,
   name,
+  line,
   onRemove,
 }: {
   update: Update;
   name: string;
+  line: string;
   onRemove: () => void;
 }) {
   return (
@@ -322,7 +330,7 @@ function OwnPost({
         <View style={styles.who}>
           <Text style={styles.whoName}>{name}</Text>
           <MonoLabel size={9} em={0.08} tone={color.faint}>
-            YOU · {timeAgoLabel(update.at)}
+            {[line, `YOU · ${timeAgoLabel(update.at)}`].filter(Boolean).join(' · ')}
           </MonoLabel>
         </View>
         <View style={styles.headSpacer} />
@@ -369,12 +377,17 @@ function FeedCard({
     <Card style={styles.card}>
       <View style={styles.cardHead}>
         <View style={[styles.avatar, { backgroundColor: update.dot }]}>
-          <Text style={styles.avatarLetter}>{author?.name.slice(0, 1) ?? '?'}</Text>
+          <Text style={styles.avatarLetter}>
+            {(author?.handle ?? '?').slice(0, 1).toUpperCase()}
+          </Text>
         </View>
         <View style={styles.who}>
-          <Text style={styles.whoName}>{author?.name ?? 'A teacher'}</Text>
+          <Text style={styles.whoName}>{author?.handle ?? 'A teacher'}</Text>
+          {/* Whatever they chose to show, and nothing if they chose nothing.
+              The VERIFIED mark is the constant: it is what a handle with no
+              name attached is standing on. */}
           <MonoLabel size={9} em={0.08} tone={color.faint}>
-            {author?.role}
+            {[authorLine(author), 'VERIFIED'].filter(Boolean).join(' · ')}
           </MonoLabel>
         </View>
         <Pressable
@@ -382,7 +395,7 @@ function FeedCard({
           accessibilityRole="button"
           accessibilityState={{ selected: following }}
           accessibilityLabel={
-            following ? `Unfollow ${author?.name}` : `Follow ${author?.name}`
+            following ? `Unfollow ${author?.handle}` : `Follow ${author?.handle}`
           }
           style={[styles.follow, following && styles.followOn]}
         >

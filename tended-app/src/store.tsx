@@ -100,19 +100,41 @@ type Persisted = {
   /** Null until onboarding is finished; the app opens on it while it is. */
   onboardedAt: number | null;
   /**
-   * The account. Tended used to hold nothing at all — no name, no address, and
-   * the verification email was discarded the moment it was checked.
+   * The account, in two halves that must not be confused.
    *
-   * That changed when the feed became the product. A feed you can follow people
-   * on needs people, and a teacher deciding whether to copy someone's boundary
-   * is entitled to know whose it is. So the app now keeps a name and the work
-   * address it was verified against.
+   * `name` and `email` are the verified half: proof that a real educator is
+   * behind this account. They are never shown to anyone and never appear on a
+   * post. Verification is the app's floor — everyone in the feed cleared it.
    *
-   * What did not change: the check-in record. How a teacher rated Tuesday is
-   * still theirs alone and still never leaves the device. Publishing a post is
-   * a decision they make one post at a time; rating a day is not a publication.
+   * Everything under `shown` is the presented half, and it is the teacher's own
+   * choice. A handle instead of a name, a grade or not, a district or not. This
+   * is the split Threads gets right: the platform knows who you are, the feed
+   * shows what you decided to show.
+   *
+   * It matters more here than on a general-purpose network. A teacher posting
+   * "said no to covering another class" is describing an act of insubordination
+   * to some principals, and being able to say it under "Ms R · MS Math" rather
+   * than a full name is the difference between posting and not. The floor stays
+   * the same either way, which is what stops the pseudonym being a loophole:
+   * every handle in the feed passed the same check.
+   *
+   * What is not presented at all: the check-in record. How a teacher rated
+   * Tuesday never leaves the device under any name.
    */
-  account: { name: string; email: string } | null;
+  account: {
+    name: string;
+    email: string;
+    shown: {
+      /** What appears on posts. Their name, a shortening of it, or a handle. */
+      handle: string;
+      /** Grade or subject. Empty means they gave none. */
+      role: string;
+      /** District. Never the school building — that is not offered at all. */
+      district: string;
+      showRole: boolean;
+      showDistrict: boolean;
+    };
+  } | null;
   educator: { verified: boolean; verifiedAt: number | null };
   /** Author ids this teacher follows. See AUTHORS in data/mock.ts. */
   following: string[];
@@ -215,13 +237,22 @@ type StoreValue = Persisted & {
   toggleReaction: (updateId: string, reactionId: string) => void;
   startTrial: () => void;
   endTrial: () => void;
-  /** Finishes onboarding: who they are, the list they chose, and the ZIP. */
+  /** Finishes onboarding: who they are, how they appear, and the starting list. */
   completeOnboarding: (input: {
     name: string;
     email: string;
+    shown: {
+      handle: string;
+      role: string;
+      district: string;
+      showRole: boolean;
+      showDistrict: boolean;
+    };
     practices: string[];
     zip: string;
   }) => void;
+  /** Change how you appear, at any time, without touching what was verified. */
+  updateShown: (patch: Partial<NonNullable<Persisted['account']>['shown']>) => void;
   follow: (authorId: string) => void;
   unfollow: (authorId: string) => void;
   /** For an account that verifies from inside the app rather than at sign-up. */
@@ -385,12 +416,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             : { ...prev, plus: { trialStartedAt: Date.now() } },
         ),
       endTrial: () => update((prev) => ({ ...prev, plus: { trialStartedAt: null } })),
-      completeOnboarding: ({ name, email, practices: labels, zip }) =>
+      completeOnboarding: ({ name, email, shown, practices: labels, zip }) =>
         update((prev) => ({
           ...prev,
           onboardedAt: Date.now(),
           zip: zip.trim() || null,
-          account: { name: name.trim(), email: email.trim() },
+          account: {
+            name: name.trim(),
+            email: email.trim(),
+            shown: {
+              ...shown,
+              // Falling back to the name means nobody ends up posting as a
+              // blank byline because they skipped the field.
+              handle: shown.handle.trim() || name.trim(),
+              role: shown.role.trim(),
+              district: shown.district.trim(),
+            },
+          },
           educator: { verified: true, verifiedAt: Date.now() },
           practices: labels.map((label, i) => ({
             id: `p${i}${Date.now().toString(36)}`,
@@ -407,7 +449,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           educator: { verified, verifiedAt: verified ? Date.now() : null },
           account:
             verified && email
-              ? { name: prev.account?.name ?? '', email }
+              ? {
+                  name: prev.account?.name ?? '',
+                  email,
+                  shown: prev.account?.shown ?? {
+                    handle: prev.account?.name ?? '',
+                    role: '',
+                    district: '',
+                    showRole: false,
+                    showDistrict: false,
+                  },
+                }
               : prev.account,
         })),
       savePlan: ({ boundaries, habits, contacts }) =>
@@ -472,6 +524,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             b.id === id ? { ...b, active: !b.active } : b,
           ),
         })),
+      updateShown: (patch) =>
+        update((prev) =>
+          prev.account
+            ? { ...prev, account: { ...prev.account, shown: { ...prev.account.shown, ...patch } } }
+            : prev,
+        ),
       follow: (authorId) =>
         update((prev) =>
           prev.following.includes(authorId)

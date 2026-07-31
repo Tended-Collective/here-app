@@ -159,8 +159,25 @@ address back to its caller rather than dropping it.
 
 What did not change is the line the onboarding now states outright: **your posts are public, your
 record is not.** How a teacher rated Tuesday still never leaves the device. Publishing a post is a
-decision made one post at a time; rating a day is not a publication. The profile shows a grade or
-subject and a district — never the building.
+decision made one post at a time; rating a day is not a publication.
+
+**Verified underneath, self-presented on the surface.** The account has two halves and they must
+not be confused. `name` and `email` are the verified half: proof a real educator is behind the
+account, never shown to anyone, never on a post. Everything under `account.shown` is the teacher's
+own choice — a handle instead of a name, a grade or not, a district or not.
+
+This is the split Threads gets right, and it matters more here than on a general-purpose network.
+A teacher posting "said no to covering another class" is describing insubordination to some
+principals, and being able to say it as "Ms R · MS Math" is the difference between posting and
+staying quiet. The floor stays identical either way, which is what stops the pseudonym being a
+loophole: every handle in the feed passed the same check, and every card carries a VERIFIED mark
+to say so.
+
+Onboarding has a step for it with a live byline preview, and the profile has the same controls so
+it can be changed at any time — with the verified half printed beneath, read-only, under NEVER
+SHOWN · HELD AS PROOF YOU TEACH. The sample authors in `data/mock.ts` deliberately span the range:
+full name with grade and district, first name and initial, a handle with a subject, a handle
+alone. The school building is never offered as a field at all.
 
 **Following.** `following: string[]` holds author ids; the feed has an Everyone / Following switch
 and every card has a Follow button. This is the replacement for the ZIP heat map, which is gone:

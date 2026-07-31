@@ -15,6 +15,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { InviteCard } from '../components/InviteCard';
 import { PodcastSection } from '../components/PodcastSection';
+import { Toggle } from '../components/Toggle';
 import { useSheets } from '../components/Sheet';
 import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
@@ -42,6 +43,7 @@ export function ProfileScreen() {
     following,
     listFull,
     plusActive,
+    updateShown,
   } = useStore();
   const { open } = useSheets();
 
@@ -51,6 +53,14 @@ export function ProfileScreen() {
   const [draft, setDraft] = useState('');
   const [editing, setEditing] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
+
+  const shown = account?.shown;
+  const bylinePreview = [
+    shown?.showRole && shown.role.trim(),
+    shown?.showDistrict && shown.district.trim(),
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   const checkIns = Object.keys(entries).length;
   const keptThisWeek = practices.reduce(
@@ -73,13 +83,11 @@ export function ProfileScreen() {
     <View>
       <MonoLabel>YOUR PROFILE</MonoLabel>
       <Display size={32} style={{ marginTop: 10 }}>
-        {account?.name || 'Your account'}
+        {shown?.handle || account?.name || 'Your account'}
       </Display>
-      {!!account?.email && (
-        <Body size={13} tone={color.muted} style={{ marginTop: 6 }}>
-          {account.email}
-        </Body>
-      )}
+      <Body size={13} tone={color.muted} style={{ marginTop: 6 }}>
+        {bylinePreview || 'Nothing else shown on your posts'}
+      </Body>
 
       <View style={styles.badges}>
         <Pressable
@@ -106,6 +114,71 @@ export function ProfileScreen() {
         <Stat value={String(following.length)} label="FOLLOWING" />
         <Stat value={String(keptThisWeek)} label="DONE THIS WEEK" />
       </View>
+
+      {/* How you appear, editable at any time. The verified half — the real
+          name and the work address — is shown below it as read-only, so the
+          split between "what proves you teach" and "what the feed sees" is
+          visible rather than merely implemented. */}
+      <MonoLabel style={{ marginTop: 30 }}>HOW YOU APPEAR</MonoLabel>
+      <Card style={styles.appearCard}>
+        <MonoLabel size={9} em={0.1} tone={color.faint}>
+          SHOWN ON YOUR POSTS
+        </MonoLabel>
+        <TextInput
+          value={shown?.handle ?? ''}
+          onChangeText={(t) => updateShown({ handle: t })}
+          placeholder="Your name, initials, or a handle"
+          placeholderTextColor={color.faint}
+          style={styles.appearInput}
+          accessibilityLabel="The name shown on your posts"
+        />
+
+        <View style={styles.appearRow}>
+          <TextInput
+            value={shown?.role ?? ''}
+            onChangeText={(t) => updateShown({ role: t })}
+            placeholder="Grade or subject"
+            placeholderTextColor={color.faint}
+            style={[styles.appearInput, styles.appearGrow, !shown?.showRole && styles.appearMuted]}
+            editable={!!shown?.showRole}
+            accessibilityLabel="Your grade or subject"
+          />
+          <Toggle
+            value={!!shown?.showRole}
+            onChange={(v) => updateShown({ showRole: v })}
+            label="Show my grade or subject"
+          />
+        </View>
+
+        <View style={styles.appearRow}>
+          <TextInput
+            value={shown?.district ?? ''}
+            onChangeText={(t) => updateShown({ district: t })}
+            placeholder="District"
+            placeholderTextColor={color.faint}
+            style={[
+              styles.appearInput,
+              styles.appearGrow,
+              !shown?.showDistrict && styles.appearMuted,
+            ]}
+            editable={!!shown?.showDistrict}
+            accessibilityLabel="Your district"
+          />
+          <Toggle
+            value={!!shown?.showDistrict}
+            onChange={(v) => updateShown({ showDistrict: v })}
+            label="Show my district"
+          />
+        </View>
+
+        <View style={styles.verifiedBlock}>
+          <MonoLabel size={9} em={0.1} tone={color.faint}>
+            NEVER SHOWN · HELD AS PROOF YOU TEACH
+          </MonoLabel>
+          <Text style={styles.verifiedLine}>{account?.name || '—'}</Text>
+          <Text style={styles.verifiedLine}>{account?.email || 'Verified by invite code'}</Text>
+        </View>
+      </Card>
 
       {/* The week chart, the insight and the Tended+ lock. */}
       <View style={{ marginTop: 26 }}>
@@ -305,6 +378,46 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
+  appearCard: {
+    marginTop: 12,
+    padding: 16,
+    gap: 10,
+  },
+  appearRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  appearGrow: {
+    flex: 1,
+  },
+  appearInput: {
+    height: 44,
+    paddingHorizontal: 13,
+    borderRadius: radius.row,
+    borderWidth: 1,
+    borderColor: color.outline,
+    backgroundColor: color.ground,
+    fontSize: 14.5,
+    color: color.ink,
+    outlineColor: color.accent,
+    outlineWidth: 2,
+    outlineOffset: 1,
+  },
+  appearMuted: {
+    opacity: 0.45,
+  },
+  verifiedBlock: {
+    marginTop: 4,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: color.rule,
+    gap: 3,
+  },
+  verifiedLine: {
+    fontSize: 13.5,
+    color: color.muted,
+  },
   listHead: {
     flexDirection: 'row',
     justifyContent: 'space-between',

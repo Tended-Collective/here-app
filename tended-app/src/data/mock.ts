@@ -72,31 +72,49 @@ export const REACTIONS = [
 export type ReactionId = (typeof REACTIONS)[number]['id'];
 
 /**
- * Who posted. The feed used to carry nothing at all — no name, no handle — and
- * that was the right call for a feed of bad days, where the risk was a
- * colleague being identified complaining about their school.
+ * Who posted — as they chose to appear, not as they verified.
  *
- * A feed of what people did for themselves is a different object. You cannot
- * follow someone who has no name, and "left at 4:30 and it held for nine days"
- * is worth more when you know who is saying it and can watch whether they keep
- * it up. The check-in record stays private either way: what a teacher posts is
- * theirs to publish, how they rated Tuesday is not.
+ * Everyone here cleared the same school-email check. What differs is how much
+ * of themselves they decided to put on a post, and the range below is the
+ * point: a full name with grade and district, a first name only, initials, a
+ * handle with nothing attached. All four are verified educators.
+ *
+ * That range is not decoration. A teacher posting "said no to covering another
+ * class" is describing insubordination to some principals, and the option to
+ * say it as "Ms R" is the difference between posting and staying quiet. The
+ * floor underneath every one of these is identical, which is what keeps the
+ * pseudonym from being a way in for someone who does not teach.
  */
 export type FeedAuthor = {
   id: string;
-  name: string;
-  /** Grade or subject, and the district. Never the school building. */
-  role: string;
+  /** Their chosen handle. Anything from a full name to two initials. */
+  handle: string;
+  /** Grade or subject, if they chose to show it. */
+  role?: string;
+  /** District, if they chose to show it. Never the school building. */
+  district?: string;
 };
 
 export const AUTHORS: Record<string, FeedAuthor> = {
-  t1: { id: 't1', name: 'Marisa Okonjo', role: '4th grade · DCPS' },
-  t2: { id: 't2', name: 'Dana Whitfield', role: 'HS Biology · PGCPS' },
-  t3: { id: 't3', name: 'Theo Ramirez', role: 'MS Math · DCPS' },
-  t4: { id: 't4', name: 'Priya Raghunathan', role: 'Special Education · ACPS' },
-  t5: { id: 't5', name: 'Jonah Feld', role: '2nd grade · MCPS' },
-  t6: { id: 't6', name: 'Amara Bell', role: 'HS English · DCPS' },
+  // Everything shown.
+  t1: { id: 't1', handle: 'Marisa Okonjo', role: '4th grade', district: 'DCPS' },
+  // Name, subject, no district.
+  t2: { id: 't2', handle: 'Dana W.', role: 'HS Biology' },
+  // A handle and a subject, no name at all.
+  t3: { id: 't3', handle: 'MrR_Math', role: 'MS Math', district: 'DCPS' },
+  // Role only, which is often the most useful thing anyway.
+  t4: { id: 't4', handle: 'Ms P', role: 'Special Education' },
+  // Full name, district, no grade.
+  t5: { id: 't5', handle: 'Jonah Feld', district: 'MCPS' },
+  // Handle alone. Nothing else revealed, still verified.
+  t6: { id: 't6', handle: 'quietroom', role: 'HS English' },
 };
+
+/** The byline under a name: whichever of role and district they chose to show. */
+export function authorLine(author: FeedAuthor | undefined): string {
+  if (!author) return '';
+  return [author.role, author.district].filter(Boolean).join(' · ');
+}
 
 export type FeedUpdate = {
   id: string;

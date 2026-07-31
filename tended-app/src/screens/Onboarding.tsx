@@ -20,6 +20,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useChrome } from '../components/PhoneFrame';
 import { Body, Display, MonoLabel } from '../components/ui';
+import { Toggle } from '../components/Toggle';
 import { VerifyForm } from '../components/VerifyForm';
 import { FREE_LIST_LIMIT, PRACTICE_SUGGESTIONS } from '../data/mock';
 import { useStore } from '../store';
@@ -70,12 +71,12 @@ const PROMISES = [
     body: 'How you rated a day never leaves this phone. Not to us, not to your district, not to the feed. Rating a day is not a publication.',
   },
   {
-    title: 'Your posts carry your name',
-    body: 'That is the point of them. You decide one post at a time whether to share something, and you can delete any of them.',
+    title: 'You choose how you appear',
+    body: 'Post under your name, your initials, or a handle. Show your grade and district, or neither. Everyone here verified the same way — how much you reveal is separate from that.',
   },
   {
     title: 'Your school is never shown',
-    body: 'Your profile says your grade or subject and your district. Never the building you teach in.',
+    body: 'Not by you, not by us. We do not ask which building you teach in.',
   },
   {
     title: 'Your address is for verifying, not mailing',
@@ -84,7 +85,8 @@ const PROMISES = [
 ];
 
 const VERIFY_STEP = STORY.length + 1;
-const SETUP_STEP = VERIFY_STEP + 1;
+const PRESENT_STEP = VERIFY_STEP + 1;
+const SETUP_STEP = PRESENT_STEP + 1;
 const STEPS = SETUP_STEP + 1;
 
 export function Onboarding() {
@@ -94,6 +96,11 @@ export function Onboarding() {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [handle, setHandle] = useState('');
+  const [role, setRole] = useState('');
+  const [district, setDistrict] = useState('');
+  const [showRole, setShowRole] = useState(true);
+  const [showDistrict, setShowDistrict] = useState(true);
   const [zip, setZip] = useState('');
   const [chosen, setChosen] = useState<string[]>(PRACTICE_SUGGESTIONS.slice(0, 3));
 
@@ -109,7 +116,25 @@ export function Onboarding() {
           : [...prev, label],
     );
 
-  const finish = () => completeOnboarding({ name, email, practices: chosen, zip });
+  const finish = () =>
+    completeOnboarding({
+      name,
+      email,
+      shown: {
+        handle,
+        role: showRole ? role : '',
+        district: showDistrict ? district : '',
+        showRole,
+        showDistrict,
+      },
+      practices: chosen,
+      zip,
+    });
+
+  // What the byline will look like, built the same way the feed builds it.
+  const preview = [showRole && role.trim(), showDistrict && district.trim()]
+    .filter(Boolean)
+    .join(' · ');
   const story = step < STORY.length ? STORY[step] : null;
 
   return (
@@ -176,9 +201,83 @@ export function Onboarding() {
             <VerifyForm
               onVerified={(address) => {
                 setEmail(address);
+                // A sensible default they can overwrite on the next step.
+                setHandle((h) => h || name.trim());
                 next();
               }}
             />
+          </>
+        )}
+
+        {step === PRESENT_STEP && (
+          <>
+            <MonoLabel>HOW YOU APPEAR</MonoLabel>
+            <Display size={29} style={{ marginTop: 12 }}>
+              You decide what the feed sees.
+            </Display>
+            <Body style={{ marginTop: 14 }}>
+              Your name and address stay with us as proof you teach. They never appear on a post.
+              What goes on a post is whatever you put here — and you can change it later.
+            </Body>
+
+            <MonoLabel style={{ marginTop: 22 }}>SHOWN ON YOUR POSTS</MonoLabel>
+            <TextInput
+              value={handle}
+              onChangeText={setHandle}
+              placeholder="Your name, initials, or a handle"
+              placeholderTextColor={color.faint}
+              style={styles.input}
+              accessibilityLabel="The name shown on your posts"
+            />
+
+            <View style={styles.optionRow}>
+              <View style={styles.optionCopy}>
+                <TextInput
+                  value={role}
+                  onChangeText={setRole}
+                  placeholder="Grade or subject"
+                  placeholderTextColor={color.faint}
+                  style={[styles.input, { marginTop: 0 }, !showRole && styles.inputMuted]}
+                  editable={showRole}
+                  accessibilityLabel="Your grade or subject, optional"
+                />
+              </View>
+              <Toggle value={showRole} onChange={setShowRole} label="Show my grade or subject" />
+            </View>
+
+            <View style={styles.optionRow}>
+              <View style={styles.optionCopy}>
+                <TextInput
+                  value={district}
+                  onChangeText={setDistrict}
+                  placeholder="District"
+                  placeholderTextColor={color.faint}
+                  style={[styles.input, { marginTop: 0 }, !showDistrict && styles.inputMuted]}
+                  editable={showDistrict}
+                  accessibilityLabel="Your district, optional"
+                />
+              </View>
+              <Toggle value={showDistrict} onChange={setShowDistrict} label="Show my district" />
+            </View>
+
+            <Text style={styles.hint}>
+              Your school building is never shown, and is not something we ask for.
+            </Text>
+
+            <MonoLabel style={{ marginTop: 24 }}>PREVIEW</MonoLabel>
+            <View style={styles.preview}>
+              <View style={styles.previewAvatar}>
+                <Text style={styles.previewLetter}>
+                  {(handle.trim() || name.trim() || '?').slice(0, 1).toUpperCase()}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.previewName}>{handle.trim() || name.trim() || 'Your name'}</Text>
+                <MonoLabel size={9} em={0.08} tone={color.faint}>
+                  {preview || 'NOTHING ELSE SHOWN'}
+                </MonoLabel>
+              </View>
+            </View>
           </>
         )}
 
@@ -234,6 +333,12 @@ export function Onboarding() {
               label={chosen.length ? 'Start tracking' : 'Pick at least one'}
               disabled={!chosen.length}
               onPress={finish}
+            />
+          ) : step === PRESENT_STEP ? (
+            <Primary
+              label={handle.trim() ? 'Looks right' : 'Choose a name to show'}
+              disabled={!handle.trim()}
+              onPress={next}
             />
           ) : step === VERIFY_STEP ? (
             // The primary action on this step lives inside VerifyForm. There is
@@ -359,6 +464,48 @@ const styles = StyleSheet.create({
     outlineColor: color.accent,
     outlineWidth: 2,
     outlineOffset: 1,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginTop: 12,
+  },
+  optionCopy: {
+    flex: 1,
+  },
+  inputMuted: {
+    opacity: 0.45,
+  },
+  preview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    marginTop: 10,
+    padding: 14,
+    borderRadius: radius.row,
+    borderWidth: 1,
+    borderColor: color.outline,
+    backgroundColor: color.card,
+  },
+  previewAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 99,
+    backgroundColor: color.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewLetter: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  previewName: {
+    fontSize: 14.5,
+    fontWeight: '600',
+    color: color.ink,
+    marginBottom: 2,
   },
   hint: {
     fontSize: 12.5,
