@@ -8,12 +8,13 @@
  * you again after seeing one good post, and how a reader knows that "Ms P" this
  * week is the same "Ms P" who posted last week.
  *
- * That last part is the reason uniqueness matters here specifically. The whole
- * value of the feed is that a boundary held for nine days is evidence, and it
- * is only evidence if the streak belongs to one traceable person. Two accounts
- * sharing a name would make that unverifiable, and it is exactly the shape an
- * impersonator would use — copy the display name of someone people follow and
- * inherit their credibility.
+ * That last part is the reason uniqueness matters here specifically. What a
+ * post is worth depends on who wrote it — their job, their years in schools,
+ * and whether the things they have posted before turned out to be worth
+ * copying — and none of that attaches to anyone unless one name means one
+ * person. Two accounts sharing a name is also exactly the shape an impersonator
+ * would use: copy the display name of someone people follow and inherit their
+ * credibility.
  *
  * Enforcement is ultimately the server's: a UNIQUE index on a normalized column
  * is the only thing that can actually prevent a collision, because two people

@@ -218,8 +218,16 @@ export type FeedUpdate = {
    * take it, not just recognize it.
    */
   text: string;
-  /** How long they have held it. Evidence that it is possible, not a score. */
-  streak?: string;
+  /**
+   * There is no streak here, deliberately.
+   *
+   * "HELD 9 DAYS" used to sit on every post, and it was the best evidence the
+   * feed had: proof a habit is keepable, from someone keeping it. It is also
+   * computed from the poster's own tick history, which the app promises never
+   * leaves their phone — so publishing it broke the one guarantee everything
+   * else rests on. A post says what someone did. How consistently they have
+   * done it is between them and their record.
+   */
   /** How long ago. */
   meta: string;
   /** Tint, so the feed still reads at a glance. */
@@ -258,7 +266,6 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
     id: '1',
     authorId: 't1',
     text: 'Left at 4:30 and did the grading at home with the TV on.',
-    streak: 'HELD 9 DAYS',
     meta: '40 MIN AGO',
     dot: 'rgba(117,174,129,0.65)',
     reactions: { felt: 14, holding: 3, same: 6 },
@@ -267,7 +274,6 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
     id: '2',
     authorId: 't2',
     text: 'Ate lunch in the park instead of at my desk.',
-    streak: 'KEPT 4 DAYS',
     meta: '2 HR AGO',
     dot: 'rgba(120,180,152,0.65)',
     photo: SAMPLE_PHOTO_PARK,
@@ -277,7 +283,6 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
     id: '3',
     authorId: 't3',
     text: 'Said no to covering another class this week.',
-    streak: 'FIRST TIME',
     meta: '3 HR AGO',
     dot: 'rgba(112,180,168,0.65)',
     reactions: { felt: 30, holding: 11, same: 4 },
@@ -286,7 +291,6 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
     id: '4',
     authorId: 't4',
     text: 'Phone goes in a drawer at 7pm and stays there.',
-    streak: 'HELD 12 DAYS',
     meta: '5 HR AGO',
     dot: 'rgba(108,178,184,0.6)',
     photo: SAMPLE_PHOTO_DRAWER,
@@ -317,7 +321,6 @@ export const LAST_HOUR_UPDATES: FeedUpdate[] = [
     id: '5',
     authorId: 't5',
     text: 'Walked the long way to the car. Fifteen minutes, no phone.',
-    streak: 'KEPT 6 DAYS',
     meta: '6 HR AGO',
     dot: 'rgba(120,180,152,0.65)',
     reactions: { felt: 12, same: 7 },
@@ -334,7 +337,6 @@ export const LAST_HOUR_UPDATES: FeedUpdate[] = [
     id: '7',
     authorId: 't1',
     text: 'No school work before noon on Sundays.',
-    streak: 'HELD 3 WEEKS',
     meta: '8 HR AGO',
     dot: 'rgba(112,175,197,0.6)',
     photo: SAMPLE_PHOTO_SUNDAY,

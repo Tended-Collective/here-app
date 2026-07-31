@@ -336,6 +336,14 @@ Every post is one thing a teacher did for themselves, optionally with a photo, a
 be saved onto your own list. That is the difference between a feed that gives you company and one
 that gives you something to copy.
 
+**No streaks on posts.** Every card used to carry one — HELD 9 DAYS, KEPT 4 DAYS — and it was the
+strongest evidence the feed had: proof a habit is keepable, from someone keeping it. It is gone,
+because it is computed from the poster's own tick history, and that record is the thing the app
+promises never leaves their phone. Publishing a number derived from it broke the guarantee
+everything else rests on. A post says what someone did; how consistently they have done it is
+between them and their record. The credential a post still carries is years in education, which
+the teacher states themselves.
+
 Two of the design's guardrails are kept deliberately, because they are what stopped the feed
 becoming a staffroom argument: nothing carries a name, and there are no replies — a reaction is the
 entire vocabulary. The 140-character cap in `UPDATE_MAX_LENGTH` is what keeps it a feed of actions

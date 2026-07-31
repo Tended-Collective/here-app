@@ -15,8 +15,11 @@
  * Posts carry the teacher's name now. The anonymity was right for a feed of bad
  * days, where the exposure was a colleague identified complaining about their
  * school; it is wrong for a feed of what people did for themselves, because you
- * cannot follow a stranger and a boundary is worth more when you can see who is
- * holding it and for how long. The check-in above stays private regardless.
+ * cannot follow a stranger, and knowing who is saying it — their job, their
+ * years in it — is most of why it is worth reading.
+ *
+ * What a post never carries is anything derived from the check-in record. The
+ * record stays on the phone, and that includes counts drawn from it.
  *
  * The other guardrail survives: there are no replies. A reaction is the whole
  * vocabulary, so the feed cannot turn into somewhere to argue.
@@ -509,7 +512,7 @@ function FeedCard({
         {[`@${author?.username}`, authorLine(author)].filter(Boolean).join(' · ')}
       </MonoLabel>
       <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 10 }}>
-        {update.streak ? `${update.streak} · ${update.meta}` : update.meta}
+        {update.meta}
       </MonoLabel>
 
       <Text style={styles.text}>{update.text}</Text>

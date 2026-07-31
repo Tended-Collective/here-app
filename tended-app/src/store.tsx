@@ -155,9 +155,10 @@ type Persisted = {
        */
       state: string;
       /**
-       * Years in education. The one credential the feed genuinely runs on: a
-       * habit held for nine days reads differently from someone in their first
-       * year than from someone in their twenty-second.
+       * Years in education. The one credential the feed genuinely runs on, and
+       * the only one a teacher states themselves rather than the app deriving
+       * it — "left at 4:30 and did the grading at home" reads differently from
+       * someone in their first year than from someone twenty-two years in.
        */
       years: number | null;
       showJob: boolean;
