@@ -13,7 +13,6 @@
 
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { InviteCard } from '../components/InviteCard';
 import { PodcastSection } from '../components/PodcastSection';
 import { MODERATION_SLA } from '../components/ReportSheet';
 import { Toggle } from '../components/Toggle';
@@ -25,6 +24,7 @@ import {
   AUTHORS,
   FREE_LIST_LIMIT,
   JOBS,
+  LEVELS,
   POSTS,
   postUrl,
   SITE,
@@ -79,8 +79,8 @@ export function ProfileScreen() {
   );
   const bylinePreview = [
     shown?.showJob && shown.job,
-    shown?.showRole && shown.role.trim(),
-    shown?.showDistrict && shown.district.trim(),
+    shown?.showLevel && shown.level,
+    shown?.showState && shown.state.trim(),
     shown?.showYears ? yearsLabel(shown.years) : '',
   ]
     .filter(Boolean)
@@ -120,14 +120,8 @@ export function ProfileScreen() {
           onPress={educator.verified ? undefined : () => open('verify')}
           style={[styles.badge, educator.verified && styles.badgeOn]}
         >
-          {/* Says which check this account actually passed. "Verified" alone
-              would cover both routes and therefore describe neither. */}
           <MonoLabel size={9} em={0.1} tone={educator.verified ? color.accent : color.muted}>
-            {!educator.verified
-              ? 'NOT VERIFIED · TAP TO VERIFY'
-              : educator.method === 'email'
-                ? 'VERIFIED · SCHOOL EMAIL'
-                : `VOUCHED FOR BY @${educator.vouchedBy ?? 'A COLLEAGUE'}`}
+            {educator.verified ? 'VERIFIED · SCHOOL EMAIL' : 'NOT VERIFIED · TAP TO VERIFY'}
           </MonoLabel>
         </Pressable>
         {/* Only states a ZIP the teacher actually gave us. It used to fall back
@@ -200,7 +194,7 @@ export function ProfileScreen() {
 
         <View style={styles.appearJobHead}>
           <MonoLabel size={9} em={0.1} tone={color.faint}>
-            WHAT YOU DO
+            ROLE
           </MonoLabel>
           <Toggle
             value={!!shown?.showJob}
@@ -246,47 +240,54 @@ export function ProfileScreen() {
           />
         </View>
 
-        <View style={styles.appearRow}>
-          <TextInput
-            value={shown?.role ?? ''}
-            onChangeText={(t) => updateShown({ role: t })}
-            placeholder="Grade, subject or specialism"
-            placeholderTextColor={color.faint}
-            style={[styles.appearInput, styles.appearGrow, !shown?.showRole && styles.appearMuted]}
-            editable={!!shown?.showRole}
-            accessibilityLabel="Your grade, subject or specialism"
-          />
+        <View style={styles.appearJobHead}>
+          <MonoLabel size={9} em={0.1} tone={color.faint}>
+            LEVEL
+          </MonoLabel>
           <Toggle
-            value={!!shown?.showRole}
-            onChange={(v) => updateShown({ showRole: v })}
-            label="Show my grade or subject"
+            value={!!shown?.showLevel}
+            onChange={(v) => updateShown({ showLevel: v })}
+            label="Show my level"
           />
+        </View>
+        <View style={[styles.jobChips, !shown?.showLevel && styles.appearMuted]}>
+          {LEVELS.map((label) => {
+            const on = shown?.level === label;
+            return (
+              <Pressable
+                key={label}
+                onPress={() => shown?.showLevel && updateShown({ level: on ? '' : label })}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                style={[styles.jobChip, on && styles.jobChipOn]}
+              >
+                <Text style={[styles.jobChipLabel, on && styles.jobChipLabelOn]}>{label}</Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         <View style={styles.appearRow}>
           <TextInput
-            value={shown?.district ?? ''}
-            onChangeText={(t) => updateShown({ district: t })}
-            placeholder="District"
+            value={shown?.state ?? ''}
+            onChangeText={(t) => updateShown({ state: t })}
+            placeholder="State"
             placeholderTextColor={color.faint}
-            style={[
-              styles.appearInput,
-              styles.appearGrow,
-              !shown?.showDistrict && styles.appearMuted,
-            ]}
-            editable={!!shown?.showDistrict}
-            accessibilityLabel="Your district"
+            style={[styles.appearInput, styles.appearGrow, !shown?.showState && styles.appearMuted]}
+            editable={!!shown?.showState}
+            autoCapitalize="characters"
+            accessibilityLabel="Your state"
           />
           <Toggle
-            value={!!shown?.showDistrict}
-            onChange={(v) => updateShown({ showDistrict: v })}
-            label="Show my district"
+            value={!!shown?.showState}
+            onChange={(v) => updateShown({ showState: v })}
+            label="Show my state"
           />
         </View>
 
         <View style={styles.verifiedBlock}>
           <MonoLabel size={9} em={0.1} tone={color.faint}>
-            NEVER SHOWN · HELD AS PROOF YOU WORK IN A SCHOOL
+            NEVER SHOWN · HELD ONLY TO CONFIRM YOU WORK IN EDUCATION
           </MonoLabel>
           <Text style={styles.verifiedLine}>{account?.name || '—'}</Text>
           <Text style={styles.verifiedLine}>
@@ -294,28 +295,6 @@ export function ProfileScreen() {
           </Text>
         </View>
       </Card>
-
-      {/* An account that came in on a colleague's code can do everything except
-          vouch for anyone else — otherwise one unchecked person becomes a tree
-          of them, each generation further from anyone the app actually checked.
-          Adding a school address closes that, and the card says so plainly
-          rather than leaving the missing invite section unexplained. */}
-      {educator.verified && educator.method === 'invite' && (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Add a school email to finish verifying"
-          onPress={() => open('verify')}
-        >
-          <Card style={styles.upgradeCard}>
-            <Text style={styles.upgradeTitle}>Finish verifying with a school email</Text>
-            <Body size={12.5} tone={color.muted} style={{ marginTop: 4 }}>
-              @{educator.vouchedBy ?? 'A colleague'} vouched for you, which is enough to post and be
-              followed. Adding your work address once turns the outline tick on your posts into a
-              filled one, and lets you invite colleagues of your own.
-            </Body>
-          </Card>
-        </Pressable>
-      )}
 
       {/* The week chart, the insight and the Tended+ lock. */}
       <View style={{ marginTop: 26 }}>
@@ -454,8 +433,6 @@ export function ProfileScreen() {
           </View>
         )}
       </Card>
-
-      <InviteCard />
 
       {/* Tended Collective's own writing and podcast. These had a tab of their
           own; the ad inventory that shared it moved into the feed, and what is

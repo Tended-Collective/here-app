@@ -1,23 +1,18 @@
 /**
- * Onboarding — the story first, then signing up.
+ * Onboarding, in seven screens.
  *
- * Six steps: three that make the case, one that states plainly what is public
- * and what is not, then the account and the starting list.
+ *   1–3  Why this exists, what it asks, what it gives back.
+ *   4    Sign up with a school email.
+ *   5–6  Choose how you appear: who you are, then the context around it.
+ *   7    Pick the habits to protect, and optionally a ZIP.
  *
- * The order is deliberate. The app asks for a school email address at step 5,
- * and a teacher has every reason to be wary of putting a wellness app on a
- * district-monitored account. Both the reason to bother and the split between
- * what gets published and what never leaves the phone are stated before
- * anything is asked for.
+ * Two screens for the profile rather than one because the roles list runs to
+ * fifteen entries; put the context fields under it and the whole thing stops
+ * being scannable on a phone.
  *
- * Verification is no longer skippable. It was, while the feed was anonymous and
- * a skipper simply lost access to it. Now that posts carry a name, an account
- * that has not been checked against a school address would be a stranger in a
- * feed whose whole value is that everyone in it works in a school.
- *
- * Not everyone in a school teaches. Counselors, social workers, paraeducators
- * and administrators are all in JOBS, and the ones who do not teach often have
- * the most useful answers about surviving the building.
+ * There is no privacy slide any more. The promise it made now sits as one line
+ * on the sign-up screen, next to the address it is a promise about — which is
+ * the moment it actually answers a question someone is asking.
  */
 
 import React, { useState } from 'react';
@@ -30,6 +25,7 @@ import { VerifyForm } from '../components/VerifyForm';
 import {
   FREE_LIST_LIMIT,
   JOBS,
+  LEVELS,
   PRACTICE_SUGGESTIONS,
   TAKEN_USERNAMES,
   yearsLabel,
@@ -57,48 +53,26 @@ const MAX_PRACTICES = FREE_LIST_LIMIT;
 const STORY = [
   {
     kicker: 'TENDED',
-    title: 'Two things a day: how you felt, and what you did for yourself.',
-    body: 'A tap for the day, a tick for each habit you kept. That is the whole daily ask.',
+    title: 'A moment for yourself.',
+    body: "In the work that we do, it's easy to give to our students, staff members, and families. Tended is the intentional pause that we need—a moment to check in with ourselves.",
   },
   {
-    kicker: 'WHY BOTH',
-    title: 'One is the symptom. The other is the part you control.',
-    body: 'How a day goes is mostly not yours — the cover, the timetable, the meeting that moved. Whether you ate lunch sitting down is. Track only the first and you have a record of being worn down. Track both and you have a record of what you tried, and whether it held.',
+    kicker: 'THE DAILY ASK',
+    title: 'Two simple questions.',
+    /** Rendered as the two questions themselves, not as a paragraph about them. */
+    questions: ['How are you?', 'How did you take care of yourself today?'],
   },
   {
     kicker: 'WHAT YOU GET',
-    title: 'Proof of which of your own habits actually move a day.',
-    body: 'Weeks you kept your list, next to weeks you did not. Plus dates and a trend line — enough to take to a doctor, a union rep, or an administrator when you need to. And a feed of what other teachers nearby are actually doing, which you can take from.',
+    title: 'See what works and why.',
+    body: 'Taking this daily pause gives you a clear look at what actually protects your peace over time.',
   },
 ];
 
-/**
- * The promise. Stated as the line between the two halves of the app rather than
- * as a blanket assurance, because the app now holds a name and a work address
- * and any claim that it does not would be false.
- */
-const PROMISES = [
-  {
-    title: 'Your check-ins are private. Always.',
-    body: 'How you rated a day never leaves this phone. Not to us, not to your district, not to the feed. Rating a day is not a publication.',
-  },
-  {
-    title: 'You choose how you appear',
-    body: 'Post under your name, your initials, or a handle. Show what you do and how long you have done it, or not. Everyone here cleared the same check — how much you reveal is separate from that.',
-  },
-  {
-    title: 'Your school is never shown',
-    body: 'Not by you, not by us. We do not ask which building you teach in.',
-  },
-  {
-    title: 'Your address is for verifying, not mailing',
-    body: 'We check it once to confirm you work in a school. We do not sell it, rent it, or hand it to your district.',
-  },
-];
-
-const VERIFY_STEP = STORY.length + 1;
-const PRESENT_STEP = VERIFY_STEP + 1;
-const SETUP_STEP = PRESENT_STEP + 1;
+const VERIFY_STEP = STORY.length;
+const IDENTITY_STEP = VERIFY_STEP + 1;
+const CONTEXT_STEP = IDENTITY_STEP + 1;
+const SETUP_STEP = CONTEXT_STEP + 1;
 const STEPS = SETUP_STEP + 1;
 
 export function Onboarding() {
@@ -108,17 +82,16 @@ export function Onboarding() {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [vouchedBy, setVouchedBy] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [usernameState, setUsernameState] = useState<UsernameState>('empty');
   const [job, setJob] = useState('');
-  const [role, setRole] = useState('');
-  const [district, setDistrict] = useState('');
+  const [level, setLevel] = useState('');
+  const [stateName, setStateName] = useState('');
   const [years, setYears] = useState('');
   const [showJob, setShowJob] = useState(true);
-  const [showRole, setShowRole] = useState(true);
-  const [showDistrict, setShowDistrict] = useState(true);
+  const [showLevel, setShowLevel] = useState(true);
+  const [showState, setShowState] = useState(true);
   const [showYears, setShowYears] = useState(true);
   const [zip, setZip] = useState('');
   const [chosen, setChosen] = useState<string[]>(PRACTICE_SUGGESTIONS.slice(0, 3));
@@ -139,17 +112,16 @@ export function Onboarding() {
     completeOnboarding({
       name,
       email,
-      vouchedBy,
       shown: {
         displayName,
         username,
         job: showJob ? job : '',
-        role: showRole ? role : '',
-        district: showDistrict ? district : '',
+        level: showLevel ? level : '',
+        state: showState ? stateName : '',
         years: showYears && years.trim() ? Number(years) : null,
         showJob,
-        showRole,
-        showDistrict,
+        showLevel,
+        showState,
         showYears,
       },
       practices: chosen,
@@ -159,8 +131,8 @@ export function Onboarding() {
   // What the byline will look like, built the same way the feed builds it.
   const preview = [
     showJob && job,
-    showRole && role.trim(),
-    showDistrict && district.trim(),
+    showLevel && level,
+    showState && stateName.trim(),
     showYears && years.trim() ? yearsLabel(Number(years)) : '',
   ]
     .filter(Boolean)
@@ -182,79 +154,74 @@ export function Onboarding() {
             <Display size={step === 0 ? 32 : 29} style={{ marginTop: 12 }}>
               {story.title}
             </Display>
-            <Body size={15} style={{ marginTop: 16 }}>
-              {story.body}
-            </Body>
-          </>
-        )}
-
-        {step === STORY.length && (
-          <>
-            <MonoLabel>WHAT IS SHARED</MonoLabel>
-            <Display size={29} style={{ marginTop: 12 }}>
-              Your posts are public. Your record is not.
-            </Display>
-            <Body size={13.5} tone={color.muted} style={{ marginTop: 10 }}>
-              Tended is two things at once, and they are kept apart on purpose. Here is exactly
-              which is which.
-            </Body>
-            <View style={styles.promises}>
-              {PROMISES.map((p) => (
-                <Promise key={p.title} title={p.title} body={p.body} />
-              ))}
-            </View>
+            {story.body && (
+              <Body size={15} style={{ marginTop: 16 }}>
+                {story.body}
+              </Body>
+            )}
+            {/* The two questions are the screen, so they are set as questions
+                rather than described in a sentence about them. */}
+            {story.questions && (
+              <View style={styles.questions}>
+                {story.questions.map((q) => (
+                  <View key={q} style={styles.questionRow}>
+                    <View style={styles.questionDot} />
+                    <Text style={styles.questionText}>{q}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </>
         )}
 
         {step === VERIFY_STEP && (
           <>
-            <MonoLabel>CREATE YOUR ACCOUNT</MonoLabel>
             <Display size={29} style={{ marginTop: 12 }}>
-              Sign up with your school email.
+              Join with your school email.
             </Display>
-            <Body style={{ marginTop: 14 }}>
-              Your work address is how we know you work in a school. Everyone in the feed has done
-              the same, which is the whole reason it is worth reading.
+            <Body size={15} tone={color.muted} style={{ marginTop: 10 }}>
+              Used only to confirm you work in education.
             </Body>
 
             <MonoLabel style={{ marginTop: 22 }}>YOUR NAME</MonoLabel>
             <TextInput
               value={name}
               onChangeText={setName}
-              placeholder="How you want to appear on posts"
+              placeholder="First and last"
               placeholderTextColor={color.faint}
               style={styles.input}
               autoCapitalize="words"
-              accessibilityLabel="Your name, shown on your posts"
+              accessibilityLabel="Your name"
             />
 
             <VerifyForm
-              onVerified={(outcome) => {
-                if (outcome.method === 'email') setEmail(outcome.email);
-                else setVouchedBy(outcome.vouchedBy);
-                // Sensible defaults they can overwrite on the next step. The
-                // username is only a suggestion — it still has to pass the
-                // availability check before they can move on.
+              onVerified={(address) => {
+                setEmail(address);
+                // Sensible defaults they can overwrite next. The username is
+                // only a suggestion — it still has to pass the availability
+                // check before they can move on.
                 setDisplayName((d) => d || name.trim());
                 setUsername((u) => u || normalizeUsername(name));
                 next();
               }}
             />
+
+            <Text style={styles.privacy}>
+              Your check-ins are 100% private. We never share your email, school name, or data.
+            </Text>
           </>
         )}
 
-        {step === PRESENT_STEP && (
+        {step === IDENTITY_STEP && (
           <>
-            <MonoLabel>HOW YOU APPEAR</MonoLabel>
             <Display size={29} style={{ marginTop: 12 }}>
-              You decide what the feed sees.
+              Choose how you appear.
             </Display>
-            <Body style={{ marginTop: 14 }}>
-              Your name and address stay with us as proof you teach. They never appear on a post.
-              What goes on a post is whatever you put here — and you can change it later.
+            <Body size={15} tone={color.muted} style={{ marginTop: 10 }}>
+              What you share on feed posts is completely up to you.
             </Body>
 
-            <MonoLabel style={{ marginTop: 22 }}>DISPLAY NAME</MonoLabel>
+            <MonoLabel style={{ marginTop: 24 }}>DISPLAY NAME</MonoLabel>
             <TextInput
               value={displayName}
               onChangeText={setDisplayName}
@@ -263,9 +230,6 @@ export function Onboarding() {
               style={styles.input}
               accessibilityLabel="The name shown on your posts"
             />
-            <Text style={styles.hint}>
-              What you are called. Two people can share one — it is a label, not an ID.
-            </Text>
 
             <MonoLabel style={{ marginTop: 22 }}>USERNAME</MonoLabel>
             <UsernameField
@@ -275,7 +239,7 @@ export function Onboarding() {
               onStateChange={setUsernameState}
             />
 
-            <MonoLabel style={{ marginTop: 22 }}>WHAT YOU DO</MonoLabel>
+            <MonoLabel style={{ marginTop: 22 }}>ROLE</MonoLabel>
             <View style={styles.chips}>
               {JOBS.map((label) => {
                 const on = job === label;
@@ -292,62 +256,70 @@ export function Onboarding() {
                 );
               })}
             </View>
+          </>
+        )}
 
-            {/* Years is the one number the feed leans on, so it gets its own
-                row rather than being buried with the optional detail. */}
-            <View style={styles.optionRow}>
-              <View style={styles.optionCopy}>
-                <TextInput
-                  value={years}
-                  onChangeText={(t) => setYears(t.replace(/[^0-9]/g, '').slice(0, 2))}
-                  placeholder="Years in schools"
-                  placeholderTextColor={color.faint}
-                  style={[styles.input, { marginTop: 0 }, !showYears && styles.inputMuted]}
-                  keyboardType="number-pad"
-                  editable={showYears}
-                  accessibilityLabel="Years you have worked in schools"
-                />
-              </View>
-              <Toggle value={showYears} onChange={setShowYears} label="Show my years of experience" />
+        {step === CONTEXT_STEP && (
+          <>
+            <Display size={29} style={{ marginTop: 12 }}>
+              Choose how you appear.
+            </Display>
+            <Body size={15} tone={color.muted} style={{ marginTop: 10 }}>
+              What you share on feed posts is completely up to you.
+            </Body>
+
+            <View style={styles.fieldHead}>
+              <MonoLabel>YEARS IN EDUCATION</MonoLabel>
+              <Toggle value={showYears} onChange={setShowYears} label="Show my years in education" />
+            </View>
+            <TextInput
+              value={years}
+              onChangeText={(t) => setYears(t.replace(/[^0-9]/g, '').slice(0, 2))}
+              placeholder="0"
+              placeholderTextColor={color.faint}
+              style={[styles.input, !showYears && styles.inputMuted]}
+              keyboardType="number-pad"
+              editable={showYears}
+              accessibilityLabel="Years you have worked in education"
+            />
+
+            <View style={styles.fieldHead}>
+              <MonoLabel>LEVEL</MonoLabel>
+              <Toggle value={showLevel} onChange={setShowLevel} label="Show my level" />
+            </View>
+            <View style={[styles.chips, { marginTop: 10 }, !showLevel && styles.inputMuted]}>
+              {LEVELS.map((label) => {
+                const on = level === label;
+                return (
+                  <Pressable
+                    key={label}
+                    onPress={() => showLevel && setLevel(on ? '' : label)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: on }}
+                    style={[styles.chip, on && styles.chipOn]}
+                  >
+                    <Text style={[styles.chipLabel, on && styles.chipLabelOn]}>{label}</Text>
+                  </Pressable>
+                );
+              })}
             </View>
 
-            <View style={styles.optionRow}>
-              <View style={styles.optionCopy}>
-                <TextInput
-                  value={role}
-                  onChangeText={setRole}
-                  placeholder="Grade, subject or specialism"
-                  placeholderTextColor={color.faint}
-                  style={[styles.input, { marginTop: 0 }, !showRole && styles.inputMuted]}
-                  editable={showRole}
-                  accessibilityLabel="Your grade or subject, optional"
-                />
-              </View>
-              <Toggle value={showRole} onChange={setShowRole} label="Show my grade or subject" />
+            <View style={styles.fieldHead}>
+              <MonoLabel>STATE</MonoLabel>
+              <Toggle value={showState} onChange={setShowState} label="Show my state" />
             </View>
+            <TextInput
+              value={stateName}
+              onChangeText={setStateName}
+              placeholder="DC"
+              placeholderTextColor={color.faint}
+              style={[styles.input, !showState && styles.inputMuted]}
+              autoCapitalize="characters"
+              maxLength={20}
+              accessibilityLabel="Your state"
+            />
 
-            <View style={styles.optionRow}>
-              <View style={styles.optionCopy}>
-                <TextInput
-                  value={district}
-                  onChangeText={setDistrict}
-                  placeholder="District"
-                  placeholderTextColor={color.faint}
-                  style={[styles.input, { marginTop: 0 }, !showDistrict && styles.inputMuted]}
-                  editable={showDistrict}
-                  accessibilityLabel="Your district, optional"
-                />
-              </View>
-              <Toggle value={showDistrict} onChange={setShowDistrict} label="Show my district" />
-            </View>
-
-            <Text style={styles.hint}>
-              Years in schools is what gives a post its weight — a boundary held for nine days
-              reads differently from a first-year than from someone twenty years in. Your school
-              building is never shown, and is not something we ask for.
-            </Text>
-
-            <MonoLabel style={{ marginTop: 24 }}>PREVIEW</MonoLabel>
+            <MonoLabel style={{ marginTop: 26 }}>PREVIEW</MonoLabel>
             <View style={styles.preview}>
               <View style={styles.previewAvatar}>
                 <Text style={styles.previewLetter}>
@@ -371,14 +343,11 @@ export function Onboarding() {
 
         {step === SETUP_STEP && (
           <>
-            <MonoLabel>YOUR SELF-CARE</MonoLabel>
             <Display size={29} style={{ marginTop: 12 }}>
-              Pick what you are trying to keep.
+              Pick up to {MAX_PRACTICES} daily habits to protect.
             </Display>
-            <Body style={{ marginTop: 14 }}>
-              How you felt is one tap. This is the other half — your self-care list. Pick up to{' '}
-              {MAX_PRACTICES} things you could still manage on a bad day. You can edit the list any
-              time, and Tended+ lifts the limit.
+            <Body size={15} tone={color.muted} style={{ marginTop: 10 }}>
+              Small, doable practices for tough days. You can edit these anytime.
             </Body>
 
             <View style={styles.chips}>
@@ -409,9 +378,7 @@ export function Onboarding() {
               maxLength={5}
               accessibilityLabel="Your ZIP code, optional"
             />
-            <Text style={styles.hint}>
-              Used only to group you on the area map. Leave blank and everything else still works.
-            </Text>
+            <Text style={styles.hint}>Optional — connects you with nearby peers.</Text>
           </>
         )}
 
@@ -422,7 +389,7 @@ export function Onboarding() {
               disabled={!chosen.length}
               onPress={finish}
             />
-          ) : step === PRESENT_STEP ? (
+          ) : step === IDENTITY_STEP ? (
             // A username is the one field here that can fail for a reason
             // outside the teacher's control, so the button says which of the
             // two things is missing rather than sitting greyed out in silence.
@@ -431,7 +398,7 @@ export function Onboarding() {
                 !displayName.trim()
                   ? 'Add a display name'
                   : usernameState === 'available'
-                    ? 'Looks right'
+                    ? 'Looks good'
                     : usernameState === 'taken'
                       ? 'That username is taken'
                       : usernameState === 'checking'
@@ -441,12 +408,11 @@ export function Onboarding() {
               disabled={!displayName.trim() || usernameState !== 'available'}
               onPress={next}
             />
+          ) : step === CONTEXT_STEP ? (
+            <Primary label="Looks good" onPress={next} />
           ) : step === VERIFY_STEP ? (
-            // The primary action on this step lives inside VerifyForm. There is
-            // no skip: an unverified account in a named feed is a stranger.
-            <Text style={styles.skipNote}>
-              Enter your name above before requesting a code.
-            </Text>
+            // The primary action on this step lives inside VerifyForm.
+            <View />
           ) : (
             <Primary label="Continue" onPress={next} />
           )}
@@ -462,20 +428,6 @@ export function Onboarding() {
           </View>
         </View>
       </ScrollView>
-    </View>
-  );
-}
-
-function Promise({ title, body }: { title: string; body: string }) {
-  return (
-    <View style={styles.promiseRow}>
-      <View style={styles.tick} />
-      <View style={styles.promiseCopy}>
-        <Text style={styles.promiseTitle}>{title}</Text>
-        <Body size={13} tone={color.muted} style={{ marginTop: 3 }}>
-          {body}
-        </Body>
-      </View>
     </View>
   );
 }
@@ -528,29 +480,39 @@ const styles = StyleSheet.create({
   pipOn: {
     backgroundColor: color.accent,
   },
-  promises: {
+  questions: {
     marginTop: 22,
-    gap: 18,
+    gap: 16,
   },
-  promiseRow: {
+  questionRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
-  tick: {
+  questionDot: {
     width: 7,
     height: 7,
     borderRadius: 99,
-    marginTop: 7,
     backgroundColor: color.accent,
     opacity: 0.55,
   },
-  promiseCopy: {
+  questionText: {
     flex: 1,
-  },
-  promiseTitle: {
-    fontSize: 15.5,
-    fontWeight: '600',
+    fontSize: 17,
+    lineHeight: 25,
     color: color.ink,
+  },
+  fieldHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 22,
+  },
+  privacy: {
+    fontSize: 12.5,
+    lineHeight: 19,
+    color: color.label,
+    marginTop: 18,
   },
   input: {
     height: 50,

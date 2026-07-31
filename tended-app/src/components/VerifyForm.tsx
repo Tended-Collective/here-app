@@ -1,17 +1,14 @@
 /**
- * The educator check, by either of two doors.
+ * The one check: a school address, and a code that reaches it.
  *
- * The email door: an address at a school domain, and a code that reaches it.
- * The app checks this one itself. The address is handed back to the caller and
- * stored on the account — it used to be discarded on the spot, which was right
- * while the app held no identity at all and stopped being right once posts
- * carried a name.
+ * There was a second route — an invite code from an existing account — for
+ * anyone unwilling to put a wellness app near a district-monitored inbox. It is
+ * gone. It proved a colleague vouched rather than that the holder works in a
+ * school, and carrying that difference honestly meant two kinds of tick, a rule
+ * about who may vouch, and an upgrade path. One check is simpler to explain and
+ * simpler to trust.
  *
- * The invite door: a code from an account that already cleared the first one.
- * This proves a colleague vouched, not that the holder works in a school, so it
- * reports who vouched rather than an address. The two outcomes are kept
- * distinct all the way to the badge, because a mark that means either one means
- * neither.
+ * The verified address is handed back to the caller and stored on the account.
  */
 
 import React, { useState } from 'react';
@@ -24,18 +21,10 @@ import {
   requestCode,
   submitCode,
 } from '../lib/verification';
-import { format, isWellFormed, redeemInvite } from '../lib/invites';
 import { color, font, radius } from '../theme';
 import { Body, MonoLabel } from './ui';
 
-/** Which door they came in by, and what it rests on. */
-export type VerifyOutcome = { method: 'email'; email: string } | { method: 'invite'; vouchedBy: string };
-
-export function VerifyForm({ onVerified }: { onVerified: (outcome: VerifyOutcome) => void }) {
-  // Two routes in. The invite one exists because the email one lands in a
-  // district mailbox, which is the objection no promise of ours can answer.
-  const [route, setRoute] = useState<'email' | 'invite'>('email');
-  const [invite, setInvite] = useState('');
+export function VerifyForm({ onVerified }: { onVerified: (email: string) => void }) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
@@ -66,61 +55,13 @@ export function VerifyForm({ onVerified }: { onVerified: (outcome: VerifyOutcome
     const result = await submitCode(code);
     setBusy(false);
     if (result.ok) {
-      onVerified({ method: 'email', email });
+      onVerified(email);
       return;
     }
     setProblem(
       result.reason === 'bad-code' ? `That code should be ${CODE_LENGTH} digits.` : 'That didn’t work.',
     );
   };
-
-  const redeem = async () => {
-    setBusy(true);
-    setProblem(null);
-    const result = await redeemInvite(invite);
-    setBusy(false);
-    if (result.ok) {
-      onVerified({ method: 'invite', vouchedBy: result.vouchedBy });
-      return;
-    }
-    setProblem(
-      result.reason === 'malformed'
-        ? 'That code is not valid. Check it against the one you were sent.'
-        : result.reason === 'used'
-          ? 'That code has already been used.'
-          : 'Could not check that code. Try again.',
-    );
-  };
-
-  if (route === 'invite') {
-    return (
-      <View>
-        <TextInput
-          value={invite}
-          onChangeText={(t) => {
-            setInvite(format(t));
-            setProblem(null);
-          }}
-          placeholder="XXXX-XXXX"
-          placeholderTextColor={color.faint}
-          style={[styles.input, styles.codeInput]}
-          autoCapitalize="characters"
-          autoCorrect={false}
-          maxLength={9}
-          accessibilityLabel="Your invite code"
-        />
-        <Primary
-          label={busy ? 'Checking…' : 'Use this code'}
-          disabled={busy || !isWellFormed(invite)}
-          onPress={redeem}
-        />
-        <Pressable onPress={() => { setRoute('email'); setProblem(null); }} accessibilityRole="button">
-          <Text style={styles.quiet}>Use a school email instead</Text>
-        </Pressable>
-        {problem && <Text style={styles.problem}>{problem}</Text>}
-      </View>
-    );
-  }
 
   return (
     <View>
@@ -157,8 +98,7 @@ export function VerifyForm({ onVerified }: { onVerified: (outcome: VerifyOutcome
               about our own storage. */}
           <Text style={styles.hint}>
             This goes to your work inbox, which your district can usually see. The email reads only
-            “Your Tended code is …” and does not say what the app does. To avoid it entirely, use an
-            invite code from a colleague instead.
+            “Your Tended code is …” and does not say what the app does.
           </Text>
         </>
       ) : (
@@ -185,9 +125,6 @@ export function VerifyForm({ onVerified }: { onVerified: (outcome: VerifyOutcome
 
       {problem && <Text style={styles.problem}>{problem}</Text>}
 
-      <Pressable onPress={() => { setRoute('invite'); setProblem(null); }} accessibilityRole="button">
-        <Text style={styles.quiet}>Use an invite code instead</Text>
-      </Pressable>
 
       {!PROVIDER_CONFIGURED && (
         <View style={styles.notice}>

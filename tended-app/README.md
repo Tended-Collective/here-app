@@ -147,26 +147,11 @@ it is computed on device from data that needs no verification. An unverified tea
 and receive everything the paywall lists, which is why the paywall names no feed benefit: the two
 gates are deliberately independent, one on proof and one on payment.
 
-**Two doors in, and they are not worth the same.** `email` means a code reached an address at a
-school domain — the app checked it itself. `invite` means an account that already cleared that gave
-away one of its five codes, which proves a colleague vouched, not that the holder works in a
-school. `educator.method` records which, and `educator.vouchedBy` records whose word it rests on.
-
-The difference is surfaced rather than flattened, because one badge covering both would describe
-neither. A filled tick beside a name means school email; an outline tick means vouched, and the
-screen-reader label names the voucher. The profile badge reads either `VERIFIED · SCHOOL EMAIL` or
-`VOUCHED FOR BY @someone`.
-
-**A vouched account cannot vouch.** `canInvite` is true only for the email route, guarded in the
-store as well as the UI. Without that rule one unchecked person with a code seeds a tree of
-accounts, each generation further from anyone the app ever verified and every leaf wearing the same
-mark. The invite card simply does not appear for a vouched account; in its place the profile offers
-`Finish verifying with a school email`, which upgrades the method in place — same username, same
-posts, outline tick becomes filled, invites unlock.
-
-`redeemInvite` returns the issuing account's username for this reason. A tick standing on "somebody
-typed a code" is a tick standing on nothing; one standing on "@marisa.okonjo vouched" is a claim
-with a person behind it, and one that can be withdrawn.
+**One door in: a school email.** There was a second — an invite code from an existing account — for
+anyone unwilling to put a wellness app near a district-monitored inbox. It is gone. It proved a
+colleague vouched rather than that the holder works in a school, and carrying that difference
+honestly cost two kinds of verification tick, a rule about who may vouch, and an upgrade path. One
+check is simpler to explain and simpler to trust, and the tick now means exactly one thing.
 
 **Reporting, blocking, and deletion.** Apple requires all three of an app like this, and each is
 also the right behaviour on its own terms.
@@ -218,21 +203,26 @@ Onboarding has a step for it with a live byline preview, and the profile has the
 it can be changed at any time — with the verified half printed beneath, read-only, under NEVER
 SHOWN · HELD AS PROOF YOU WORK IN A SCHOOL. The school building is never offered as a field at all.
 
-**Not everyone in a school teaches.** `JOBS` covers teachers, paraeducators, counselors, social
-workers, school psychologists, instructional coaches, administrators, librarians, nurses and other
-staff. The ones who do not teach are often the people with the most useful answers about surviving
+**Not everyone in a school teaches.** `JOBS` covers fifteen roles — teachers, instructional
+assistants, counselors, social workers, school psychologists, instructional coaches, principals,
+assistant principals, deans, librarians, nurses, office staff, district staff, custodial and other
+school staff. The ones who do not teach are often the people with the most useful answers about surviving
 the building — a counselor knows what a boundary costs, an administrator knows which ones a
 principal will actually respect. "Other school staff" is last and real: the list will always be
 missing somebody's title.
 
-**Years in schools is the credential the feed runs on.** "No work email after six, held nine days"
+**State, not district.** District was one step from naming a building: with a job title and a
+district, a small system narrows to a handful of people. `LEVELS` (PreK / Elementary / Middle /
+High / Multiple) replaced the free-text grade or subject for the same reason.
+
+**Years in education is the credential the feed runs on.** "No work email after six, held nine days"
 reads differently from someone in their first year than from someone twenty-two years in, and a
 reader deciding whether to copy a boundary is entitled to know which. It sits in the byline, is
 optional like everything else, and `yearsLabel` renders 1 as FIRST YEAR and 0 as NEW THIS YEAR
 rather than a bare number — the figure is context, not a ranking.
 
-A byline is therefore `job · role · district · years`, any part of which may be absent, under a
-display name that may be a full name or two initials. The VERIFIED mark is a tick beside the name
+A byline is therefore `@username · job · level · state · years`, any part of which may be absent,
+under a display name that may be a full name or two initials. The VERIFIED mark is a tick beside the name
 rather than a word in that line: it applies to the person rather than the job title, and inline it
 pushed the byline onto a second row.
 

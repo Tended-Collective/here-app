@@ -76,13 +76,7 @@ function Sheets() {
       <VerifySheet
         visible={current === 'verify'}
         onClose={close}
-        onVerified={(outcome) =>
-          setVerified(
-            outcome.method === 'email'
-              ? { email: outcome.email }
-              : { vouchedBy: outcome.vouchedBy },
-          )
-        }
+onVerified={(email) => setVerified(email)}
       />
       <PlusSheet
         visible={current === 'plus'}

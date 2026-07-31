@@ -34,6 +34,7 @@ import {
   LAST_HOUR_UPDATES,
   NEARBY_UPDATES,
   REACTIONS,
+  yearsLabel,
 } from '../data/mock';
 import { longDateLabel, timeAgoLabel, todayISO } from '../lib/dates';
 import { PICKER_CONFIGURED, pickPhoto } from '../lib/photo';
@@ -102,7 +103,7 @@ export function FeedScreen() {
     <View>
       <MonoLabel>{longDateLabel()}</MonoLabel>
       <Display size={32} style={{ marginTop: 10 }}>
-        How are you feeling?
+        How are you feeling today?
       </Display>
 
       {/* Saved on the tap. No confirm step, nothing to come back and finish. */}
@@ -161,15 +162,19 @@ export function FeedScreen() {
           the feed teachers-only. */}
       {educator.verified ? (
         <Card style={styles.composer}>
+          {/* The question is asked out loud rather than hidden in the
+              placeholder, where it disappears the moment someone starts
+              typing — and where a screen reader may never announce it. */}
+          <Text style={styles.composerQuestion}>How did you take care of yourself today?</Text>
           <TextInput
             value={draft}
             onChangeText={(t) => setDraft(t.slice(0, UPDATE_MAX_LENGTH))}
-            placeholder="What did you do for yourself today?"
+            placeholder="One sentence is plenty."
             placeholderTextColor={color.faint}
             style={styles.input}
             multiline
             maxLength={UPDATE_MAX_LENGTH}
-            accessibilityLabel="What you did for yourself, one sentence"
+            accessibilityLabel="How did you take care of yourself today? One sentence."
           />
 
           {photo && (
@@ -263,13 +268,14 @@ export function FeedScreen() {
             update={u}
             name={account?.shown.displayName || account?.name || 'You'}
             username={account?.shown.username ?? ''}
-            method={educator.method ?? 'invite'}
-            vouchedBy={educator.vouchedBy ?? undefined}
-            line={
-              [account?.shown.showRole && account.shown.role, account?.shown.showDistrict && account.shown.district]
-                .filter(Boolean)
-                .join(' · ')
-            }
+            line={[
+              account?.shown.showJob && account.shown.job,
+              account?.shown.showLevel && account.shown.level,
+              account?.shown.showState && account.shown.state,
+              account?.shown.showYears ? yearsLabel(account.shown.years) : '',
+            ]
+              .filter(Boolean)
+              .join(' · ')}
             onRemove={() => removeUpdate(u.id)}
           />
         ))}
@@ -329,16 +335,12 @@ function OwnPost({
   update,
   name,
   username,
-  method,
-  vouchedBy,
   line,
   onRemove,
 }: {
   update: Update;
   name: string;
   username: string;
-  method: 'email' | 'invite';
-  vouchedBy?: string;
   line: string;
   onRemove: () => void;
 }) {
@@ -351,7 +353,7 @@ function OwnPost({
             <Text style={styles.whoName} numberOfLines={1}>
               {name}
             </Text>
-            <VerifiedMark method={method} vouchedBy={vouchedBy} />
+            <VerifiedMark />
           </View>
           {/* Your own card carries a Delete button in the same row, so the
               username goes on the meta line rather than squeezing the name
@@ -417,20 +419,8 @@ function FeedCard({
             <Text style={styles.whoName} numberOfLines={1}>
               {author?.displayName ?? 'Someone'}
             </Text>
-            {/* Two marks, not one. A filled tick means the app checked a
-                school address itself. An outline tick means a verified account
-                vouched — which is worth something, and worth less, and the feed
-                should not pretend otherwise. */}
-            <VerifiedMark method={author?.method ?? 'invite'} vouchedBy={author?.vouchedBy} />
-            {/* Two people may both be "Ms P". This is the one that is theirs
-                alone, and the one a follow is actually attached to. */}
-            <Text style={styles.whoUser} numberOfLines={1}>
-              @{author?.username}
-            </Text>
+            <VerifiedMark />
           </View>
-          <MonoLabel size={9} em={0.08} tone={color.faint}>
-            {authorLine(author)}
-          </MonoLabel>
         </View>
         <Pressable
           onPress={onFollow}
@@ -459,7 +449,15 @@ function FeedCard({
         </Pressable>
       </View>
 
+      {/* The username sits here rather than beside the name. In the name row it
+          competed with Follow and ··· for about 250px and both the name and the
+          handle ended up truncated to "Marisa Ok… @marisa.ok…"; down here it
+          can wrap instead of being cut. Two people may both be "Ms P", so this
+          is the part that is theirs alone. */}
       <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 8 }}>
+        {[`@${author?.username}`, authorLine(author)].filter(Boolean).join(' · ')}
+      </MonoLabel>
+      <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 10 }}>
         {update.streak ? `${update.streak} · ${update.meta}` : update.meta}
       </MonoLabel>
 
@@ -518,26 +516,13 @@ function FeedCard({
 }
 
 /**
- * The verification mark. Filled for an address the app checked, outline for an
- * account a colleague vouched for.
- *
- * The two are drawn differently on purpose. Collapsing them into one tick would
- * make the mark mean "someone, somehow, got in", which is not a claim worth
- * printing; keeping them apart lets a reader weigh a post by what is actually
- * known about who wrote it. The screen-reader label says which, and by whom.
+ * One mark, because there is now one check. Everyone in the feed reached a code
+ * at a school address; the tick says exactly that and nothing more.
  */
-function VerifiedMark({ method, vouchedBy }: { method: 'email' | 'invite'; vouchedBy?: string }) {
-  const email = method === 'email';
+function VerifiedMark() {
   return (
-    <View style={[styles.verified, !email && styles.vouched]}>
-      <Text
-        style={[styles.verifiedTick, !email && styles.vouchedTick]}
-        accessibilityLabel={
-          email
-            ? 'Verified with a school email'
-            : `Vouched for by ${vouchedBy ? `@${vouchedBy}` : 'a verified colleague'}`
-        }
-      >
+    <View style={styles.verified}>
+      <Text style={styles.verifiedTick} accessibilityLabel="Verified with a school email">
         ✓
       </Text>
     </View>
@@ -598,6 +583,12 @@ const styles = StyleSheet.create({
   composer: {
     marginTop: 22,
     padding: 14,
+  },
+  composerQuestion: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: color.ink,
+    marginBottom: 10,
   },
   input: {
     minHeight: 46,
@@ -759,14 +750,6 @@ const styles = StyleSheet.create({
     lineHeight: 11,
     fontWeight: '700',
     color: '#fff',
-  },
-  vouched: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: color.accentBorderSoft,
-  },
-  vouchedTick: {
-    color: color.accent,
   },
   whoName: {
     fontSize: 14.5,

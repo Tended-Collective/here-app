@@ -75,38 +75,46 @@ export type ReactionId = (typeof REACTIONS)[number]['id'];
  * Who posted — as they chose to appear, not as they verified.
  *
  * Everyone here cleared the same school-email check. What differs is how much
- * of themselves they decided to put on a post, and the range below is the
- * point: a full name with job, grade and district; a handle with a job and
- * nothing else. All of them are verified school staff.
+ * of themselves they decided to put on a post: a full name with job, level and
+ * state, or a handle with a job and nothing else.
  *
  * That range is not decoration. Someone posting "said no to covering another
  * class" is describing insubordination to some principals, and the option to
- * say it as "Ms P · Social worker" is the difference between posting and
+ * say it as "Ms P · Social Worker" is the difference between posting and
  * staying quiet. The floor underneath every one is identical, which is what
  * keeps the pseudonym from being a way in for someone who does not work in a
  * school.
  */
 
 /**
- * Who works in a school. Not everyone in the building teaches, and the ones who
- * do not are often the people with the most useful answers about surviving it —
- * a counselor knows what a boundary costs, an administrator knows which of them
- * a principal will actually respect.
+ * Everyone who works in a school, not only the people who teach. The ones who
+ * do not teach are often the ones with the most useful answers about surviving
+ * the building — a counselor knows what a boundary costs, a principal knows
+ * which ones will actually be respected.
  *
- * "Other" is last and real: this list will always be missing somebody's title.
+ * "Other School Staff" is last and real: this list will always be missing
+ * somebody's title.
  */
 export const JOBS = [
   'Teacher',
-  'Paraeducator',
+  'Instructional Assistant',
   'Counselor',
-  'Social worker',
-  'School psychologist',
-  'Instructional coach',
-  'Administrator',
+  'Social Worker',
+  'School Psychologist',
+  'Instructional Coach',
+  'Principal',
+  'Assistant Principal',
+  'Dean',
   'Librarian',
   'Nurse',
-  'Other school staff',
+  'Office Staff',
+  'District Staff',
+  'Custodial',
+  'Other School Staff',
 ];
+
+/** The band someone works in. Grade-level detail is not asked for. */
+export const LEVELS = ['PreK', 'Elementary', 'Middle', 'High', 'Multiple'];
 
 export type FeedAuthor = {
   id: string;
@@ -122,61 +130,53 @@ export type FeedAuthor = {
   username: string;
   /** What they do. One of JOBS, if they chose to show it. */
   job?: string;
-  /** Grade, subject or specialism, if they chose to show it. */
-  role?: string;
-  /** District, if they chose to show it. Never the school building. */
-  district?: string;
+  /** One of LEVELS, if they chose to show it. */
+  level?: string;
   /**
-   * Years in schools. This is the credential the feed actually runs on: "no
-   * work email after six, held nine days" reads differently from someone in
-   * their first year than from someone in their twenty-second, and a reader
-   * deciding whether to copy a boundary is entitled to know which.
+   * State, if they chose to show it. Coarser than the district it replaced,
+   * which was close enough to a building to be worth narrowing.
+   */
+  state?: string;
+  /**
+   * Years in education. The credential the feed actually runs on: "no work
+   * email after six, held nine days" reads differently from someone in their
+   * first year than from someone twenty-two years in, and a reader deciding
+   * whether to copy a habit is entitled to know which.
    */
   years?: number;
-  /**
-   * Which door they came in by. 'email' means the app checked a school address
-   * itself; 'invite' means a verified account vouched, and `vouchedBy` names
-   * it. Shown as two different marks, because one mark for both would be a
-   * claim the invite route cannot support.
-   */
-  method: 'email' | 'invite';
-  vouchedBy?: string;
 };
 
 export const AUTHORS: Record<string, FeedAuthor> = {
   // Everything shown.
   t1: {
-    id: 't1', displayName: 'Marisa Okonjo', username: 'marisa.okonjo', method: 'email',
-    job: 'Teacher', role: '4th grade', district: 'DCPS', years: 12,
+    id: 't1', displayName: 'Marisa Okonjo', username: 'marisa.okonjo',
+    job: 'Teacher', level: 'Elementary', state: 'DC', years: 12,
   },
-  // Name, job, subject, no district.
+  // Name and job, no location.
   t2: {
-    id: 't2', displayName: 'Dana W.', username: 'danaw', method: 'email',
-    job: 'Teacher', role: 'HS Biology', years: 4,
+    id: 't2', displayName: 'Dana W.', username: 'danaw',
+    job: 'Teacher', level: 'High', years: 4,
   },
   // Not a teacher, and the reason to read them.
   t3: {
-    id: 't3', displayName: 'Mr R', username: 'mrr_counsel', method: 'email',
-    job: 'Counselor', district: 'DCPS', years: 19,
+    id: 't3', displayName: 'Mr R', username: 'mrr_counsel',
+    job: 'Counselor', level: 'Middle', state: 'DC', years: 19,
   },
   // A display name two people could plausibly both want. The username is what
   // keeps them apart, and what a follow is actually attached to.
   t4: {
     id: 't4', displayName: 'Ms P', username: 'msp.dc',
-    job: 'Social worker', years: 7,
-    // Came in on a colleague's code. The feed says so rather than dressing it
-    // up as the same check everyone else passed.
-    method: 'invite', vouchedBy: 'marisa.okonjo',
+    job: 'Social Worker', years: 7,
   },
-  // An administrator, which is worth seeing in a feed about boundaries.
+  // A principal, which is worth seeing in a feed about protecting your time.
   t5: {
-    id: 't5', displayName: 'Jonah Feld', username: 'jonahfeld', method: 'email',
-    job: 'Administrator', district: 'MCPS', years: 22,
+    id: 't5', displayName: 'Jonah Feld', username: 'jonahfeld',
+    job: 'Principal', level: 'Elementary', state: 'MD', years: 22,
   },
   // First year, and saying so. The number is not a ranking.
   t6: {
-    id: 't6', displayName: 'quietroom', username: 'quietroom', method: 'email',
-    job: 'Teacher', role: 'HS English', years: 1,
+    id: 't6', displayName: 'quietroom', username: 'quietroom',
+    job: 'Teacher', level: 'High', years: 1,
   },
 };
 
@@ -198,7 +198,7 @@ export function yearsLabel(years: number | undefined | null): string {
 /** The byline: whatever they chose to show, in a fixed order, joined with dots. */
 export function authorLine(author: FeedAuthor | undefined): string {
   if (!author) return '';
-  return [author.job, author.role, author.district, yearsLabel(author.years)]
+  return [author.job, author.level, author.state, yearsLabel(author.years)]
     .filter(Boolean)
     .join(' · ');
 }
@@ -417,10 +417,10 @@ export const PRICING = {
 export const TRIAL_DAYS = 30;
 
 /**
- * Offered during onboarding. The first three are the design's own practices, so
- * a teacher who taps straight through lands on the tracker the mockup showed.
- * All of them are small, same-day and answerable yes or no — a practice you
- * cannot tick by four o'clock is a resolution, and this is not that.
+ * Offered during onboarding. All of them are small, same-day and answerable yes
+ * or no — a habit you cannot tick by four o'clock is a resolution, and this is
+ * not that. They have to be doable on a bad day, because a bad day is when the
+ * list matters.
  */
 export const PRACTICE_SUGGESTIONS = [
   'Eat lunch sitting down',

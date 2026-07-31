@@ -8,7 +8,7 @@ import { StyleSheet, View } from 'react-native';
 import { color } from '../theme';
 import { SheetShell } from './Sheet';
 import { Body, Display, MonoLabel } from './ui';
-import { VerifyForm, VerifyOutcome } from './VerifyForm';
+import { VerifyForm } from './VerifyForm';
 
 export function VerifySheet({
   visible,
@@ -17,7 +17,7 @@ export function VerifySheet({
 }: {
   visible: boolean;
   onClose: () => void;
-  onVerified: (outcome: VerifyOutcome) => void;
+  onVerified: (email: string) => void;
 }) {
   return (
     <SheetShell visible={visible} onClose={onClose}>
@@ -31,8 +31,8 @@ export function VerifySheet({
           only that you verified and the date.
         </Body>
         <VerifyForm
-          onVerified={(outcome) => {
-            onVerified(outcome);
+          onVerified={(email) => {
+            onVerified(email);
             onClose();
           }}
         />
