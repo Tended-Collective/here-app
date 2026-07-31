@@ -133,22 +133,30 @@ export type FeedAuthor = {
    * deciding whether to copy a boundary is entitled to know which.
    */
   years?: number;
+  /**
+   * Which door they came in by. 'email' means the app checked a school address
+   * itself; 'invite' means a verified account vouched, and `vouchedBy` names
+   * it. Shown as two different marks, because one mark for both would be a
+   * claim the invite route cannot support.
+   */
+  method: 'email' | 'invite';
+  vouchedBy?: string;
 };
 
 export const AUTHORS: Record<string, FeedAuthor> = {
   // Everything shown.
   t1: {
-    id: 't1', displayName: 'Marisa Okonjo', username: 'marisa.okonjo',
+    id: 't1', displayName: 'Marisa Okonjo', username: 'marisa.okonjo', method: 'email',
     job: 'Teacher', role: '4th grade', district: 'DCPS', years: 12,
   },
   // Name, job, subject, no district.
   t2: {
-    id: 't2', displayName: 'Dana W.', username: 'danaw',
+    id: 't2', displayName: 'Dana W.', username: 'danaw', method: 'email',
     job: 'Teacher', role: 'HS Biology', years: 4,
   },
   // Not a teacher, and the reason to read them.
   t3: {
-    id: 't3', displayName: 'Mr R', username: 'mrr_counsel',
+    id: 't3', displayName: 'Mr R', username: 'mrr_counsel', method: 'email',
     job: 'Counselor', district: 'DCPS', years: 19,
   },
   // A display name two people could plausibly both want. The username is what
@@ -156,15 +164,18 @@ export const AUTHORS: Record<string, FeedAuthor> = {
   t4: {
     id: 't4', displayName: 'Ms P', username: 'msp.dc',
     job: 'Social worker', years: 7,
+    // Came in on a colleague's code. The feed says so rather than dressing it
+    // up as the same check everyone else passed.
+    method: 'invite', vouchedBy: 'marisa.okonjo',
   },
   // An administrator, which is worth seeing in a feed about boundaries.
   t5: {
-    id: 't5', displayName: 'Jonah Feld', username: 'jonahfeld',
+    id: 't5', displayName: 'Jonah Feld', username: 'jonahfeld', method: 'email',
     job: 'Administrator', district: 'MCPS', years: 22,
   },
   // First year, and saying so. The number is not a ranking.
   t6: {
-    id: 't6', displayName: 'quietroom', username: 'quietroom',
+    id: 't6', displayName: 'quietroom', username: 'quietroom', method: 'email',
     job: 'Teacher', role: 'HS English', years: 1,
   },
 };

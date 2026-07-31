@@ -1,11 +1,17 @@
 /**
- * The educator check: school address, then the code sent to it.
+ * The educator check, by either of two doors.
  *
- * The verified address is handed back to the caller, which stores it on the
- * account. It used to be discarded on the spot — correct while the app held no
- * identity at all, and no longer true now that a post carries a name. The
- * invite route reports an empty address, because a teacher vouched for by a
- * colleague's code never gave one.
+ * The email door: an address at a school domain, and a code that reaches it.
+ * The app checks this one itself. The address is handed back to the caller and
+ * stored on the account — it used to be discarded on the spot, which was right
+ * while the app held no identity at all and stopped being right once posts
+ * carried a name.
+ *
+ * The invite door: a code from an account that already cleared the first one.
+ * This proves a colleague vouched, not that the holder works in a school, so it
+ * reports who vouched rather than an address. The two outcomes are kept
+ * distinct all the way to the badge, because a mark that means either one means
+ * neither.
  */
 
 import React, { useState } from 'react';
@@ -22,7 +28,10 @@ import { format, isWellFormed, redeemInvite } from '../lib/invites';
 import { color, font, radius } from '../theme';
 import { Body, MonoLabel } from './ui';
 
-export function VerifyForm({ onVerified }: { onVerified: (email: string) => void }) {
+/** Which door they came in by, and what it rests on. */
+export type VerifyOutcome = { method: 'email'; email: string } | { method: 'invite'; vouchedBy: string };
+
+export function VerifyForm({ onVerified }: { onVerified: (outcome: VerifyOutcome) => void }) {
   // Two routes in. The invite one exists because the email one lands in a
   // district mailbox, which is the objection no promise of ours can answer.
   const [route, setRoute] = useState<'email' | 'invite'>('email');
@@ -57,7 +66,7 @@ export function VerifyForm({ onVerified }: { onVerified: (email: string) => void
     const result = await submitCode(code);
     setBusy(false);
     if (result.ok) {
-      onVerified(email);
+      onVerified({ method: 'email', email });
       return;
     }
     setProblem(
@@ -71,7 +80,7 @@ export function VerifyForm({ onVerified }: { onVerified: (email: string) => void
     const result = await redeemInvite(invite);
     setBusy(false);
     if (result.ok) {
-      onVerified('');
+      onVerified({ method: 'invite', vouchedBy: result.vouchedBy });
       return;
     }
     setProblem(

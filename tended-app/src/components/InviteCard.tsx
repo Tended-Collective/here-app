@@ -8,6 +8,12 @@
  *
  * The cap is a safety control. Codes can be passed on, so bounding how many
  * exist per teacher bounds how far a leaked one travels.
+ *
+ * Only accounts verified by school email see this card. Vouching is a claim
+ * about someone else, and an account that was itself only vouched for has
+ * nothing to make that claim on: allowing it would let one unchecked person
+ * seed a whole tree of accounts, each generation further from anyone the app
+ * ever verified. See `canInvite` in the store.
  */
 
 import React from 'react';
@@ -18,8 +24,11 @@ import { color, font, radius } from '../theme';
 import { Body, Card, MonoLabel } from './ui';
 
 export function InviteCard() {
-  const { educator, invites, createInvite } = useStore();
-  if (!educator.verified) return null;
+  const { educator, invites, createInvite, canInvite } = useStore();
+  // Only an account the app checked itself may vouch for another. A vouched
+  // account handing out codes would grow a tree whose root nobody verified,
+  // with every leaf wearing the same mark.
+  if (!educator.verified || !canInvite) return null;
 
   const left = INVITES_PER_TEACHER - invites.length;
 
@@ -28,7 +37,8 @@ export function InviteCard() {
       <MonoLabel style={{ marginTop: 26 }}>INVITE A COLLEAGUE</MonoLabel>
       <Card style={styles.card}>
         <Body size={13.5} tone={color.muted}>
-          Each code verifies one colleague without a school email. Nothing reaches their work inbox.
+          Each code vouches for one colleague without touching their work inbox. Their posts carry
+          an outline tick — vouched by you — until they add a school email of their own.
         </Body>
 
         {invites.length > 0 && (

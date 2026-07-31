@@ -257,6 +257,8 @@ export function FeedScreen() {
             update={u}
             name={account?.shown.displayName || account?.name || 'You'}
             username={account?.shown.username ?? ''}
+            method={educator.method ?? 'invite'}
+            vouchedBy={educator.vouchedBy ?? undefined}
             line={
               [account?.shown.showRole && account.shown.role, account?.shown.showDistrict && account.shown.district]
                 .filter(Boolean)
@@ -318,12 +320,16 @@ function OwnPost({
   update,
   name,
   username,
+  method,
+  vouchedBy,
   line,
   onRemove,
 }: {
   update: Update;
   name: string;
   username: string;
+  method: 'email' | 'invite';
+  vouchedBy?: string;
   line: string;
   onRemove: () => void;
 }) {
@@ -336,19 +342,15 @@ function OwnPost({
             <Text style={styles.whoName} numberOfLines={1}>
               {name}
             </Text>
-            <View style={styles.verified}>
-              <Text style={styles.verifiedTick} accessibilityLabel="Verified school staff">
-                ✓
-              </Text>
-            </View>
-            {!!username && (
-              <Text style={styles.whoUser} numberOfLines={1}>
-                @{username}
-              </Text>
-            )}
+            <VerifiedMark method={method} vouchedBy={vouchedBy} />
           </View>
+          {/* Your own card carries a Delete button in the same row, so the
+              username goes on the meta line rather than squeezing the name
+              down to "Dana …". */}
           <MonoLabel size={9} em={0.08} tone={color.faint}>
-            {[line, `YOU · ${timeAgoLabel(update.at)}`].filter(Boolean).join(' · ')}
+            {[username && `@${username}`, line, `YOU · ${timeAgoLabel(update.at)}`]
+              .filter(Boolean)
+              .join(' · ')}
           </MonoLabel>
         </View>
         <View style={styles.headSpacer} />
@@ -404,15 +406,11 @@ function FeedCard({
             <Text style={styles.whoName} numberOfLines={1}>
               {author?.displayName ?? 'Someone'}
             </Text>
-            {/* The constant under every byline, whatever the teacher chose to
-                reveal. A mark beside the name rather than a word in the line:
-                it applies to the person, not to the job title, and inline it
-                pushed the byline onto a second row. */}
-            <View style={styles.verified}>
-              <Text style={styles.verifiedTick} accessibilityLabel="Verified school staff">
-                ✓
-              </Text>
-            </View>
+            {/* Two marks, not one. A filled tick means the app checked a
+                school address itself. An outline tick means a verified account
+                vouched — which is worth something, and worth less, and the feed
+                should not pretend otherwise. */}
+            <VerifiedMark method={author?.method ?? 'invite'} vouchedBy={author?.vouchedBy} />
             {/* Two people may both be "Ms P". This is the one that is theirs
                 alone, and the one a follow is actually attached to. */}
             <Text style={styles.whoUser} numberOfLines={1}>
@@ -493,6 +491,33 @@ function FeedCard({
         </Text>
       </Pressable>
     </Card>
+  );
+}
+
+/**
+ * The verification mark. Filled for an address the app checked, outline for an
+ * account a colleague vouched for.
+ *
+ * The two are drawn differently on purpose. Collapsing them into one tick would
+ * make the mark mean "someone, somehow, got in", which is not a claim worth
+ * printing; keeping them apart lets a reader weigh a post by what is actually
+ * known about who wrote it. The screen-reader label says which, and by whom.
+ */
+function VerifiedMark({ method, vouchedBy }: { method: 'email' | 'invite'; vouchedBy?: string }) {
+  const email = method === 'email';
+  return (
+    <View style={[styles.verified, !email && styles.vouched]}>
+      <Text
+        style={[styles.verifiedTick, !email && styles.vouchedTick]}
+        accessibilityLabel={
+          email
+            ? 'Verified with a school email'
+            : `Vouched for by ${vouchedBy ? `@${vouchedBy}` : 'a verified colleague'}`
+        }
+      >
+        ✓
+      </Text>
+    </View>
   );
 }
 
@@ -711,6 +736,14 @@ const styles = StyleSheet.create({
     lineHeight: 11,
     fontWeight: '700',
     color: '#fff',
+  },
+  vouched: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: color.accentBorderSoft,
+  },
+  vouchedTick: {
+    color: color.accent,
   },
   whoName: {
     fontSize: 14.5,

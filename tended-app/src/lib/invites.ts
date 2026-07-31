@@ -75,16 +75,36 @@ export function isWellFormed(input: string): boolean {
 export const PROVIDER_CONFIGURED = false;
 
 export type RedeemResult =
-  | { ok: true }
+  | {
+      ok: true;
+      /**
+       * The username of the account that issued this code.
+       *
+       * Redemption returns it because an invite has to name someone. A tick
+       * that stands on "somebody, somewhere, typed a code" is a tick standing
+       * on nothing; a tick that stands on "@marisa.okonjo vouched for this
+       * account" is a claim with a person behind it, and one that can be
+       * withdrawn if it turns out to be wrong.
+       */
+      vouchedBy: string;
+    }
   | { ok: false; reason: 'malformed' | 'used' | 'unknown' | 'failed' };
+
+/** Who the sample codes resolve to while there is no server to ask. */
+const SAMPLE_VOUCHER = 'marisa.okonjo';
 
 /**
  * Single-use is the one property that cannot be enforced on the device holding
  * the code — only a server can burn it. Until there is one, a well-formed code
- * is accepted.
+ * is accepted and attributed to a stand-in account.
  */
 export async function redeemInvite(input: string): Promise<RedeemResult> {
   if (!isWellFormed(input)) return { ok: false, reason: 'malformed' };
-  if (!PROVIDER_CONFIGURED) return { ok: true };
+
+  // Connect here: the server looks the code up, burns it, and answers with the
+  // issuing account. A code it does not recognise, or one already spent, comes
+  // back 'unknown' or 'used' — both of which this route must refuse, because a
+  // reusable invite is an open door with a tick on it.
+  if (!PROVIDER_CONFIGURED) return { ok: true, vouchedBy: SAMPLE_VOUCHER };
   return { ok: false, reason: 'failed' };
 }

@@ -154,7 +154,25 @@ type Persisted = {
       showYears: boolean;
     };
   } | null;
-  educator: { verified: boolean; verifiedAt: number | null };
+  /**
+   * How this account proved it belongs, and on whose word.
+   *
+   * Two routes in, and they are not worth the same thing. `email` means a code
+   * reached an address at a school domain — the app checked it itself. `invite`
+   * means a verified account handed over one of its five codes, which proves a
+   * colleague vouched, not that the holder works in a school.
+   *
+   * The difference is recorded rather than flattened, because a badge that
+   * means two different things means neither. A vouched account says who
+   * vouched: an invite with nobody's name on it is a tick standing on nothing.
+   */
+  educator: {
+    verified: boolean;
+    verifiedAt: number | null;
+    method: 'email' | 'invite' | null;
+    /** The issuing account's username, for the invite route only. */
+    vouchedBy: string | null;
+  };
   /** Author ids this teacher follows. See AUTHORS in data/mock.ts. */
   following: string[];
   /** The unit the area view aggregates on. Given during onboarding. */
@@ -182,7 +200,7 @@ const EMPTY: Persisted = {
   plus: { trialStartedAt: null },
   onboardedAt: null,
   account: null,
-  educator: { verified: false, verifiedAt: null },
+  educator: { verified: false, verifiedAt: null, method: null, vouchedBy: null },
   following: [],
   zip: null,
   invites: [],
@@ -201,6 +219,22 @@ const EMPTY: Persisted = {
  * prompts for it instead.
  */
 function migrate(data: Persisted): Persisted {
+  // Accounts written before the two routes were told apart. An existing tick is
+  // honoured rather than revoked, and recorded as the route it most likely came
+  // from: an address on file means email, no address means an invite.
+  const educator = data.educator as Persisted['educator'] & { method?: unknown };
+  if (educator && educator.method === undefined) {
+    data = {
+      ...data,
+      educator: {
+        verified: educator.verified,
+        verifiedAt: educator.verifiedAt,
+        method: educator.verified ? (data.account?.email ? 'email' : 'invite') : null,
+        vouchedBy: null,
+      },
+    };
+  }
+
   const account = data.account as (typeof data.account & { shown?: Record<string, unknown> }) | null;
   if (!account?.shown) return data;
 
@@ -301,7 +335,10 @@ type StoreValue = Persisted & {
   /** Finishes onboarding: who they are, how they appear, and the starting list. */
   completeOnboarding: (input: {
     name: string;
+    /** Empty when they came in on an invite. */
     email: string;
+    /** The voucher's username, when they came in on an invite. */
+    vouchedBy: string;
     shown: {
       displayName: string;
       username: string;
@@ -322,7 +359,16 @@ type StoreValue = Persisted & {
   follow: (authorId: string) => void;
   unfollow: (authorId: string) => void;
   /** For an account that verifies from inside the app rather than at sign-up. */
-  setVerified: (verified: boolean, email?: string) => void;
+  setVerified: (input: { email: string } | { vouchedBy: string }) => void;
+  /**
+   * True when this account may hand out invite codes: the email route only.
+   *
+   * An account that was itself vouched for cannot vouch. Without that rule one
+   * unverified person with a code becomes a tree of them, each generation a
+   * step further from anyone the app actually checked, and every leaf wearing
+   * the same tick.
+   */
+  canInvite: boolean;
   /** Mints one more invite, up to the cap. */
   createInvite: () => void;
   /** Writes the whole plan at once, as the builder produces it. */
@@ -391,6 +437,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       hydrated,
       plusActive: daysLeft > 0,
       trialDaysLeft: daysLeft,
+      canInvite: data.educator.verified && data.educator.method === 'email',
       listLimit: daysLeft > 0 ? Infinity : FREE_LIST_LIMIT,
       listFull: daysLeft <= 0 && data.practices.length >= FREE_LIST_LIMIT,
       saveCheckIn: (score, tags) =>
@@ -482,11 +529,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             : { ...prev, plus: { trialStartedAt: Date.now() } },
         ),
       endTrial: () => update((prev) => ({ ...prev, plus: { trialStartedAt: null } })),
-      completeOnboarding: ({ name, email, shown, practices: labels, zip }) =>
+      completeOnboarding: ({ name, email, vouchedBy, shown, practices: labels, zip }) =>
         update((prev) => ({
           ...prev,
           onboardedAt: Date.now(),
           zip: zip.trim() || null,
+          educator: {
+            verified: true,
+            verifiedAt: Date.now(),
+            method: vouchedBy ? 'invite' : 'email',
+            vouchedBy: vouchedBy || null,
+          },
           account: {
             name: name.trim(),
             email: email.trim(),
@@ -500,7 +553,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               district: shown.district.trim(),
             },
           },
-          educator: { verified: true, verifiedAt: Date.now() },
           practices: labels.map((label, i) => ({
             id: `p${i}${Date.now().toString(36)}`,
             label,
@@ -510,30 +562,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           // are keyed to practices that no longer exist.
           practiceDays: {},
         })),
-      setVerified: (verified, email) =>
-        update((prev) => ({
-          ...prev,
-          educator: { verified, verifiedAt: verified ? Date.now() : null },
-          account:
-            verified && email
-              ? {
-                  name: prev.account?.name ?? '',
-                  email,
-                  shown: prev.account?.shown ?? {
-                    displayName: prev.account?.name ?? '',
-                    username: '',
-                    job: '',
-                    role: '',
-                    district: '',
-                    years: null,
-                    showJob: true,
-                    showRole: false,
-                    showDistrict: false,
-                    showYears: true,
-                  },
-                }
-              : prev.account,
-        })),
+      setVerified: (input) =>
+        update((prev) => {
+          const byEmail = 'email' in input;
+          return {
+            ...prev,
+            educator: {
+              verified: true,
+              verifiedAt: Date.now(),
+              method: byEmail ? 'email' : 'invite',
+              vouchedBy: byEmail ? null : input.vouchedBy,
+            },
+            account: {
+              name: prev.account?.name ?? '',
+              // Verifying by email later is how a vouched account upgrades: the
+              // address lands here and the method above becomes 'email'.
+              email: byEmail ? input.email : (prev.account?.email ?? ''),
+              shown: prev.account?.shown ?? {
+                displayName: prev.account?.name ?? '',
+                username: '',
+                job: '',
+                role: '',
+                district: '',
+                years: null,
+                showJob: true,
+                showRole: false,
+                showDistrict: false,
+                showYears: true,
+              },
+            },
+          };
+        }),
       savePlan: ({ boundaries, habits, contacts }) =>
         update((prev) => {
           // Habits are the existing practices, matched by label so a habit that
@@ -618,7 +677,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         })),
       createInvite: () =>
         update((prev) =>
-          prev.invites.length >= INVITES_PER_TEACHER
+          // Guarded here as well as in the UI: a vouched account must not be
+          // able to mint codes by any route.
+          prev.educator.method !== 'email' || prev.invites.length >= INVITES_PER_TEACHER
             ? prev
             : {
                 ...prev,

@@ -84,7 +84,7 @@ const PROMISES = [
   },
   {
     title: 'You choose how you appear',
-    body: 'Post under your name, your initials, or a handle. Show what you do and how long you have done it, or not. Everyone here verified the same way — how much you reveal is separate from that.',
+    body: 'Post under your name, your initials, or a handle. Show what you do and how long you have done it, or not. Everyone here cleared the same check — how much you reveal is separate from that.',
   },
   {
     title: 'Your school is never shown',
@@ -92,7 +92,7 @@ const PROMISES = [
   },
   {
     title: 'Your address is for verifying, not mailing',
-    body: 'We check it once to confirm you teach. We do not sell it, rent it, or hand it to your district.',
+    body: 'We check it once to confirm you work in a school. We do not sell it, rent it, or hand it to your district.',
   },
 ];
 
@@ -108,6 +108,7 @@ export function Onboarding() {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [vouchedBy, setVouchedBy] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [usernameState, setUsernameState] = useState<UsernameState>('empty');
@@ -138,6 +139,7 @@ export function Onboarding() {
     completeOnboarding({
       name,
       email,
+      vouchedBy,
       shown: {
         displayName,
         username,
@@ -227,8 +229,9 @@ export function Onboarding() {
             />
 
             <VerifyForm
-              onVerified={(address) => {
-                setEmail(address);
+              onVerified={(outcome) => {
+                if (outcome.method === 'email') setEmail(outcome.email);
+                else setVouchedBy(outcome.vouchedBy);
                 // Sensible defaults they can overwrite on the next step. The
                 // username is only a suggestion — it still has to pass the
                 // availability check before they can move on.

@@ -147,6 +147,27 @@ it is computed on device from data that needs no verification. An unverified tea
 and receive everything the paywall lists, which is why the paywall names no feed benefit: the two
 gates are deliberately independent, one on proof and one on payment.
 
+**Two doors in, and they are not worth the same.** `email` means a code reached an address at a
+school domain — the app checked it itself. `invite` means an account that already cleared that gave
+away one of its five codes, which proves a colleague vouched, not that the holder works in a
+school. `educator.method` records which, and `educator.vouchedBy` records whose word it rests on.
+
+The difference is surfaced rather than flattened, because one badge covering both would describe
+neither. A filled tick beside a name means school email; an outline tick means vouched, and the
+screen-reader label names the voucher. The profile badge reads either `VERIFIED · SCHOOL EMAIL` or
+`VOUCHED FOR BY @someone`.
+
+**A vouched account cannot vouch.** `canInvite` is true only for the email route, guarded in the
+store as well as the UI. Without that rule one unchecked person with a code seeds a tree of
+accounts, each generation further from anyone the app ever verified and every leaf wearing the same
+mark. The invite card simply does not appear for a vouched account; in its place the profile offers
+`Finish verifying with a school email`, which upgrades the method in place — same username, same
+posts, outline tick becomes filled, invites unlock.
+
+`redeemInvite` returns the issuing account's username for this reason. A tick standing on "somebody
+typed a code" is a tick standing on nothing; one standing on "@marisa.okonjo vouched" is a claim
+with a person behind it, and one that can be withdrawn.
+
 **Signing up is required, and the app is no longer anonymous.** Tended held nothing at all for a
 while: no name, no address, and the verification email discarded the moment it was checked. That
 was right for a feed of bad days, where the exposure was a colleague identified complaining about

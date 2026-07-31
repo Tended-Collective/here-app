@@ -116,8 +116,14 @@ export function ProfileScreen() {
           onPress={educator.verified ? undefined : () => open('verify')}
           style={[styles.badge, educator.verified && styles.badgeOn]}
         >
+          {/* Says which check this account actually passed. "Verified" alone
+              would cover both routes and therefore describe neither. */}
           <MonoLabel size={9} em={0.1} tone={educator.verified ? color.accent : color.muted}>
-            {educator.verified ? 'VERIFIED SCHOOL STAFF' : 'NOT VERIFIED · TAP TO VERIFY'}
+            {!educator.verified
+              ? 'NOT VERIFIED · TAP TO VERIFY'
+              : educator.method === 'email'
+                ? 'VERIFIED · SCHOOL EMAIL'
+                : `VOUCHED FOR BY @${educator.vouchedBy ?? 'A COLLEAGUE'}`}
           </MonoLabel>
         </Pressable>
         {/* Only states a ZIP the teacher actually gave us. It used to fall back
@@ -279,9 +285,33 @@ export function ProfileScreen() {
             NEVER SHOWN · HELD AS PROOF YOU WORK IN A SCHOOL
           </MonoLabel>
           <Text style={styles.verifiedLine}>{account?.name || '—'}</Text>
-          <Text style={styles.verifiedLine}>{account?.email || 'Verified by invite code'}</Text>
+          <Text style={styles.verifiedLine}>
+            {account?.email || 'No school email on file'}
+          </Text>
         </View>
       </Card>
+
+      {/* An account that came in on a colleague's code can do everything except
+          vouch for anyone else — otherwise one unchecked person becomes a tree
+          of them, each generation further from anyone the app actually checked.
+          Adding a school address closes that, and the card says so plainly
+          rather than leaving the missing invite section unexplained. */}
+      {educator.verified && educator.method === 'invite' && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Add a school email to finish verifying"
+          onPress={() => open('verify')}
+        >
+          <Card style={styles.upgradeCard}>
+            <Text style={styles.upgradeTitle}>Finish verifying with a school email</Text>
+            <Body size={12.5} tone={color.muted} style={{ marginTop: 4 }}>
+              @{educator.vouchedBy ?? 'A colleague'} vouched for you, which is enough to post and be
+              followed. Adding your work address once turns the outline tick on your posts into a
+              filled one, and lets you invite colleagues of your own.
+            </Body>
+          </Card>
+        </Pressable>
+      )}
 
       {/* The week chart, the insight and the Tended+ lock. */}
       <View style={{ marginTop: 26 }}>
@@ -509,6 +539,17 @@ const styles = StyleSheet.create({
   },
   appearMuted: {
     opacity: 0.45,
+  },
+  upgradeCard: {
+    marginTop: 12,
+    padding: 16,
+    borderColor: color.accentBorder,
+    borderWidth: 1.5,
+  },
+  upgradeTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: color.ink,
   },
   usernameActions: {
     flexDirection: 'row',
