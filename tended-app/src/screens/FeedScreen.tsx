@@ -127,9 +127,11 @@ export function FeedScreen() {
           );
         })}
       </View>
-      <Text style={styles.moodCaption}>
-        {mood === null ? 'Tap one. That is the whole check-in.' : `Saved — ${MOODS[mood - 1].label}.`}
-      </Text>
+      {/* Nothing before the tap — the five faces under a question do not need
+          to be explained. After it, the line is confirmation rather than
+          instruction: there is no save button, so something has to say the day
+          was written. */}
+      {mood !== null && <Text style={styles.moodCaption}>Saved — {MOODS[mood - 1].label}.</Text>}
 
       {/* Only after a face is tapped, and never required. The check-in is one
           tap; this is the second tap for anyone who wants the record to say
@@ -169,8 +171,6 @@ export function FeedScreen() {
           <TextInput
             value={draft}
             onChangeText={(t) => setDraft(t.slice(0, UPDATE_MAX_LENGTH))}
-            placeholder="One sentence is plenty."
-            placeholderTextColor={color.faint}
             style={styles.input}
             multiline
             maxLength={UPDATE_MAX_LENGTH}
