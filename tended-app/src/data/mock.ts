@@ -133,10 +133,15 @@ export type FeedAuthor = {
   /** One of LEVELS, if they chose to show it. */
   level?: string;
   /**
-   * State, if they chose to show it. Coarser than the district it replaced,
-   * which was close enough to a building to be worth narrowing.
+   * State, if they chose to show it. Derived from their school ZIP rather than
+   * typed, so every byline spells it the same way.
    */
   state?: string;
+  /**
+   * The school's ZIP. Never shown — it is what "near my school" is computed
+   * from, and it resolves to the state above.
+   */
+  zip?: string;
   /**
    * Years in education. The credential the feed actually runs on: "no work
    * email after six, held nine days" reads differently from someone in their
@@ -149,34 +154,34 @@ export type FeedAuthor = {
 export const AUTHORS: Record<string, FeedAuthor> = {
   // Everything shown.
   t1: {
-    id: 't1', displayName: 'Marisa Okonjo', username: 'marisa.okonjo',
+    id: 't1', displayName: 'Marisa Okonjo', username: 'marisa.okonjo', zip: '20002',
     job: 'Teacher', level: 'Elementary', state: 'DC', years: 12,
   },
   // Name and job, no location.
   t2: {
-    id: 't2', displayName: 'Dana W.', username: 'danaw',
-    job: 'Teacher', level: 'High', years: 4,
+    id: 't2', displayName: 'Dana W.', username: 'danaw', zip: '94110',
+    job: 'Teacher', level: 'High', state: 'CA', years: 4,
   },
   // Not a teacher, and the reason to read them.
   t3: {
-    id: 't3', displayName: 'Mr R', username: 'mrr_counsel',
+    id: 't3', displayName: 'Mr R', username: 'mrr_counsel', zip: '20019',
     job: 'Counselor', level: 'Middle', state: 'DC', years: 19,
   },
   // A display name two people could plausibly both want. The username is what
   // keeps them apart, and what a follow is actually attached to.
   t4: {
-    id: 't4', displayName: 'Ms P', username: 'msp.dc',
+    id: 't4', displayName: 'Ms P', username: 'msp.dc', zip: '20011',
     job: 'Social Worker', years: 7,
   },
   // A principal, which is worth seeing in a feed about protecting your time.
   t5: {
-    id: 't5', displayName: 'Jonah Feld', username: 'jonahfeld',
+    id: 't5', displayName: 'Jonah Feld', username: 'jonahfeld', zip: '20852',
     job: 'Principal', level: 'Elementary', state: 'MD', years: 22,
   },
   // First year, and saying so. The number is not a ranking.
   t6: {
-    id: 't6', displayName: 'quietroom', username: 'quietroom',
-    job: 'Teacher', level: 'High', years: 1,
+    id: 't6', displayName: 'quietroom', username: 'quietroom', zip: '97202',
+    job: 'Teacher', level: 'High', state: 'OR', years: 1,
   },
 };
 

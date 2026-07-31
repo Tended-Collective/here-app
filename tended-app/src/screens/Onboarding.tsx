@@ -1,14 +1,18 @@
 /**
- * Onboarding, in seven screens.
+ * Onboarding, in six screens.
  *
  *   1–3  Why this exists, what it asks, what it gives back.
  *   4    Sign up with a school email.
  *   5–6  Choose how you appear: who you are, then the context around it.
- *   7    Pick the habits to protect, and optionally a ZIP.
  *
  * Two screens for the profile rather than one because the roles list runs to
  * fifteen entries; put the context fields under it and the whole thing stops
  * being scannable on a phone.
+ *
+ * There is no habit-picking screen. Choosing three practices from a list before
+ * seeing the app is a planning exercise asked of someone who has not yet been
+ * given a reason to care; habits now arrive from the feed, where they come
+ * attached to a person who is actually keeping one.
  *
  * There is no privacy slide any more. The promise it made now sits as one line
  * on the sign-up screen, next to the address it is a promise about — which is
@@ -22,23 +26,11 @@ import { Body, Display, MonoLabel } from '../components/ui';
 import { Toggle } from '../components/Toggle';
 import { UsernameField, UsernameState } from '../components/UsernameField';
 import { VerifyForm } from '../components/VerifyForm';
-import {
-  FREE_LIST_LIMIT,
-  JOBS,
-  LEVELS,
-  PRACTICE_SUGGESTIONS,
-  TAKEN_USERNAMES,
-  yearsLabel,
-} from '../data/mock';
+import { JOBS, LEVELS, TAKEN_USERNAMES, yearsLabel } from '../data/mock';
 import { normalizeUsername } from '../lib/usernames';
+import { isCompleteZip, normalizeZip, stateForZip, stateName } from '../lib/zip';
 import { useStore } from '../store';
 import { color, radius, SCREEN_PADDING } from '../theme';
-
-/**
- * The free plan's cap, so nobody finishes onboarding holding a list the plan
- * they are on cannot hold.
- */
-const MAX_PRACTICES = FREE_LIST_LIMIT;
 
 /**
  * The case for the app, in three slides. Concrete rather than inspirational —
@@ -72,8 +64,7 @@ const STORY = [
 const VERIFY_STEP = STORY.length;
 const IDENTITY_STEP = VERIFY_STEP + 1;
 const CONTEXT_STEP = IDENTITY_STEP + 1;
-const SETUP_STEP = CONTEXT_STEP + 1;
-const STEPS = SETUP_STEP + 1;
+const STEPS = CONTEXT_STEP + 1;
 
 export function Onboarding() {
   const { completeOnboarding } = useStore();
@@ -87,26 +78,15 @@ export function Onboarding() {
   const [usernameState, setUsernameState] = useState<UsernameState>('empty');
   const [job, setJob] = useState('');
   const [level, setLevel] = useState('');
-  const [stateName, setStateName] = useState('');
+  const [zip, setZip] = useState('');
   const [years, setYears] = useState('');
   const [showJob, setShowJob] = useState(true);
   const [showLevel, setShowLevel] = useState(true);
   const [showState, setShowState] = useState(true);
   const [showYears, setShowYears] = useState(true);
-  const [zip, setZip] = useState('');
-  const [chosen, setChosen] = useState<string[]>(PRACTICE_SUGGESTIONS.slice(0, 3));
 
   const next = () => setStep((s) => Math.min(STEPS - 1, s + 1));
   const back = () => setStep((s) => Math.max(0, s - 1));
-
-  const toggle = (label: string) =>
-    setChosen((prev) =>
-      prev.includes(label)
-        ? prev.filter((p) => p !== label)
-        : prev.length >= MAX_PRACTICES
-          ? prev
-          : [...prev, label],
-    );
 
   const finish = () =>
     completeOnboarding({
@@ -117,22 +97,24 @@ export function Onboarding() {
         username,
         job: showJob ? job : '',
         level: showLevel ? level : '',
-        state: showState ? stateName : '',
+        zip,
+        state: '',
         years: showYears && years.trim() ? Number(years) : null,
         showJob,
         showLevel,
         showState,
         showYears,
       },
-      practices: chosen,
-      zip,
+      // Nobody starts with a list. Habits arrive from the feed, or from the
+      // add row on the profile, once there is a reason to want one.
+      practices: [],
     });
 
   // What the byline will look like, built the same way the feed builds it.
   const preview = [
     showJob && job,
     showLevel && level,
-    showState && stateName.trim(),
+    showState && stateForZip(zip),
     showYears && years.trim() ? yearsLabel(Number(years)) : '',
   ]
     .filter(Boolean)
@@ -305,19 +287,27 @@ export function Onboarding() {
             </View>
 
             <View style={styles.fieldHead}>
-              <MonoLabel>STATE</MonoLabel>
+              <MonoLabel>SCHOOL ZIP CODE</MonoLabel>
               <Toggle value={showState} onChange={setShowState} label="Show my state" />
             </View>
             <TextInput
-              value={stateName}
-              onChangeText={setStateName}
-              placeholder="DC"
+              value={zip}
+              onChangeText={(t) => setZip(normalizeZip(t))}
+              placeholder="20002"
               placeholderTextColor={color.faint}
               style={[styles.input, !showState && styles.inputMuted]}
-              autoCapitalize="characters"
-              maxLength={20}
-              accessibilityLabel="Your state"
+              keyboardType="number-pad"
+              maxLength={5}
+              accessibilityLabel="Your school's ZIP code"
             />
+            {/* The ZIP is never shown on a post. It resolves to the state, and
+                it is what "near my school" is matched on. */}
+            <Text style={styles.hint}>
+              {!zip
+                ? 'Your school’s, not your home. Shows as your state, and finds teachers near you.'
+                : (stateName(stateForZip(zip)) ??
+                  (isCompleteZip(zip) ? 'We do not recognize that ZIP.' : 'Five digits.'))}
+            </Text>
 
             <MonoLabel style={{ marginTop: 26 }}>PREVIEW</MonoLabel>
             <View style={styles.preview}>
@@ -341,54 +331,9 @@ export function Onboarding() {
           </>
         )}
 
-        {step === SETUP_STEP && (
-          <>
-            <Display size={29} style={{ marginTop: 12 }}>
-              Pick up to {MAX_PRACTICES} daily habits to protect.
-            </Display>
-            <Body size={15} tone={color.muted} style={{ marginTop: 10 }}>
-              Small, doable practices for tough days. You can edit these anytime.
-            </Body>
-
-            <View style={styles.chips}>
-              {PRACTICE_SUGGESTIONS.map((label) => {
-                const on = chosen.includes(label);
-                return (
-                  <Pressable
-                    key={label}
-                    onPress={() => toggle(label)}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: on }}
-                    style={[styles.chip, on && styles.chipOn]}
-                  >
-                    <Text style={[styles.chipLabel, on && styles.chipLabelOn]}>{label}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <MonoLabel style={{ marginTop: 26 }}>ZIP CODE · OPTIONAL</MonoLabel>
-            <TextInput
-              value={zip}
-              onChangeText={setZip}
-              placeholder="e.g. 20002"
-              placeholderTextColor={color.faint}
-              style={styles.input}
-              keyboardType="number-pad"
-              maxLength={5}
-              accessibilityLabel="Your ZIP code, optional"
-            />
-            <Text style={styles.hint}>Optional — connects you with nearby peers.</Text>
-          </>
-        )}
-
         <View style={styles.footer}>
-          {step === SETUP_STEP ? (
-            <Primary
-              label={chosen.length ? 'Start tracking' : 'Pick at least one'}
-              disabled={!chosen.length}
-              onPress={finish}
-            />
+          {step === CONTEXT_STEP ? (
+            <Primary label="Start tracking" onPress={finish} />
           ) : step === IDENTITY_STEP ? (
             // A username is the one field here that can fail for a reason
             // outside the teacher's control, so the button says which of the
@@ -408,8 +353,7 @@ export function Onboarding() {
               disabled={!displayName.trim() || usernameState !== 'available'}
               onPress={next}
             />
-          ) : step === CONTEXT_STEP ? (
-            <Primary label="Looks good" onPress={next} />
+
           ) : step === VERIFY_STEP ? (
             // The primary action on this step lives inside VerifyForm.
             <View />

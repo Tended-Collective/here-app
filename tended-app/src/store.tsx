@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FREE_LIST_LIMIT, TRIAL_DAYS } from './data/mock';
 import { normalizeUsername } from './lib/usernames';
+import { normalizeZip, stateForZip } from './lib/zip';
 import { ISODate, todayISO, weekDates, weekdayIndex } from './lib/dates';
 
 const STORAGE_KEY = 'tended.v1';
@@ -140,9 +141,17 @@ type Persisted = {
       /** One of LEVELS. */
       level: string;
       /**
-       * State. It replaced district, which was one step from naming a
-       * building — with a job title and a district, a small system narrows to a
-       * handful of people.
+       * The school's ZIP. Never shown on a post — it is what resolves to the
+       * state below, and what "near my school" is computed from. The school's,
+       * not their home: a home address is personal data with nothing to do with
+       * this product.
+       */
+      zip: string;
+      /**
+       * Two-letter state, derived from the ZIP rather than typed, so every
+       * byline spells it the same way. It replaced a free-text district, which
+       * was one step from naming a building — a job title plus a district
+       * narrows a small system to a handful of people.
        */
       state: string;
       /**
@@ -170,8 +179,6 @@ type Persisted = {
   educator: { verified: boolean; verifiedAt: number | null };
   /** Author ids this teacher follows. See AUTHORS in data/mock.ts. */
   following: string[];
-  /** The unit the area view aggregates on. Given during onboarding. */
-  zip: string | null;
   /** The self-care plan's standing rules. */
   boundaries: Boundary[];
   /** Who to call. Local only, never sent anywhere. */
@@ -210,7 +217,6 @@ const EMPTY: Persisted = {
   account: null,
   educator: { verified: false, verifiedAt: null },
   following: [],
-  zip: null,
   boundaries: [],
   contacts: [],
   reported: {},
@@ -243,6 +249,7 @@ function migrate(data: Persisted): Persisted {
     typeof shown.displayName === 'string' &&
     typeof shown.username === 'string' &&
     typeof shown.level === 'string' &&
+    typeof shown.zip === 'string' &&
     typeof shown.state === 'string';
   if (current) return data;
 
@@ -264,7 +271,12 @@ function migrate(data: Persisted): Persisted {
         // putting words in someone's mouth. `district` narrows to `state`,
         // which cannot be derived from it either, so both start empty.
         level: typeof shown.level === 'string' ? shown.level : '',
-        state: typeof shown.state === 'string' ? shown.state : '',
+        // A previously typed state is dropped rather than kept: it may be
+        // "D.C." or "washington", and the ZIP it should have come from was
+        // never collected. Asking once is better than displaying four
+        // spellings of one place.
+        zip: typeof shown.zip === 'string' ? shown.zip : '',
+        state: typeof shown.zip === 'string' ? (stateForZip(shown.zip) ?? '') : '',
         years: typeof shown.years === 'number' ? shown.years : null,
         showJob: shown.showJob !== false,
         showLevel: shown.showLevel !== false,
@@ -350,6 +362,7 @@ type StoreValue = Persisted & {
       username: string;
       job: string;
       level: string;
+      zip: string;
       state: string;
       years: number | null;
       showJob: boolean;
@@ -358,7 +371,6 @@ type StoreValue = Persisted & {
       showYears: boolean;
     };
     practices: string[];
-    zip: string;
   }) => void;
   /** Change how you appear, at any time, without touching what was verified. */
   updateShown: (patch: Partial<NonNullable<Persisted['account']>['shown']>) => void;
@@ -535,11 +547,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             : { ...prev, plus: { trialStartedAt: Date.now() } },
         ),
       endTrial: () => update((prev) => ({ ...prev, plus: { trialStartedAt: null } })),
-      completeOnboarding: ({ name, email, shown, practices: labels, zip }) =>
+      completeOnboarding: ({ name, email, shown, practices: labels }) =>
         update((prev) => ({
           ...prev,
           onboardedAt: Date.now(),
-          zip: zip.trim() || null,
           educator: { verified: true, verifiedAt: Date.now() },
           account: {
             name: name.trim(),
@@ -550,7 +561,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               // blank byline because they skipped the field.
               displayName: shown.displayName.trim() || name.trim(),
               username: normalizeUsername(shown.username),
-              state: shown.state.trim(),
+              zip: normalizeZip(shown.zip),
+              // Derived, never accepted as typed — one ZIP has one spelling of
+              // its state, which is the whole reason the field changed.
+              state: stateForZip(shown.zip) ?? '',
             },
           },
           practices: labels.map((label, i) => ({
@@ -574,6 +588,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               username: '',
               job: '',
               level: '',
+              zip: '',
               state: '',
               years: null,
               showJob: true,
@@ -652,6 +667,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           // comparison the server does and the one the app does agree.
           const next = { ...prev.account.shown, ...patch };
           if (patch.username !== undefined) next.username = normalizeUsername(patch.username);
+          // The state follows the ZIP wherever the ZIP is set, so the two can
+          // never disagree.
+          if (patch.zip !== undefined) {
+            next.zip = normalizeZip(patch.zip);
+            next.state = stateForZip(next.zip) ?? '';
+          }
           return { ...prev, account: { ...prev.account, shown: next } };
         }),
       follow: (authorId) =>

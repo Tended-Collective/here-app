@@ -211,9 +211,19 @@ the building — a counselor knows what a boundary costs, an administrator knows
 principal will actually respect. "Other school staff" is last and real: the list will always be
 missing somebody's title.
 
-**State, not district.** District was one step from naming a building: with a job title and a
-district, a small system narrows to a handful of people. `LEVELS` (PreK / Elementary / Middle /
-High / Multiple) replaced the free-text grade or subject for the same reason.
+**One ZIP, two jobs.** The profile asks for the school's ZIP — not the teacher's home, which is
+personal data with nothing to do with the product. It resolves to a state for the byline, and it is
+what "Near my school" is matched on.
+
+It replaced a free-text state field, which accepted "DC", "D.C.", "Washington DC" and "washington"
+as four different places and collected nothing the feed could sort by. `src/lib/zip.ts` holds the
+ZIP3 → state table locally: it has to work in a building with no signal, and it must not tell a
+third party where someone teaches. Prefix-to-state is exact and compact; prefix-to-city needs a
+40,000-row dataset, so a ZIP resolves to a state and nothing finer — which is also the right
+resolution to publish, since a job title plus a city narrows a small district to very few people.
+
+District itself was dropped for the same reason. `LEVELS` (PreK / Elementary / Middle / High /
+Multiple) replaced the free-text grade or subject.
 
 **Years in education is the credential the feed runs on.** "No work email after six, held nine days"
 reads differently from someone in their first year than from someone twenty-two years in, and a
@@ -274,9 +284,11 @@ so the paywall cannot drift from what the paywall copy claims. Both numbers are 
 plan is genuinely usable: three habits is a real plan and a week is a real check-in, and the reason
 to upgrade arrives from having used the app rather than from being blocked on day one.
 
-**The self-care list.** One editable checklist on the profile, and it is the app's only to-do.
-Items arrive two ways — typed into the row at the bottom of the card, or saved off someone else's
-post in the feed — and once they land there is no distinction between the two, because a boundary
+**The self-care list.** One editable checklist on the profile, and it is the app's only to-do. It
+starts empty: onboarding no longer asks anyone to pick three habits from a list, which was a
+planning exercise put to someone who had not yet been given a reason to care. Items arrive two
+ways — typed into the row at the bottom of the card, or saved off someone else's post in the feed,
+where they come attached to a person who is actually keeping one — and once they land there is no distinction between the two, because a boundary
 someone else holds is just a line on your list once you have taken it. Tapping a line edits it in
 place; `renamePractice` keeps the row's id, so an edited line keeps every tick it already had.
 
@@ -307,6 +319,13 @@ that no longer exist.
 
 **Dates.** The prototype hardcoded "THURSDAY 9 OCTOBER" and marked Thursday as today. Both are now
 derived from the real date, and the record runs the school week, Monday to Friday.
+
+**Three scopes: Everywhere, Near my school, Following.** Everywhere is the default because on day
+one it is the only one with anything in it. Near my school matches the first three digits of the
+school ZIP — roughly a metro or a rural county, which is the scale at which "near me" is true
+without being tight enough to name a building; matching all five would be matching a neighbourhood.
+Following is the list you built. Each empty view says why it is empty, because the three go blank
+for three different reasons and only one is fixed by scrolling.
 
 **The feed is the app.** The v3 design had it as a reduction of check-ins — a number and a tag,
 no free text, nothing to answer — on a tab behind three others. It is now the front page

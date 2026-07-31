@@ -37,9 +37,27 @@ import {
   yearsLabel,
 } from '../data/mock';
 import { longDateLabel, timeAgoLabel, todayISO } from '../lib/dates';
+import { isNearby, stateForZip, stateName } from '../lib/zip';
 import { PICKER_CONFIGURED, pickPhoto } from '../lib/photo';
 import { Update, UPDATE_MAX_LENGTH, useStore } from '../store';
 import { color, MOODS, radius, TAGS } from '../theme';
+
+/**
+ * Three ways to narrow the feed.
+ *
+ * Everywhere is the default because on day one it is the only one with
+ * anything in it. Near my school matches on the first three digits of the
+ * school ZIP — roughly a metro or a rural county, which is the scale at which
+ * "near me" is true without being tight enough to name a building. Following is
+ * the list you built yourself.
+ */
+type Scope = 'everywhere' | 'nearby' | 'following';
+
+const SCOPES: { key: Scope; label: string }[] = [
+  { key: 'everywhere', label: 'Everywhere' },
+  { key: 'nearby', label: 'Near my school' },
+  { key: 'following', label: 'Following' },
+];
 
 export function FeedScreen() {
   const {
@@ -72,7 +90,7 @@ export function FeedScreen() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const [showMore, setShowMore] = useState(false);
-  const [scope, setScope] = useState<'following' | 'everyone'>('everyone');
+  const [scope, setScope] = useState<Scope>('everywhere');
 
   // What is already on the list, so a row can say so instead of saving twice.
   const onList = new Set(practices.map((p) => p.label));
@@ -91,12 +109,19 @@ export function FeedScreen() {
     setPhoto(null);
   };
 
+  const myZip = account?.shown.zip ?? '';
   const all = (showMore ? [...NEARBY_UPDATES, ...LAST_HOUR_UPDATES] : NEARBY_UPDATES)
     // Reported and blocked come out before anything else looks at the list, so
     // there is no path — scope switch, expansion, placement dealing — that can
     // put one back on screen.
     .filter((u) => !reported[u.id] && !blocked.includes(u.authorId));
-  const feed = scope === 'following' ? all.filter((u) => following.includes(u.authorId)) : all;
+
+  const feed =
+    scope === 'following'
+      ? all.filter((u) => following.includes(u.authorId))
+      : scope === 'nearby'
+        ? all.filter((u) => isNearby(myZip, AUTHORS[u.authorId]?.zip))
+        : all;
   const left = UPDATE_MAX_LENGTH - draft.length;
 
   return (
@@ -243,7 +268,7 @@ export function FeedScreen() {
       )}
 
       <View style={styles.scope}>
-        {(['everyone', 'following'] as const).map((key) => {
+        {SCOPES.map(({ key, label }) => {
           const on = scope === key;
           return (
             <Pressable
@@ -254,14 +279,16 @@ export function FeedScreen() {
               style={[styles.scopeTab, on && styles.scopeTabOn]}
             >
               <Text style={[styles.scopeLabel, on && styles.scopeLabelOn]}>
-                {key === 'everyone' ? 'Everyone' : `Following${following.length ? ` · ${following.length}` : ''}`}
+                {key === 'following' && following.length ? `${label} · ${following.length}` : label}
               </Text>
             </Pressable>
           );
         })}
       </View>
 
-      {scope === 'everyone' &&
+      {/* Your own posts belong to you, not to a place or a follow list, so they
+          only appear in the unfiltered view. */}
+      {scope === 'everywhere' &&
         updates.map((u) => (
           <OwnPost
             key={u.id}
@@ -280,11 +307,35 @@ export function FeedScreen() {
           />
         ))}
 
+      {/* Each empty view says why it is empty, since the three go blank for
+          three different reasons and only one of them is fixable by scrolling. */}
       {scope === 'following' && feed.length === 0 && (
         <Card style={styles.empty}>
           <Text style={styles.emptyTitle}>You are not following anyone yet</Text>
           <Text style={styles.emptySub}>
-            Tap Follow on a teacher whose posts you want to keep seeing. Their posts show up here.
+            Tap Follow on someone whose posts you want to keep seeing. They show up here.
+          </Text>
+        </Card>
+      )}
+
+      {scope === 'nearby' && !myZip && (
+        <Pressable accessibilityRole="button" onPress={() => open('verify')}>
+          <Card style={styles.empty}>
+            <Text style={styles.emptyTitle}>Add your school ZIP</Text>
+            <Text style={styles.emptySub}>
+              This view shows people who work near you. Add your school’s ZIP on your profile to
+              switch it on.
+            </Text>
+          </Card>
+        </Pressable>
+      )}
+
+      {scope === 'nearby' && !!myZip && feed.length === 0 && (
+        <Card style={styles.empty}>
+          <Text style={styles.emptyTitle}>Nobody near you has posted yet</Text>
+          <Text style={styles.emptySub}>
+            Tended is new in {stateName(stateForZip(myZip)) ?? 'your area'}. Everywhere still has
+            plenty to read.
           </Text>
         </Card>
       )}
@@ -678,12 +729,13 @@ const styles = StyleSheet.create({
   },
   scope: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 6,
     marginTop: 22,
   },
   scopeTab: {
     height: 34,
-    paddingHorizontal: 15,
+    paddingHorizontal: 13,
     borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: color.outline,
@@ -694,7 +746,7 @@ const styles = StyleSheet.create({
     borderColor: color.ink,
   },
   scopeLabel: {
-    fontSize: 13.5,
+    fontSize: 13,
     color: color.body,
   },
   scopeLabelOn: {

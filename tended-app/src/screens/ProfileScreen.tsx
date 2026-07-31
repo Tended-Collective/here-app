@@ -32,6 +32,7 @@ import {
   yearsLabel,
 } from '../data/mock';
 import { openLink } from '../lib/links';
+import { stateForZip, stateName } from '../lib/zip';
 import { WEEKDAY_INITIALS, todayISO, weekDates, weekdayIndex } from '../lib/dates';
 import { useStore } from '../store';
 import { color, radius } from '../theme';
@@ -48,7 +49,6 @@ export function ProfileScreen() {
     removePractice,
     renamePractice,
     educator,
-    zip,
     entries,
     account,
     following,
@@ -124,12 +124,9 @@ export function ProfileScreen() {
             {educator.verified ? 'VERIFIED · SCHOOL EMAIL' : 'NOT VERIFIED · TAP TO VERIFY'}
           </MonoLabel>
         </Pressable>
-        {/* Only states a ZIP the teacher actually gave us. It used to fall back
-            to the sample ZIP and label it "yours", which read as the app having
-            quietly found their location. */}
         <View style={styles.badge}>
           <MonoLabel size={9} em={0.1} tone={color.muted}>
-            {zip ? `ZIP ${zip}` : 'NO ZIP SET'}
+            {shown?.zip ? `SCHOOL ZIP ${shown.zip}` : 'NO SCHOOL ZIP'}
           </MonoLabel>
         </View>
       </View>
@@ -267,16 +264,20 @@ export function ProfileScreen() {
           })}
         </View>
 
+        {/* One ZIP, two jobs: it resolves to the state on the byline, and it is
+            what the feed's "Near my school" is matched on. Typed as a number so
+            it cannot arrive as four spellings of one place. */}
         <View style={styles.appearRow}>
           <TextInput
-            value={shown?.state ?? ''}
-            onChangeText={(t) => updateShown({ state: t })}
-            placeholder="State"
+            value={shown?.zip ?? ''}
+            onChangeText={(t) => updateShown({ zip: t })}
+            placeholder="School ZIP code"
             placeholderTextColor={color.faint}
             style={[styles.appearInput, styles.appearGrow, !shown?.showState && styles.appearMuted]}
             editable={!!shown?.showState}
-            autoCapitalize="characters"
-            accessibilityLabel="Your state"
+            keyboardType="number-pad"
+            maxLength={5}
+            accessibilityLabel="Your school's ZIP code"
           />
           <Toggle
             value={!!shown?.showState}
@@ -284,6 +285,11 @@ export function ProfileScreen() {
             label="Show my state"
           />
         </View>
+        <Text style={styles.zipNote}>
+          {shown?.zip
+            ? (stateName(stateForZip(shown.zip)) ?? 'We do not recognize that ZIP.')
+            : 'Your school’s ZIP. Shows as your state, and finds people near you.'}
+        </Text>
 
         <View style={styles.verifiedBlock}>
           <MonoLabel size={9} em={0.1} tone={color.faint}>
@@ -570,6 +576,12 @@ const styles = StyleSheet.create({
   },
   appearMuted: {
     opacity: 0.45,
+  },
+  zipNote: {
+    fontSize: 12.5,
+    lineHeight: 19,
+    color: color.label,
+    marginTop: -2,
   },
   blockedCard: {
     marginTop: 12,
