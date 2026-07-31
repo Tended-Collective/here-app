@@ -14,18 +14,19 @@ means always republishing the same path:
 
 ```
 npx expo export --platform web --clear
-node scripts/build-artifact.mjs          # writes dist/artifact.html
-cp dist/artifact.html dist/tended-2026-07-31.html
-# then publish dist/tended-2026-07-31.html
+node scripts/build-artifact.mjs          # writes dist/tended-2026-07-31.html
+# then publish that file
 ```
 
 The date in that filename is only how the path was first named — it is the permanent live link, not
 a snapshot. Publishing from any other path mints a *new* URL and silently leaves this one behind on
 whatever it last had, which is the failure worth avoiding: someone holds a link that stopped
-updating without ever appearing broken.
+updating without ever appearing broken. The build script defaults to the right path so that cannot
+happen by accident.
 
-An earlier link, `.../143bac7a-bcc9-4b64-af4b-15021d711219`, is still live and frozen at the same
-build. It is no longer updated.
+`dist/artifact.html` owns an earlier, retired link. An artifact cannot be deleted from here, so
+that path now holds a small "this preview has moved" page pointing at the live one, and the build
+no longer writes over it.
 
 ## Running it
 

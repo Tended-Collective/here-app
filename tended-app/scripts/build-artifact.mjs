@@ -19,7 +19,16 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const DIST = 'dist';
-const OUT = process.argv[2] ?? 'dist/artifact.html';
+/**
+ * The live preview's URL belongs to this exact path — republishing anything
+ * else mints a new link and leaves the one people hold frozen on whatever it
+ * last had, looking fine the whole time. Default here so a build cannot
+ * accidentally target the wrong file. See the README.
+ *
+ * `dist/artifact.html` is deliberately not the default any more: that path owns
+ * a retired link and now serves a "this preview has moved" notice.
+ */
+const OUT = process.argv[2] ?? 'dist/tended-2026-07-31.html';
 
 const bundleDir = join(DIST, '_expo/static/js/web');
 const bundleName = readdirSync(bundleDir).find((f) => f.endsWith('.js'));
