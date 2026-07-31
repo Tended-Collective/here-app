@@ -16,10 +16,19 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { InviteCard } from '../components/InviteCard';
 import { PodcastSection } from '../components/PodcastSection';
 import { Toggle } from '../components/Toggle';
+import { UsernameField, UsernameState } from '../components/UsernameField';
 import { useSheets } from '../components/Sheet';
 import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
-import { FREE_LIST_LIMIT, JOBS, POSTS, postUrl, SITE, yearsLabel } from '../data/mock';
+import {
+  FREE_LIST_LIMIT,
+  JOBS,
+  POSTS,
+  postUrl,
+  SITE,
+  TAKEN_USERNAMES,
+  yearsLabel,
+} from '../data/mock';
 import { openLink } from '../lib/links';
 import { WEEKDAY_INITIALS, todayISO, weekDates, weekdayIndex } from '../lib/dates';
 import { useStore } from '../store';
@@ -55,6 +64,15 @@ export function ProfileScreen() {
   const [editText, setEditText] = useState('');
 
   const shown = account?.shown;
+  // Held in a draft rather than written per keystroke: a username is the one
+  // field here where a half-typed value is a different, possibly real account.
+  const [usernameDraft, setUsernameDraft] = useState(shown?.username ?? '');
+  const [usernameState, setUsernameState] = useState<UsernameState>('empty');
+  // Their own username must not read as taken when they open the field.
+  const othersUsernames = useMemo(
+    () => TAKEN_USERNAMES.filter((u) => u !== shown?.username),
+    [shown?.username],
+  );
   const bylinePreview = [
     shown?.showJob && shown.job,
     shown?.showRole && shown.role.trim(),
@@ -85,10 +103,11 @@ export function ProfileScreen() {
     <View>
       <MonoLabel>YOUR PROFILE</MonoLabel>
       <Display size={32} style={{ marginTop: 10 }}>
-        {shown?.handle || account?.name || 'Your account'}
+        {shown?.displayName || account?.name || 'Your account'}
       </Display>
       <Body size={13} tone={color.muted} style={{ marginTop: 6 }}>
-        {bylinePreview || 'Nothing else shown on your posts'}
+        {shown?.username ? `@${shown.username}` : 'No username yet'}
+        {bylinePreview ? ` · ${bylinePreview}` : ''}
       </Body>
 
       <View style={styles.badges}>
@@ -124,16 +143,50 @@ export function ProfileScreen() {
       <MonoLabel style={{ marginTop: 30 }}>HOW YOU APPEAR</MonoLabel>
       <Card style={styles.appearCard}>
         <MonoLabel size={9} em={0.1} tone={color.faint}>
-          SHOWN ON YOUR POSTS
+          DISPLAY NAME
         </MonoLabel>
         <TextInput
-          value={shown?.handle ?? ''}
-          onChangeText={(t) => updateShown({ handle: t })}
-          placeholder="Your name, initials, or a handle"
+          value={shown?.displayName ?? ''}
+          onChangeText={(t) => updateShown({ displayName: t })}
+          placeholder="Your name, initials, or anything"
           placeholderTextColor={color.faint}
           style={styles.appearInput}
           accessibilityLabel="The name shown on your posts"
         />
+
+        {/* Changing a username has a cost a display name does not: anyone who
+            wrote yours down loses you. It is still allowed — people leave
+            districts and change what they want to be called — but the field
+            says so rather than letting them find out later. */}
+        <MonoLabel size={9} em={0.1} tone={color.faint}>
+          USERNAME · ONE PER PERSON
+        </MonoLabel>
+        <UsernameField
+          value={usernameDraft}
+          onChange={setUsernameDraft}
+          taken={othersUsernames}
+          onStateChange={setUsernameState}
+        />
+        {usernameDraft !== (shown?.username ?? '') && (
+          <View style={styles.usernameActions}>
+            <Pressable
+              onPress={() => setUsernameDraft(shown?.username ?? '')}
+              accessibilityRole="button"
+              style={styles.usernameCancel}
+            >
+              <Text style={styles.usernameCancelLabel}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => updateShown({ username: usernameDraft })}
+              disabled={usernameState !== 'available'}
+              accessibilityRole="button"
+              accessibilityLabel="Save your new username"
+              style={[styles.usernameSave, usernameState !== 'available' && { opacity: 0.4 }]}
+            >
+              <Text style={styles.usernameSaveLabel}>Save username</Text>
+            </Pressable>
+          </View>
+        )}
 
         <View style={styles.appearJobHead}>
           <MonoLabel size={9} em={0.1} tone={color.faint}>
@@ -456,6 +509,36 @@ const styles = StyleSheet.create({
   },
   appearMuted: {
     opacity: 0.45,
+  },
+  usernameActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  usernameCancel: {
+    height: 38,
+    paddingHorizontal: 14,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: color.outline,
+    justifyContent: 'center',
+  },
+  usernameCancelLabel: {
+    fontSize: 13.5,
+    color: color.body,
+  },
+  usernameSave: {
+    height: 38,
+    paddingHorizontal: 16,
+    borderRadius: radius.pill,
+    backgroundColor: color.ink,
+    justifyContent: 'center',
+  },
+  usernameSaveLabel: {
+    fontSize: 13.5,
+    fontWeight: '600',
+    color: '#fff',
   },
   appearJobHead: {
     flexDirection: 'row',

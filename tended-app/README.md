@@ -191,9 +191,37 @@ optional like everything else, and `yearsLabel` renders 1 as FIRST YEAR and 0 as
 rather than a bare number — the figure is context, not a ranking.
 
 A byline is therefore `job · role · district · years`, any part of which may be absent, under a
-handle that may be a full name or two initials. The VERIFIED mark is a tick beside the name rather
-than a word in that line: it applies to the person rather than the job title, and inline it pushed
-the byline onto a second row.
+display name that may be a full name or two initials. The VERIFIED mark is a tick beside the name
+rather than a word in that line: it applies to the person rather than the job title, and inline it
+pushed the byline onto a second row.
+
+**Display name vs username.** Two names, two jobs. The **display name** is whatever the person
+wants to be called and is deliberately *not* unique — two people may both be "Ms P", because it is
+a label. The **username** is the identifier: one per account, unique across the app, lowercase, and
+the thing a follow actually points at.
+
+Uniqueness matters here for a specific reason. The feed's value is that a boundary held for nine
+days is evidence, and it is only evidence if the streak belongs to one traceable person. Two
+accounts sharing a name make that unverifiable — and that is exactly the shape an impersonator
+would use, copying the display name of someone people follow to inherit their credibility.
+
+`src/lib/usernames.ts` holds the rules: normalization (case-folded, `@` stripped, `a-z0-9._` only,
+so `Ms.P` and `ms.p` are one name rather than two), shape validation, a reserved list covering both
+app-impersonation (`support`, `tended`) and school-official impersonation (`principal`,
+`superintendent`), and the availability check. `src/components/UsernameField.tsx` renders the six
+states it can be in — idle, too short, malformed, checking, taken with alternatives, free — shared
+by onboarding and the profile so the rules cannot drift between claiming and changing.
+
+The check is debounced at 300ms and discards stale replies by sequence number, so a slow answer for
+an earlier draft cannot overwrite the verdict for what is currently in the box. **The real
+enforcement is a UNIQUE index on the normalized column, server-side** — two people can pass this
+check on separate devices in the same second. What runs on device is the fast feedback loop, so
+failure at submit is rare rather than routine; `PROVIDER_CONFIGURED` in that file is the seam, and
+until it flips the check collides against `TAKEN_USERNAMES` (the sample authors) only.
+
+Accounts written before the split are migrated at hydration: the old `handle` becomes the display
+name, and the username is left empty rather than guessed — inventing one would either collide or
+hand someone an identifier they did not choose — so the profile prompts for it.
 
 **Following.** `following: string[]` holds author ids; the feed has an Everyone / Following switch
 and every card has a Follow button. This is the replacement for the ZIP heat map, which is gone:

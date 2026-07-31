@@ -10,6 +10,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { FREE_LIST_LIMIT, TRIAL_DAYS } from './data/mock';
+import { normalizeUsername } from './lib/usernames';
 import { ISODate, todayISO, weekDates, weekdayIndex } from './lib/dates';
 import { generateInviteCode, INVITES_PER_TEACHER } from './lib/invites';
 
@@ -125,8 +126,16 @@ type Persisted = {
     name: string;
     email: string;
     shown: {
-      /** What appears on posts. Their name, a shortening of it, or a handle. */
-      handle: string;
+      /**
+       * What they want to be called on a post. Not unique — two people may both
+       * be "Ms P", because this is a label, not an identifier.
+       */
+      displayName: string;
+      /**
+       * The identifier: one per account, unique across the app, and what a
+       * follow points at. Normalized lowercase. See lib/usernames.ts.
+       */
+      username: string;
       /** One of JOBS. Not everyone in a school teaches. */
       job: string;
       /** Grade, subject or specialism. Empty means they gave none. */
@@ -180,6 +189,48 @@ const EMPTY: Persisted = {
   boundaries: [],
   contacts: [],
 };
+
+/**
+ * Brings a stored payload up to the current shape.
+ *
+ * The only case so far: accounts written before display name and username were
+ * separate fields, which held one `handle` doing both jobs. The handle becomes
+ * the display name, and the username is left empty rather than guessed — a
+ * username has to be unique, and inventing one on the user's behalf would
+ * either collide or hand them something they did not choose. The profile
+ * prompts for it instead.
+ */
+function migrate(data: Persisted): Persisted {
+  const account = data.account as (typeof data.account & { shown?: Record<string, unknown> }) | null;
+  if (!account?.shown) return data;
+
+  const shown = account.shown as Record<string, unknown>;
+  if (typeof shown.displayName === 'string' && typeof shown.username === 'string') return data;
+
+  return {
+    ...data,
+    account: {
+      ...account,
+      shown: {
+        displayName:
+          typeof shown.displayName === 'string'
+            ? shown.displayName
+            : typeof shown.handle === 'string'
+              ? shown.handle
+              : account.name,
+        username: typeof shown.username === 'string' ? shown.username : '',
+        job: typeof shown.job === 'string' ? shown.job : '',
+        role: typeof shown.role === 'string' ? shown.role : '',
+        district: typeof shown.district === 'string' ? shown.district : '',
+        years: typeof shown.years === 'number' ? shown.years : null,
+        showJob: shown.showJob !== false,
+        showRole: shown.showRole !== false,
+        showDistrict: shown.showDistrict !== false,
+        showYears: shown.showYears !== false,
+      },
+    },
+  };
+}
 
 /**
  * First-run sample week, so a fresh install opens on the record the design shows
@@ -252,7 +303,8 @@ type StoreValue = Persisted & {
     name: string;
     email: string;
     shown: {
-      handle: string;
+      displayName: string;
+      username: string;
       job: string;
       role: string;
       district: string;
@@ -308,7 +360,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       let next = SEED_FIRST_RUN ? seed() : EMPTY;
       try {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (raw) next = { ...EMPTY, ...(JSON.parse(raw) as Partial<Persisted>) };
+        if (raw) next = migrate({ ...EMPTY, ...(JSON.parse(raw) as Partial<Persisted>) });
       } catch {
         // A corrupt or unreadable payload falls back to the default state rather
         // than blocking the check-in.
@@ -442,7 +494,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               ...shown,
               // Falling back to the name means nobody ends up posting as a
               // blank byline because they skipped the field.
-              handle: shown.handle.trim() || name.trim(),
+              displayName: shown.displayName.trim() || name.trim(),
+              username: normalizeUsername(shown.username),
               role: shown.role.trim(),
               district: shown.district.trim(),
             },
@@ -467,7 +520,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                   name: prev.account?.name ?? '',
                   email,
                   shown: prev.account?.shown ?? {
-                    handle: prev.account?.name ?? '',
+                    displayName: prev.account?.name ?? '',
+                    username: '',
                     job: '',
                     role: '',
                     district: '',
@@ -543,11 +597,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           ),
         })),
       updateShown: (patch) =>
-        update((prev) =>
-          prev.account
-            ? { ...prev, account: { ...prev.account, shown: { ...prev.account.shown, ...patch } } }
-            : prev,
-        ),
+        update((prev) => {
+          if (!prev.account) return prev;
+          // A username is stored canonically wherever it comes from, so the
+          // comparison the server does and the one the app does agree.
+          const next = { ...prev.account.shown, ...patch };
+          if (patch.username !== undefined) next.username = normalizeUsername(patch.username);
+          return { ...prev, account: { ...prev.account, shown: next } };
+        }),
       follow: (authorId) =>
         update((prev) =>
           prev.following.includes(authorId)

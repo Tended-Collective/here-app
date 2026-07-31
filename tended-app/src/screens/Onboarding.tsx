@@ -25,8 +25,16 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { useChrome } from '../components/PhoneFrame';
 import { Body, Display, MonoLabel } from '../components/ui';
 import { Toggle } from '../components/Toggle';
+import { UsernameField, UsernameState } from '../components/UsernameField';
 import { VerifyForm } from '../components/VerifyForm';
-import { FREE_LIST_LIMIT, JOBS, PRACTICE_SUGGESTIONS, yearsLabel } from '../data/mock';
+import {
+  FREE_LIST_LIMIT,
+  JOBS,
+  PRACTICE_SUGGESTIONS,
+  TAKEN_USERNAMES,
+  yearsLabel,
+} from '../data/mock';
+import { normalizeUsername } from '../lib/usernames';
 import { useStore } from '../store';
 import { color, radius, SCREEN_PADDING } from '../theme';
 
@@ -100,7 +108,9 @@ export function Onboarding() {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [handle, setHandle] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
+  const [usernameState, setUsernameState] = useState<UsernameState>('empty');
   const [job, setJob] = useState('');
   const [role, setRole] = useState('');
   const [district, setDistrict] = useState('');
@@ -129,7 +139,8 @@ export function Onboarding() {
       name,
       email,
       shown: {
-        handle,
+        displayName,
+        username,
         job: showJob ? job : '',
         role: showRole ? role : '',
         district: showDistrict ? district : '',
@@ -218,8 +229,11 @@ export function Onboarding() {
             <VerifyForm
               onVerified={(address) => {
                 setEmail(address);
-                // A sensible default they can overwrite on the next step.
-                setHandle((h) => h || name.trim());
+                // Sensible defaults they can overwrite on the next step. The
+                // username is only a suggestion — it still has to pass the
+                // availability check before they can move on.
+                setDisplayName((d) => d || name.trim());
+                setUsername((u) => u || normalizeUsername(name));
                 next();
               }}
             />
@@ -237,14 +251,25 @@ export function Onboarding() {
               What goes on a post is whatever you put here — and you can change it later.
             </Body>
 
-            <MonoLabel style={{ marginTop: 22 }}>SHOWN ON YOUR POSTS</MonoLabel>
+            <MonoLabel style={{ marginTop: 22 }}>DISPLAY NAME</MonoLabel>
             <TextInput
-              value={handle}
-              onChangeText={setHandle}
-              placeholder="Your name, initials, or a handle"
+              value={displayName}
+              onChangeText={setDisplayName}
+              placeholder="Your name, initials, or anything"
               placeholderTextColor={color.faint}
               style={styles.input}
               accessibilityLabel="The name shown on your posts"
+            />
+            <Text style={styles.hint}>
+              What you are called. Two people can share one — it is a label, not an ID.
+            </Text>
+
+            <MonoLabel style={{ marginTop: 22 }}>USERNAME</MonoLabel>
+            <UsernameField
+              value={username}
+              onChange={setUsername}
+              taken={TAKEN_USERNAMES}
+              onStateChange={setUsernameState}
             />
 
             <MonoLabel style={{ marginTop: 22 }}>WHAT YOU DO</MonoLabel>
@@ -323,11 +348,16 @@ export function Onboarding() {
             <View style={styles.preview}>
               <View style={styles.previewAvatar}>
                 <Text style={styles.previewLetter}>
-                  {(handle.trim() || name.trim() || '?').slice(0, 1).toUpperCase()}
+                  {(displayName.trim() || name.trim() || '?').slice(0, 1).toUpperCase()}
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.previewName}>{handle.trim() || name.trim() || 'Your name'}</Text>
+                <View style={styles.previewNameRow}>
+                  <Text style={styles.previewName}>
+                    {displayName.trim() || name.trim() || 'Your name'}
+                  </Text>
+                  {!!username && <Text style={styles.previewUser}>@{username}</Text>}
+                </View>
                 <MonoLabel size={9} em={0.08} tone={color.faint}>
                   {preview || 'NOTHING ELSE SHOWN'}
                 </MonoLabel>
@@ -390,9 +420,22 @@ export function Onboarding() {
               onPress={finish}
             />
           ) : step === PRESENT_STEP ? (
+            // A username is the one field here that can fail for a reason
+            // outside the teacher's control, so the button says which of the
+            // two things is missing rather than sitting greyed out in silence.
             <Primary
-              label={handle.trim() ? 'Looks right' : 'Choose a name to show'}
-              disabled={!handle.trim()}
+              label={
+                !displayName.trim()
+                  ? 'Add a display name'
+                  : usernameState === 'available'
+                    ? 'Looks right'
+                    : usernameState === 'taken'
+                      ? 'That username is taken'
+                      : usernameState === 'checking'
+                        ? 'Checking username…'
+                        : 'Choose a username'
+              }
+              disabled={!displayName.trim() || usernameState !== 'available'}
               onPress={next}
             />
           ) : step === VERIFY_STEP ? (
@@ -556,11 +599,22 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
   },
+  previewNameRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+    marginBottom: 2,
+  },
   previewName: {
     fontSize: 14.5,
     fontWeight: '600',
     color: color.ink,
-    marginBottom: 2,
+    flexShrink: 1,
+  },
+  previewUser: {
+    fontSize: 12.5,
+    color: color.faint,
+    flexShrink: 1,
   },
   hint: {
     fontSize: 12.5,

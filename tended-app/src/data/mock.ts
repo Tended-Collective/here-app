@@ -110,8 +110,16 @@ export const JOBS = [
 
 export type FeedAuthor = {
   id: string;
-  /** Their chosen handle. Anything from a full name to two initials. */
-  handle: string;
+  /**
+   * What they want to be called. Not unique — two people may both be "Ms P",
+   * and that is fine, because this is a label rather than an identifier.
+   */
+  displayName: string;
+  /**
+   * The identifier. One per account, unique across the app, and the thing a
+   * follow actually points at. See lib/usernames.ts for why it has to be.
+   */
+  username: string;
   /** What they do. One of JOBS, if they chose to show it. */
   job?: string;
   /** Grade, subject or specialism, if they chose to show it. */
@@ -129,18 +137,44 @@ export type FeedAuthor = {
 
 export const AUTHORS: Record<string, FeedAuthor> = {
   // Everything shown.
-  t1: { id: 't1', handle: 'Marisa Okonjo', job: 'Teacher', role: '4th grade', district: 'DCPS', years: 12 },
+  t1: {
+    id: 't1', displayName: 'Marisa Okonjo', username: 'marisa.okonjo',
+    job: 'Teacher', role: '4th grade', district: 'DCPS', years: 12,
+  },
   // Name, job, subject, no district.
-  t2: { id: 't2', handle: 'Dana W.', job: 'Teacher', role: 'HS Biology', years: 4 },
+  t2: {
+    id: 't2', displayName: 'Dana W.', username: 'danaw',
+    job: 'Teacher', role: 'HS Biology', years: 4,
+  },
   // Not a teacher, and the reason to read them.
-  t3: { id: 't3', handle: 'MrR_Counsel', job: 'Counselor', district: 'DCPS', years: 19 },
-  // A handle, a job, nothing else.
-  t4: { id: 't4', handle: 'Ms P', job: 'Social worker', years: 7 },
+  t3: {
+    id: 't3', displayName: 'Mr R', username: 'mrr_counsel',
+    job: 'Counselor', district: 'DCPS', years: 19,
+  },
+  // A display name two people could plausibly both want. The username is what
+  // keeps them apart, and what a follow is actually attached to.
+  t4: {
+    id: 't4', displayName: 'Ms P', username: 'msp.dc',
+    job: 'Social worker', years: 7,
+  },
   // An administrator, which is worth seeing in a feed about boundaries.
-  t5: { id: 't5', handle: 'Jonah Feld', job: 'Administrator', district: 'MCPS', years: 22 },
+  t5: {
+    id: 't5', displayName: 'Jonah Feld', username: 'jonahfeld',
+    job: 'Administrator', district: 'MCPS', years: 22,
+  },
   // First year, and saying so. The number is not a ranking.
-  t6: { id: 't6', handle: 'quietroom', job: 'Teacher', role: 'HS English', years: 1 },
+  t6: {
+    id: 't6', displayName: 'quietroom', username: 'quietroom',
+    job: 'Teacher', role: 'HS English', years: 1,
+  },
 };
+
+/**
+ * Usernames already claimed. Stands in for the server's index while
+ * PROVIDER_CONFIGURED is false, so the availability check has something real to
+ * collide with — try to sign up as `danaw` and it will tell you no.
+ */
+export const TAKEN_USERNAMES = Object.values(AUTHORS).map((a) => a.username);
 
 /** "12 YRS", or "FIRST YEAR" — which is a fact, not a lesser one. */
 export function yearsLabel(years: number | undefined | null): string {

@@ -255,7 +255,8 @@ export function FeedScreen() {
           <OwnPost
             key={u.id}
             update={u}
-            name={account?.shown.handle || account?.name || 'You'}
+            name={account?.shown.displayName || account?.name || 'You'}
+            username={account?.shown.username ?? ''}
             line={
               [account?.shown.showRole && account.shown.role, account?.shown.showDistrict && account.shown.district]
                 .filter(Boolean)
@@ -316,11 +317,13 @@ export function FeedScreen() {
 function OwnPost({
   update,
   name,
+  username,
   line,
   onRemove,
 }: {
   update: Update;
   name: string;
+  username: string;
   line: string;
   onRemove: () => void;
 }) {
@@ -338,6 +341,11 @@ function OwnPost({
                 ✓
               </Text>
             </View>
+            {!!username && (
+              <Text style={styles.whoUser} numberOfLines={1}>
+                @{username}
+              </Text>
+            )}
           </View>
           <MonoLabel size={9} em={0.08} tone={color.faint}>
             {[line, `YOU · ${timeAgoLabel(update.at)}`].filter(Boolean).join(' · ')}
@@ -388,13 +396,13 @@ function FeedCard({
       <View style={styles.cardHead}>
         <View style={[styles.avatar, { backgroundColor: update.dot }]}>
           <Text style={styles.avatarLetter}>
-            {(author?.handle ?? '?').slice(0, 1).toUpperCase()}
+            {(author?.displayName ?? '?').slice(0, 1).toUpperCase()}
           </Text>
         </View>
         <View style={styles.who}>
           <View style={styles.nameRow}>
             <Text style={styles.whoName} numberOfLines={1}>
-              {author?.handle ?? 'A teacher'}
+              {author?.displayName ?? 'Someone'}
             </Text>
             {/* The constant under every byline, whatever the teacher chose to
                 reveal. A mark beside the name rather than a word in the line:
@@ -405,6 +413,11 @@ function FeedCard({
                 ✓
               </Text>
             </View>
+            {/* Two people may both be "Ms P". This is the one that is theirs
+                alone, and the one a follow is actually attached to. */}
+            <Text style={styles.whoUser} numberOfLines={1}>
+              @{author?.username}
+            </Text>
           </View>
           <MonoLabel size={9} em={0.08} tone={color.faint}>
             {authorLine(author)}
@@ -415,7 +428,7 @@ function FeedCard({
           accessibilityRole="button"
           accessibilityState={{ selected: following }}
           accessibilityLabel={
-            following ? `Unfollow ${author?.handle}` : `Follow ${author?.handle}`
+            following ? `Unfollow @${author?.username}` : `Follow @${author?.username}`
           }
           style={[styles.follow, following && styles.followOn]}
         >
@@ -703,6 +716,12 @@ const styles = StyleSheet.create({
     fontSize: 14.5,
     fontWeight: '600',
     color: color.ink,
+    flexShrink: 1,
+  },
+  whoUser: {
+    fontSize: 12.5,
+    color: color.faint,
+    flexShrink: 1,
   },
   follow: {
     height: 30,
