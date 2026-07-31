@@ -57,7 +57,7 @@ const STORY = [
   {
     kicker: 'WHAT YOU GET',
     title: 'See what works and why.',
-    body: 'Taking this daily pause gives you a clear look at what actually protects your peace over time.',
+    body: 'Taking this daily pause gives you a clear look at what actually protects your peace over time. And you are not working it out alone — Tended is a community of educators sharing what they do to take care of themselves, so you can learn from people who know the job.',
   },
 ];
 

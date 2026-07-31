@@ -349,6 +349,12 @@ that no longer exist.
 **Dates.** The prototype hardcoded "THURSDAY 9 OCTOBER" and marked Thursday as today. Both are now
 derived from the real date, and the record runs the school week, Monday to Friday.
 
+**Three tabs: Feed, Profile, Settings.** Setup used to live on the profile — display name,
+username, role, level, ZIP, blocked accounts, account deletion — sitting between the teacher and the
+two things they open that tab to look at. A page about their own week opened on a form about their
+identity. All of it is now Settings, which is configured once and left alone; Profile is trends, the
+habit grid and the self-care list, which are opened daily.
+
 **Three scopes: Everywhere, Near my school, Following.** Everywhere is the default because on day
 one it is the only one with anything in it. Near my school matches the first three digits of the
 school ZIP — roughly a metro or a rural county, which is the scale at which "near me" is true
