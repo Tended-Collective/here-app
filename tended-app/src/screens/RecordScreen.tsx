@@ -4,7 +4,7 @@ import Svg, { Polyline } from 'react-native-svg';
 import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, Divider, MonoLabel, ScreenHeading } from '../components/ui';
 import { todayISO, WEEKDAY_SHORT, weekDates, weekdayName } from '../lib/dates';
-import { LOCKED_TREND, PRICING } from '../data/mock';
+import { FREE_LIST_LIMIT, LOCKED_TREND, PRICING } from '../data/mock';
 import { Entry, useStore } from '../store';
 import { color, font, MOODS, monoLabel, radius } from '../theme';
 
@@ -119,7 +119,7 @@ export function RecordScreen() {
             {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left in your trial.
           </Display>
           <Body style={{ marginTop: 10 }}>
-            The six-week chart below is unlocked, along with term views.
+            Your full history is unlocked, and your list has no cap.
           </Body>
           <Pressable
             accessibilityRole="button"
@@ -131,13 +131,14 @@ export function RecordScreen() {
         </View>
       ) : (
         <View style={styles.plusCard}>
-          <MonoLabel tone={color.accent}>BEYOND SEVEN DAYS</MonoLabel>
+          <MonoLabel tone={color.accent}>BEYOND THIS WEEK</MonoLabel>
           <Display size={27} lineHeight={1.15} style={{ marginTop: 10 }}>
-            Get month and term views.
+            Keep more than seven days.
           </Display>
           <Body style={{ marginTop: 10 }}>
-            The free plan keeps 7 days. Tended+ keeps everything: month and term views, this year
-            against last, the tags behind your hardest days, and a file you can export.
+            The free plan shows this week and holds {FREE_LIST_LIMIT} things on your list. Tended+
+            keeps every check-in you have ever made — month and semester views, this year against
+            last — and lets the list run as long as you want.
           </Body>
           <View style={styles.priceRow}>
             <Text style={styles.price}>{PRICING.price}</Text>

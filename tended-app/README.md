@@ -147,15 +147,40 @@ it is computed on device from data that needs no verification. An unverified tea
 and receive everything the paywall lists, which is why the paywall names no feed benefit: the two
 gates are deliberately independent, one on proof and one on payment.
 
-**Verification is skippable, and gates only posting.** Reading the feed, saving what other
-teachers did, the check-in and the whole personal record all work without it, so a teacher who
-won't use their work address doesn't lose the part that helps them. The composer shows a prompt
-instead, and `VerifySheet` runs the same form from inside the app. `src/components/VerifyForm.tsx`
-is shared by both so the flow, and the promise made beside it, cannot drift.
+**Signing up is required, and the app is no longer anonymous.** Tended held nothing at all for a
+while: no name, no address, and the verification email discarded the moment it was checked. That
+was right for a feed of bad days, where the exposure was a colleague identified complaining about
+their school.
 
-Reading is open because the feed is now the app's front page: gating it would leave an unverified
-teacher looking at nothing. Posting stays gated because that is what keeps the feed teachers
-talking to teachers.
+It is wrong for a feed of what people did for themselves. You cannot follow a stranger, and "left
+at 4:30 and it held for nine days" is worth more when you can see who is saying it. So the account
+keeps a name and the verified work address, posts carry the name, and `VerifyForm` hands the
+address back to its caller rather than dropping it.
+
+What did not change is the line the onboarding now states outright: **your posts are public, your
+record is not.** How a teacher rated Tuesday still never leaves the device. Publishing a post is a
+decision made one post at a time; rating a day is not a publication. The profile shows a grade or
+subject and a district — never the building.
+
+**Following.** `following: string[]` holds author ids; the feed has an Everyone / Following switch
+and every card has a Follow button. This is the replacement for the ZIP heat map, which is gone:
+knowing the building down the road is also having a rough week is not something a teacher can act
+on, and a map of where morale is worst is a dangerous object to have built once someone thinks to
+ask who is in those tiles.
+
+**What Tended+ sells.** Two limits, both on the teacher's own record, neither on the feed:
+
+| | Free | Tended+ |
+|---|---|---|
+| Self-care list | `FREE_LIST_LIMIT` (3) | no cap |
+| Check-in history | this week | everything, with month and semester views |
+
+The feed is not the thing being sold. Reading it, posting to it and reacting are free at every
+tier, because a feed with a paywall across it has no supply and nothing to sell. The cap is
+enforced in the store — `listLimit` / `listFull`, checked in both `addPractice` and `saveToList` —
+so the paywall cannot drift from what the paywall copy claims. Both numbers are set so the free
+plan is genuinely usable: three habits is a real plan and a week is a real check-in, and the reason
+to upgrade arrives from having used the app rather than from being blocked on day one.
 
 **The self-care list.** One editable checklist on the profile, and it is the app's only to-do.
 Items arrive two ways — typed into the row at the bottom of the card, or saved off someone else's
@@ -214,9 +239,15 @@ is a no-op behind `PICKER_CONFIGURED` until it is installed.
 
 **The check-in is one tap.** Five faces, saved on the tap, no button to reach and no confirm step.
 This is a direct answer to the sharpest piece of teacher feedback the project has had — that
-against three uninterrupted minutes in a quiet classroom, a form loses, correctly. Tags are no
-longer collected on the way in; `saveCheckIn` preserves any already stored for the day rather than
-clearing them.
+against three uninterrupted minutes in a quiet classroom, a form loses, correctly.
+
+Tags appear only after a face is tapped, and are never required. The day is already saved by then,
+so skipping them costs nothing; they exist because the weekly insight reads them back, and without
+them it can only ever say which day was heaviest. The list itself was rewritten from a reviewer's
+note: "Parents" read as the teacher's own parents, and "Admin asks" could mean administrative work
+or work the administration asked for. Student behavior and learning needs are now split, because
+they call for opposite responses, and "Something else" exists because forcing a wrong tag corrupts
+the data the others carry.
 
 Reactions are emoji, each keeping its wording as the accessible name so a screen reader says
 "Holding you" rather than reading out a codepoint. 🫂 was the obvious pick for that one and is the

@@ -75,27 +75,27 @@ export const MOODS: Mood[] = [
   { label: 'Rough', emoji: '😞', color: '#b46762', fill: 'rgba(180,103,98,0.5)' }, //      oklch(.6 .1 25)
 ];
 
-export const TAGS = ['Workload', 'No break', 'Behaviour', 'Admin asks', 'Parents', 'Sleep'];
-
-/** Seven-step ramp for the ZIP heatmap tiles. Cell value 0 renders nothing. */
-export const HEAT_RAMP = [
-  'rgba(122,173,132,0.35)',
-  'rgba(122,173,132,0.55)',
-  'rgba(182,172,113,0.5)',
-  'rgba(214,177,125,0.55)',
-  'rgba(207,139,116,0.5)',
-  'rgba(207,139,116,0.65)',
-  'rgba(180,103,98,0.6)',
+/**
+ * What a teacher can name as the cause. Rewritten from a reviewer's note: the
+ * old list had "Parents" (read as the teacher's own parents) and "Admin asks"
+ * (administrative work, or work the administration asked for — nobody could
+ * tell). Student behavior and learning needs are split because they call for
+ * opposite responses, and "Something else" exists because forcing a wrong tag
+ * corrupts the data the others carry.
+ */
+export const TAGS = [
+  'Workload',
+  'School leadership',
+  'Administrative tasks',
+  'Student behavior',
+  'Learning needs',
+  'No break',
+  'Sleep',
+  'Personal life',
+  'Something else',
 ];
 
-/** Steady → rough, for the legend under the heatmap. */
-export const HEAT_LEGEND = [
-  'rgba(122,173,132,0.5)',
-  'rgba(182,172,113,0.5)',
-  'rgba(214,177,125,0.55)',
-  'rgba(207,139,116,0.6)',
-  'rgba(180,103,98,0.65)',
-];
+
 
 export const font = {
   displayLight: 'Newsreader_300Light',

@@ -18,7 +18,7 @@ import { PodcastSection } from '../components/PodcastSection';
 import { useSheets } from '../components/Sheet';
 import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
-import { POSTS, postUrl, SITE } from '../data/mock';
+import { FREE_LIST_LIMIT, POSTS, postUrl, SITE } from '../data/mock';
 import { openLink } from '../lib/links';
 import { WEEKDAY_INITIALS, todayISO, weekDates, weekdayIndex } from '../lib/dates';
 import { useStore } from '../store';
@@ -38,6 +38,10 @@ export function ProfileScreen() {
     educator,
     zip,
     entries,
+    account,
+    following,
+    listFull,
+    plusActive,
   } = useStore();
   const { open } = useSheets();
 
@@ -69,8 +73,13 @@ export function ProfileScreen() {
     <View>
       <MonoLabel>YOUR PROFILE</MonoLabel>
       <Display size={32} style={{ marginTop: 10 }}>
-        Anonymous teacher
+        {account?.name || 'Your account'}
       </Display>
+      {!!account?.email && (
+        <Body size={13} tone={color.muted} style={{ marginTop: 6 }}>
+          {account.email}
+        </Body>
+      )}
 
       <View style={styles.badges}>
         <Pressable
@@ -94,7 +103,7 @@ export function ProfileScreen() {
 
       <View style={styles.tally}>
         <Stat value={String(checkIns)} label={checkIns === 1 ? 'CHECK-IN' : 'CHECK-INS'} />
-        <Stat value={String(practices.length)} label="ON YOUR LIST" />
+        <Stat value={String(following.length)} label="FOLLOWING" />
         <Stat value={String(keptThisWeek)} label="DONE THIS WEEK" />
       </View>
 
@@ -103,7 +112,12 @@ export function ProfileScreen() {
         <RecordScreen />
       </View>
 
-      <MonoLabel style={{ marginTop: 30 }}>MY SELF-CARE LIST</MonoLabel>
+      <View style={styles.listHead}>
+        <MonoLabel>MY SELF-CARE LIST</MonoLabel>
+        <MonoLabel em={0} tone={listFull ? color.accent : color.faint}>
+          {plusActive ? `${practices.length} · TENDED+` : `${practices.length} OF ${FREE_LIST_LIMIT}`}
+        </MonoLabel>
+      </View>
       <Card style={styles.listCard}>
         <View style={styles.dayHeader}>
           <View style={styles.spacer} />
@@ -190,26 +204,45 @@ export function ProfileScreen() {
           );
         })}
 
-        <View style={styles.addRow}>
-          <TextInput
-            value={draft}
-            onChangeText={setDraft}
-            onSubmitEditing={add}
-            placeholder="Add something to your list"
-            placeholderTextColor={color.faint}
-            style={styles.addInput}
-            returnKeyType="done"
-            accessibilityLabel="Add an item to your self-care list"
-          />
+        {/* The free plan's cap. Stated as what it is, with the price of lifting
+            it, rather than as a disabled input with no explanation. */}
+        {listFull ? (
           <Pressable
-            onPress={add}
-            disabled={!draft.trim()}
             accessibilityRole="button"
-            style={[styles.addButton, { opacity: draft.trim() ? 1 : 0.4 }]}
+            accessibilityLabel="Your list is full. See Tended+"
+            onPress={() => open('plus')}
+            style={styles.capRow}
           >
-            <Text style={styles.addButtonLabel}>Add</Text>
+            <View style={styles.capCopy}>
+              <Text style={styles.capTitle}>Your list is full</Text>
+              <Text style={styles.capSub}>
+                The free plan holds {FREE_LIST_LIMIT}. Tended+ holds as many as you want.
+              </Text>
+            </View>
+            <Text style={styles.capArrow}>→</Text>
           </Pressable>
-        </View>
+        ) : (
+          <View style={styles.addRow}>
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              onSubmitEditing={add}
+              placeholder="Add something to your list"
+              placeholderTextColor={color.faint}
+              style={styles.addInput}
+              returnKeyType="done"
+              accessibilityLabel="Add an item to your self-care list"
+            />
+            <Pressable
+              onPress={add}
+              disabled={!draft.trim()}
+              accessibilityRole="button"
+              style={[styles.addButton, { opacity: draft.trim() ? 1 : 0.4 }]}
+            >
+              <Text style={styles.addButtonLabel}>Add</Text>
+            </Pressable>
+          </View>
+        )}
       </Card>
 
       <InviteCard />
@@ -272,6 +305,38 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
+  listHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginTop: 30,
+  },
+  capRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: color.rule,
+  },
+  capCopy: {
+    flex: 1,
+  },
+  capTitle: {
+    fontSize: 14.5,
+    fontWeight: '600',
+    color: color.ink,
+  },
+  capSub: {
+    fontSize: 12.5,
+    lineHeight: 19,
+    color: color.muted,
+    marginTop: 2,
+  },
+  capArrow: {
+    fontSize: 16,
+    color: color.accent,
+  },
   sectionHead: {
     flexDirection: 'row',
     justifyContent: 'space-between',

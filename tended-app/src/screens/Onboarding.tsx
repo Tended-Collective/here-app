@@ -1,15 +1,19 @@
 /**
- * Onboarding — the story first, then what the app needs to work.
+ * Onboarding — the story first, then signing up.
  *
- * Six steps: three that make the case for keeping a record, one that states
- * what happens to it, then the educator check and the setup the design assumed
- * had already happened (its tracker opens with habits "chosen once", its area
- * view needs a ZIP).
+ * Six steps: three that make the case, one that states plainly what is public
+ * and what is not, then the account and the starting list.
  *
  * The order is deliberate. The app asks for a school email address at step 5,
  * and a teacher has every reason to be wary of putting a wellness app on a
- * district-monitored account. Both the reason to bother and the promise about
- * what is kept are made before anything is asked for.
+ * district-monitored account. Both the reason to bother and the split between
+ * what gets published and what never leaves the phone are stated before
+ * anything is asked for.
+ *
+ * Verification is no longer skippable. It was, while the feed was anonymous and
+ * a skipper simply lost access to it. Now that posts carry a name, an account
+ * that has not been checked against a school address would be a stranger in a
+ * feed whose whole value is that everyone in it teaches.
  */
 
 import React, { useState } from 'react';
@@ -17,12 +21,15 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { useChrome } from '../components/PhoneFrame';
 import { Body, Display, MonoLabel } from '../components/ui';
 import { VerifyForm } from '../components/VerifyForm';
-import { PRACTICE_SUGGESTIONS } from '../data/mock';
+import { FREE_LIST_LIMIT, PRACTICE_SUGGESTIONS } from '../data/mock';
 import { useStore } from '../store';
 import { color, radius, SCREEN_PADDING } from '../theme';
 
-/** Enough to be a habit, few enough to keep. */
-const MAX_PRACTICES = 5;
+/**
+ * The free plan's cap, so nobody finishes onboarding holding a list the plan
+ * they are on cannot hold.
+ */
+const MAX_PRACTICES = FREE_LIST_LIMIT;
 
 /**
  * The case for the app, in three slides. Concrete rather than inspirational —
@@ -52,23 +59,27 @@ const STORY = [
   },
 ];
 
-/** The promise, as mechanisms rather than assurances. */
+/**
+ * The promise. Stated as the line between the two halves of the app rather than
+ * as a blanket assurance, because the app now holds a name and a work address
+ * and any claim that it does not would be false.
+ */
 const PROMISES = [
   {
-    title: 'Stored on your device',
-    body: 'How you felt and what you kept are saved locally and never sent to a server. There is no copy of them for anyone to ask us for.',
+    title: 'Your check-ins are private. Always.',
+    body: 'How you rated a day never leaves this phone. Not to us, not to your district, not to the feed. Rating a day is not a publication.',
   },
   {
-    title: 'No account, no email',
-    body: 'Nothing to sign up for. We do not know your name, and we have no way to find out.',
+    title: 'Your posts carry your name',
+    body: 'That is the point of them. You decide one post at a time whether to share something, and you can delete any of them.',
   },
   {
-    title: 'Nothing carries a name',
-    body: 'If you post to the feed it goes out with no name, handle, or account ID attached. A photo is downscaled and stripped of its location data first.',
+    title: 'Your school is never shown',
+    body: 'Your profile says your grade or subject and your district. Never the building you teach in.',
   },
   {
-    title: 'ZIP-level only, never your school',
-    body: 'Area figures group by ZIP code, and a ZIP needs 40+ teachers before it appears at all — so no number can ever be traced to one classroom.',
+    title: 'Your address is for verifying, not mailing',
+    body: 'We check it once to confirm you teach. We do not sell it, rent it, or hand it to your district.',
   },
 ];
 
@@ -81,7 +92,8 @@ export function Onboarding() {
   const { topInset } = useChrome();
   const [step, setStep] = useState(0);
 
-  const [verified, setVerified] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [zip, setZip] = useState('');
   const [chosen, setChosen] = useState<string[]>(PRACTICE_SUGGESTIONS.slice(0, 3));
 
@@ -97,7 +109,7 @@ export function Onboarding() {
           : [...prev, label],
     );
 
-  const finish = () => completeOnboarding({ practices: chosen, zip, verified });
+  const finish = () => completeOnboarding({ name, email, practices: chosen, zip });
   const story = step < STORY.length ? STORY[step] : null;
 
   return (
@@ -123,13 +135,13 @@ export function Onboarding() {
 
         {step === STORY.length && (
           <>
-            <MonoLabel>OUR PROMISE</MonoLabel>
+            <MonoLabel>WHAT IS SHARED</MonoLabel>
             <Display size={29} style={{ marginTop: 12 }}>
-              None of it leaves your phone.
+              Your posts are public. Your record is not.
             </Display>
             <Body size={13.5} tone={color.muted} style={{ marginTop: 10 }}>
-              A record of how work is going is only worth keeping if it cannot be used against you.
-              Here is how that is enforced, not just promised.
+              Tended is two things at once, and they are kept apart on purpose. Here is exactly
+              which is which.
             </Body>
             <View style={styles.promises}>
               {PROMISES.map((p) => (
@@ -141,18 +153,29 @@ export function Onboarding() {
 
         {step === VERIFY_STEP && (
           <>
-            <MonoLabel>VERIFY</MonoLabel>
+            <MonoLabel>CREATE YOUR ACCOUNT</MonoLabel>
             <Display size={29} style={{ marginTop: 12 }}>
-              Verify your school email to join.
+              Sign up with your school email.
             </Display>
             <Body style={{ marginTop: 14 }}>
-              We check your work address once to confirm you are an educator, then delete it. We store
-              only that you verified and the date.
+              Your work address is how we know you teach. Everyone in the feed has done the same,
+              which is the whole reason it is worth reading.
             </Body>
 
+            <MonoLabel style={{ marginTop: 22 }}>YOUR NAME</MonoLabel>
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              placeholder="How you want to appear on posts"
+              placeholderTextColor={color.faint}
+              style={styles.input}
+              autoCapitalize="words"
+              accessibilityLabel="Your name, shown on your posts"
+            />
+
             <VerifyForm
-              onVerified={() => {
-                setVerified(true);
+              onVerified={(address) => {
+                setEmail(address);
                 next();
               }}
             />
@@ -166,9 +189,9 @@ export function Onboarding() {
               Pick what you are trying to keep.
             </Display>
             <Body style={{ marginTop: 14 }}>
-              How you felt is one tap. This is the other half — your self-care list, up to{' '}
-              {MAX_PRACTICES} things you tick off as you do them. Pick ones you could still manage
-              on a bad day. Edit the list any time.
+              How you felt is one tap. This is the other half — your self-care list. Pick up to{' '}
+              {MAX_PRACTICES} things you could still manage on a bad day. You can edit the list any
+              time, and Tended+ lifts the limit.
             </Body>
 
             <View style={styles.chips}>
@@ -213,23 +236,11 @@ export function Onboarding() {
               onPress={finish}
             />
           ) : step === VERIFY_STEP ? (
-            // Skipping is a real choice, so it gets a real button and states what
-            // it costs. The primary action on this step lives inside VerifyForm.
-            <>
-              <Text style={styles.skipNote}>
-                Without verifying you can still read the feed, save what other teachers did, and
-                keep your own record. You will not be able to post, and your check-ins stay out of
-                the area figures.
-              </Text>
-              <Pressable
-                onPress={next}
-                accessibilityRole="button"
-                accessibilityLabel="Skip verification. The nearby feed stays locked."
-                style={styles.secondary}
-              >
-                <Text style={styles.secondaryLabel}>Skip verification</Text>
-              </Pressable>
-            </>
+            // The primary action on this step lives inside VerifyForm. There is
+            // no skip: an unverified account in a named feed is a stranger.
+            <Text style={styles.skipNote}>
+              Enter your name above before requesting a code.
+            </Text>
           ) : (
             <Primary label="Continue" onPress={next} />
           )}

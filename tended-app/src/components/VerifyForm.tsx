@@ -1,10 +1,11 @@
 /**
  * The educator check: school address, then the code sent to it.
  *
- * Shared by onboarding and the prompt the feed shows when someone skipped it,
- * so there is one implementation of a flow that must not drift — and so the
- * promise made beside it ("then the address is discarded") is made in one
- * place. Nothing here writes the address anywhere; see lib/verification.ts.
+ * The verified address is handed back to the caller, which stores it on the
+ * account. It used to be discarded on the spot — correct while the app held no
+ * identity at all, and no longer true now that a post carries a name. The
+ * invite route reports an empty address, because a teacher vouched for by a
+ * colleague's code never gave one.
  */
 
 import React, { useState } from 'react';
@@ -21,7 +22,7 @@ import { format, isWellFormed, redeemInvite } from '../lib/invites';
 import { color, font, radius } from '../theme';
 import { Body, MonoLabel } from './ui';
 
-export function VerifyForm({ onVerified }: { onVerified: () => void }) {
+export function VerifyForm({ onVerified }: { onVerified: (email: string) => void }) {
   // Two routes in. The invite one exists because the email one lands in a
   // district mailbox, which is the objection no promise of ours can answer.
   const [route, setRoute] = useState<'email' | 'invite'>('email');
@@ -43,7 +44,7 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
     }
     setProblem(
       result.reason === 'consumer-domain'
-        ? 'That is a personal email provider. Use your work address, or skip verification.'
+        ? 'That is a personal email provider. Use your work address.'
         : result.reason === 'invalid-email'
           ? 'That address is not formatted correctly.'
           : 'Could not send a code. Try again.',
@@ -56,7 +57,7 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
     const result = await submitCode(code);
     setBusy(false);
     if (result.ok) {
-      onVerified();
+      onVerified(email);
       return;
     }
     setProblem(
@@ -70,7 +71,7 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
     const result = await redeemInvite(invite);
     setBusy(false);
     if (result.ok) {
-      onVerified();
+      onVerified('');
       return;
     }
     setProblem(
@@ -137,7 +138,7 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
           />
           {isPlausibleEmail(email) && !looksLikeEducatorDomain(email) && !problem && (
             <Text style={styles.hint}>
-              We do not recognise that domain as a school, but districts use all sorts — lausd.net,
+              We do not recognize that domain as a school, but districts use all sorts — lausd.net,
               houstonisd.org, k12.dc.gov. Send the code and see if it arrives.
             </Text>
           )}
@@ -148,7 +149,7 @@ export function VerifyForm({ onVerified }: { onVerified: () => void }) {
           <Text style={styles.hint}>
             This goes to your work inbox, which your district can usually see. The email reads only
             “Your Tended code is …” and does not say what the app does. To avoid it entirely, use an
-            invite code or skip verification.
+            invite code from a colleague instead.
           </Text>
         </>
       ) : (

@@ -9,7 +9,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { TRIAL_DAYS } from './data/mock';
+import { FREE_LIST_LIMIT, TRIAL_DAYS } from './data/mock';
 import { ISODate, todayISO, weekDates, weekdayIndex } from './lib/dates';
 import { generateInviteCode, INVITES_PER_TEACHER } from './lib/invites';
 
@@ -100,11 +100,22 @@ type Persisted = {
   /** Null until onboarding is finished; the app opens on it while it is. */
   onboardedAt: number | null;
   /**
-   * All that survives verification. Not the address and not the domain — a
-   * school domain names a building, and a building plus a daily mood is most of
-   * the way to naming a person. See lib/verification.ts.
+   * The account. Tended used to hold nothing at all — no name, no address, and
+   * the verification email was discarded the moment it was checked.
+   *
+   * That changed when the feed became the product. A feed you can follow people
+   * on needs people, and a teacher deciding whether to copy someone's boundary
+   * is entitled to know whose it is. So the app now keeps a name and the work
+   * address it was verified against.
+   *
+   * What did not change: the check-in record. How a teacher rated Tuesday is
+   * still theirs alone and still never leaves the device. Publishing a post is
+   * a decision they make one post at a time; rating a day is not a publication.
    */
+  account: { name: string; email: string } | null;
   educator: { verified: boolean; verifiedAt: number | null };
+  /** Author ids this teacher follows. See AUTHORS in data/mock.ts. */
+  following: string[];
   /** The unit the area view aggregates on. Given during onboarding. */
   zip: string | null;
   /** Codes this teacher has handed out. Capped by INVITES_PER_TEACHER. */
@@ -129,7 +140,9 @@ const EMPTY: Persisted = {
   reactions: {},
   plus: { trialStartedAt: null },
   onboardedAt: null,
+  account: null,
   educator: { verified: false, verifiedAt: null },
+  following: [],
   zip: null,
   invites: [],
   boundaries: [],
@@ -178,6 +191,14 @@ type StoreValue = Persisted & {
   hydrated: boolean;
   /** True while the trial has days left on it. */
   plusActive: boolean;
+  /**
+   * How many list items this plan allows. The free plan stops at three; Tended+
+   * does not stop. Enforced in one place so the paywall cannot drift from what
+   * the paywall copy claims.
+   */
+  listLimit: number;
+  /** True when the list is full and the next item needs Tended+. */
+  listFull: boolean;
   /** Whole days remaining, 0 when there is no trial. */
   trialDaysLeft: number;
   /** Tags are optional: the feed asks the question with faces and nothing else. */
@@ -194,10 +215,17 @@ type StoreValue = Persisted & {
   toggleReaction: (updateId: string, reactionId: string) => void;
   startTrial: () => void;
   endTrial: () => void;
-  /** Finishes onboarding: the practices chosen, the ZIP, whether they verified. */
-  completeOnboarding: (input: { practices: string[]; zip: string; verified: boolean }) => void;
-  /** For "verify later" — the feed and area view ask again from inside the app. */
-  setVerified: (verified: boolean) => void;
+  /** Finishes onboarding: who they are, the list they chose, and the ZIP. */
+  completeOnboarding: (input: {
+    name: string;
+    email: string;
+    practices: string[];
+    zip: string;
+  }) => void;
+  follow: (authorId: string) => void;
+  unfollow: (authorId: string) => void;
+  /** For an account that verifies from inside the app rather than at sign-up. */
+  setVerified: (verified: boolean, email?: string) => void;
   /** Mints one more invite, up to the cap. */
   createInvite: () => void;
   /** Writes the whole plan at once, as the builder produces it. */
@@ -266,6 +294,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       hydrated,
       plusActive: daysLeft > 0,
       trialDaysLeft: daysLeft,
+      listLimit: daysLeft > 0 ? Infinity : FREE_LIST_LIMIT,
+      listFull: daysLeft <= 0 && data.practices.length >= FREE_LIST_LIMIT,
       saveCheckIn: (score, tags) =>
         update((prev) => {
           const date = todayISO();
@@ -292,6 +322,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         update((prev) => {
           const trimmed = label.trim();
           if (!trimmed) return prev;
+          if (daysLeft <= 0 && prev.practices.length >= FREE_LIST_LIMIT) return prev;
           const id = `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
           const tint = PRACTICE_PALETTE[prev.practices.length % PRACTICE_PALETTE.length];
           return { ...prev, practices: [...prev.practices, { id, label: trimmed, ...tint }] };
@@ -354,12 +385,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             : { ...prev, plus: { trialStartedAt: Date.now() } },
         ),
       endTrial: () => update((prev) => ({ ...prev, plus: { trialStartedAt: null } })),
-      completeOnboarding: ({ practices: labels, zip, verified }) =>
+      completeOnboarding: ({ name, email, practices: labels, zip }) =>
         update((prev) => ({
           ...prev,
           onboardedAt: Date.now(),
           zip: zip.trim() || null,
-          educator: { verified, verifiedAt: verified ? Date.now() : null },
+          account: { name: name.trim(), email: email.trim() },
+          educator: { verified: true, verifiedAt: Date.now() },
           practices: labels.map((label, i) => ({
             id: `p${i}${Date.now().toString(36)}`,
             label,
@@ -369,10 +401,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           // are keyed to practices that no longer exist.
           practiceDays: {},
         })),
-      setVerified: (verified) =>
+      setVerified: (verified, email) =>
         update((prev) => ({
           ...prev,
           educator: { verified, verifiedAt: verified ? Date.now() : null },
+          account:
+            verified && email
+              ? { name: prev.account?.name ?? '', email }
+              : prev.account,
         })),
       savePlan: ({ boundaries, habits, contacts }) =>
         update((prev) => {
@@ -414,6 +450,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         update((prev) => {
           const trimmed = label.trim();
           if (!trimmed || prev.practices.some((p) => p.label === trimmed)) return prev;
+          // The cap is the product. Saving from the feed is the most common way
+          // to hit it, so it is enforced here as well as on the typed input.
+          if (daysLeft <= 0 && prev.practices.length >= FREE_LIST_LIMIT) return prev;
           return {
             ...prev,
             practices: [
@@ -432,6 +471,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           boundaries: prev.boundaries.map((b) =>
             b.id === id ? { ...b, active: !b.active } : b,
           ),
+        })),
+      follow: (authorId) =>
+        update((prev) =>
+          prev.following.includes(authorId)
+            ? prev
+            : { ...prev, following: [...prev.following, authorId] },
+        ),
+      unfollow: (authorId) =>
+        update((prev) => ({
+          ...prev,
+          following: prev.following.filter((id) => id !== authorId),
         })),
       createInvite: () =>
         update((prev) =>

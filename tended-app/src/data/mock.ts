@@ -1,6 +1,13 @@
 /**
  * Fixed sample content. None of this is the user's own data — it stands in for
- * what a backend would return for the area view and the reading list.
+ * what a backend would return for the feed and the reading list.
+ *
+ * The ZIP heat map's data used to live here: a grid of tiles shaded by how
+ * teachers in each ZIP rated their week, plus the causes they named. It is
+ * gone. Knowing that the building down the road is also having a rough week is
+ * not something a teacher can act on, and a map of where morale is worst is a
+ * dangerous object to have built once anyone thinks to ask who is in those
+ * tiles. What replaced it is a feed of things that worked, with names on them.
  */
 
 /**
@@ -46,39 +53,6 @@ export function podcastUrl(showId: string | null = PODCAST_SHOW_ID): string {
  */
 export const postUrl = (slug: string) => `${SITE.blog}/${slug}`;
 
-/** 6 rows × 8 columns of ZIP tiles. 0 renders as a gap; 1–7 index HEAT_RAMP. */
-export const HEAT_CELLS: number[][] = [
-  [0, 0, 2, 3, 2, 1, 0, 0],
-  [0, 2, 4, 5, 3, 2, 1, 0],
-  [1, 3, 6, 6, 5, 3, 2, 1],
-  [2, 5, 6, 7, 4, 3, 2, 1],
-  [0, 3, 4, 4, 3, 2, 2, 0],
-  [0, 0, 2, 3, 2, 1, 0, 0],
-];
-
-/**
- * Figures around the map. Still sample content standing in for a backend — the
- * app has no other teachers' data to count.
- *
- * The two sentences that used to sit on the ZIP card are gone: "71% logged a
- * hard day this week" and "most named the same two things you did" read as
- * findings drawn from the data under them, and would have kept reading that way
- * however the week actually went, because nothing computed them.
- */
-export const AREA = {
-  totalTeachers: '4,182',
-  zip: '47404',
-  zipTeachers: '128 TEACHERS',
-};
-
-/** What people named here — share of check-ins, and the ramp colour it maps to. */
-export const NAMED_CAUSES = [
-  { label: 'Workload', share: 0.88, color: 'rgba(180,103,98,0.6)' },
-  { label: 'No break in the day', share: 0.71, color: 'rgba(207,139,116,0.6)' },
-  { label: 'Student behavior', share: 0.54, color: 'rgba(214,177,125,0.7)' },
-  { label: 'Admin asks', share: 0.41, color: 'rgba(182,172,113,0.7)' },
-];
-
 /**
  * The three ways to answer someone else's update. Reactions are the only
  * response the feed allows: there are no replies and no free-text answers, so a
@@ -97,8 +71,37 @@ export const REACTIONS = [
 
 export type ReactionId = (typeof REACTIONS)[number]['id'];
 
+/**
+ * Who posted. The feed used to carry nothing at all — no name, no handle — and
+ * that was the right call for a feed of bad days, where the risk was a
+ * colleague being identified complaining about their school.
+ *
+ * A feed of what people did for themselves is a different object. You cannot
+ * follow someone who has no name, and "left at 4:30 and it held for nine days"
+ * is worth more when you know who is saying it and can watch whether they keep
+ * it up. The check-in record stays private either way: what a teacher posts is
+ * theirs to publish, how they rated Tuesday is not.
+ */
+export type FeedAuthor = {
+  id: string;
+  name: string;
+  /** Grade or subject, and the district. Never the school building. */
+  role: string;
+};
+
+export const AUTHORS: Record<string, FeedAuthor> = {
+  t1: { id: 't1', name: 'Marisa Okonjo', role: '4th grade · DCPS' },
+  t2: { id: 't2', name: 'Dana Whitfield', role: 'HS Biology · PGCPS' },
+  t3: { id: 't3', name: 'Theo Ramirez', role: 'MS Math · DCPS' },
+  t4: { id: 't4', name: 'Priya Raghunathan', role: 'Special Education · ACPS' },
+  t5: { id: 't5', name: 'Jonah Feld', role: '2nd grade · MCPS' },
+  t6: { id: 't6', name: 'Amara Bell', role: 'HS English · DCPS' },
+};
+
 export type FeedUpdate = {
   id: string;
+  /** Index into AUTHORS. */
+  authorId: string;
   /**
    * One thing a teacher did for themselves, written so another teacher could
    * do the same. This is the whole point of the feed: you should be able to
@@ -107,7 +110,7 @@ export type FeedUpdate = {
   text: string;
   /** How long they have held it. Evidence that it is possible, not a score. */
   streak?: string;
-  /** Distance and time. */
+  /** How long ago. */
   meta: string;
   /** Tint, so the feed still reads at a glance. */
   dot: string;
@@ -143,34 +146,38 @@ const SAMPLE_PHOTO_SUNDAY =
 export const NEARBY_UPDATES: FeedUpdate[] = [
   {
     id: '1',
+    authorId: 't1',
     text: 'Left at 4:30 and did the grading at home with the TV on.',
     streak: 'HELD 9 DAYS',
-    meta: '3 MILES · 40 MIN AGO',
+    meta: '40 MIN AGO',
     dot: 'rgba(117,174,129,0.65)',
     reactions: { felt: 14, holding: 3, same: 6 },
   },
   {
     id: '2',
+    authorId: 't2',
     text: 'Ate lunch in the park instead of at my desk.',
     streak: 'KEPT 4 DAYS',
-    meta: '6 MILES · 2 HR AGO',
+    meta: '2 HR AGO',
     dot: 'rgba(120,180,152,0.65)',
     photo: SAMPLE_PHOTO_PARK,
     reactions: { felt: 21, same: 9 },
   },
   {
     id: '3',
+    authorId: 't3',
     text: 'Said no to covering another class this week.',
     streak: 'FIRST TIME',
-    meta: '4 MILES · 3 HR AGO',
+    meta: '3 HR AGO',
     dot: 'rgba(112,180,168,0.65)',
     reactions: { felt: 30, holding: 11, same: 4 },
   },
   {
     id: '4',
+    authorId: 't4',
     text: 'Phone goes in a drawer at 7pm and stays there.',
     streak: 'HELD 12 DAYS',
-    meta: '9 MILES · 5 HR AGO',
+    meta: '5 HR AGO',
     dot: 'rgba(108,178,184,0.6)',
     photo: SAMPLE_PHOTO_DRAWER,
     reactions: { felt: 17, holding: 2, same: 12 },
@@ -178,34 +185,47 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
 ];
 
 /**
- * How much of the feed the free tier sees. Reacting stays free at any tier —
- * encouraging someone who did the hard thing is not something to charge for —
- * but posting and the rest of the feed are part of Tended+.
+ * What the free plan holds.
+ *
+ * The feed is not the thing being sold. Reading it, posting to it and reacting
+ * are all free at every tier, because a feed with a paywall across it has no
+ * supply and nothing to sell. What Tended+ buys is depth in the teacher's own
+ * record: a list longer than three lines, and a history longer than this week.
+ *
+ * Both limits are chosen so the free plan is genuinely usable — three habits is
+ * a real plan, and a week is a real check-in — and so the reason to upgrade
+ * arrives from having used the app rather than from being blocked on day one.
  */
-export const FREE_FEED_VIEWS = 3;
+export const FREE_LIST_LIMIT = 3;
+
+/** Days of check-in history the free plan can see. */
+export const FREE_HISTORY_DAYS = 7;
 
 /** Behind "See the last hour" — older than the four above, same shape. */
 export const LAST_HOUR_UPDATES: FeedUpdate[] = [
   {
     id: '5',
+    authorId: 't5',
     text: 'Walked the long way to the car. Fifteen minutes, no phone.',
     streak: 'KEPT 6 DAYS',
-    meta: '12 MILES · 6 HR AGO',
+    meta: '6 HR AGO',
     dot: 'rgba(120,180,152,0.65)',
     reactions: { felt: 12, same: 7 },
   },
   {
     id: '6',
+    authorId: 't6',
     text: 'Booked the therapy appointment I had been putting off since March.',
-    meta: '2 MILES · 7 HR AGO',
+    meta: '7 HR AGO',
     dot: 'rgba(117,174,129,0.65)',
     reactions: { felt: 41, holding: 9, same: 3 },
   },
   {
     id: '7',
+    authorId: 't1',
     text: 'No school work before noon on Sundays.',
     streak: 'HELD 3 WEEKS',
-    meta: '7 MILES · 8 HR AGO',
+    meta: '8 HR AGO',
     dot: 'rgba(112,175,197,0.6)',
     photo: SAMPLE_PHOTO_SUNDAY,
     reactions: { felt: 9, holding: 4, same: 15 },
@@ -324,11 +344,11 @@ export const BOUNDARY_SUGGESTIONS = [
   'Decline meetings without an agenda',
 ];
 
-/** What the paywall says you get. The first three are what the design promised. */
+/** What the paywall says you get. */
 export const PLUS_BENEFITS = [
-  'Month and term views, not just the last seven days',
-  'Compare this year against last',
-  'See which tags drive your hardest days',
+  'A self-care list as long as you want, not three items',
+  'Every check-in you have ever made, not just this week',
+  'Month and semester views, and this year against last',
   'Export your full record as a file',
 ];
 

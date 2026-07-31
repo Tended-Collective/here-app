@@ -17,7 +17,7 @@ export function VerifySheet({
 }: {
   visible: boolean;
   onClose: () => void;
-  onVerified: () => void;
+  onVerified: (email: string) => void;
 }) {
   return (
     <SheetShell visible={visible} onClose={onClose}>
@@ -31,8 +31,8 @@ export function VerifySheet({
           only that you verified and the date.
         </Body>
         <VerifyForm
-          onVerified={() => {
-            onVerified();
+          onVerified={(email) => {
+            onVerified(email);
             onClose();
           }}
         />

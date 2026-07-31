@@ -72,7 +72,7 @@ function Sheets() {
       <VerifySheet
         visible={current === 'verify'}
         onClose={close}
-        onVerified={() => setVerified(true)}
+        onVerified={(email) => setVerified(true, email)}
       />
       <PlusSheet
         visible={current === 'plus'}

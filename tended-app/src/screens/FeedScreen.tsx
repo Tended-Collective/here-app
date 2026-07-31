@@ -12,9 +12,14 @@
  * the tool." So the tool costs one tap, there is no save button to reach, and
  * what comes back is other teachers' actual moves rather than advice.
  *
- * Two guardrails from the original design survive. Nothing carries a name, and
- * there are no replies — a reaction is the whole vocabulary, so the feed cannot
- * turn into somewhere to argue or to talk about a colleague.
+ * Posts carry the teacher's name now. The anonymity was right for a feed of bad
+ * days, where the exposure was a colleague identified complaining about their
+ * school; it is wrong for a feed of what people did for themselves, because you
+ * cannot follow a stranger and a boundary is worth more when you can see who is
+ * holding it and for how long. The check-in above stays private regardless.
+ *
+ * The other guardrail survives: there are no replies. A reaction is the whole
+ * vocabulary, so the feed cannot turn into somewhere to argue.
  */
 
 import React, { useState } from 'react';
@@ -22,11 +27,17 @@ import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View 
 import { PlacementCard, withPlacements } from '../components/Placements';
 import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
-import { FeedUpdate, LAST_HOUR_UPDATES, NEARBY_UPDATES, REACTIONS } from '../data/mock';
+import {
+  AUTHORS,
+  FeedUpdate,
+  LAST_HOUR_UPDATES,
+  NEARBY_UPDATES,
+  REACTIONS,
+} from '../data/mock';
 import { longDateLabel, timeAgoLabel, todayISO } from '../lib/dates';
 import { PICKER_CONFIGURED, pickPhoto } from '../lib/photo';
 import { Update, UPDATE_MAX_LENGTH, useStore } from '../store';
-import { color, MOODS, radius } from '../theme';
+import { color, MOODS, radius, TAGS } from '../theme';
 
 export function FeedScreen() {
   const {
@@ -40,16 +51,24 @@ export function FeedScreen() {
     practices,
     saveToList,
     educator,
+    account,
+    following,
+    follow,
+    unfollow,
+    listFull,
+    plusActive,
   } = useStore();
   const { open } = useSheets();
 
   const today = todayISO();
   const mood = entries[today]?.score ?? null;
+  const tags = entries[today]?.tags ?? [];
 
   const [draft, setDraft] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const [scope, setScope] = useState<'following' | 'everyone'>('everyone');
 
   // What is already on the list, so a row can say so instead of saving twice.
   const onList = new Set(practices.map((p) => p.label));
@@ -68,7 +87,8 @@ export function FeedScreen() {
     setPhoto(null);
   };
 
-  const feed = showMore ? [...NEARBY_UPDATES, ...LAST_HOUR_UPDATES] : NEARBY_UPDATES;
+  const all = showMore ? [...NEARBY_UPDATES, ...LAST_HOUR_UPDATES] : NEARBY_UPDATES;
+  const feed = scope === 'following' ? all.filter((u) => following.includes(u.authorId)) : all;
   const left = UPDATE_MAX_LENGTH - draft.length;
 
   return (
@@ -102,6 +122,32 @@ export function FeedScreen() {
       <Text style={styles.moodCaption}>
         {mood === null ? 'Tap one. That is the whole check-in.' : `Saved — ${MOODS[mood - 1].label}.`}
       </Text>
+
+      {/* Only after a face is tapped, and never required. The check-in is one
+          tap; this is the second tap for anyone who wants the record to say
+          why, which is what the weekly insight reads back. Skipping it costs
+          nothing and the day is already saved. */}
+      {mood !== null && (
+        <View style={styles.tags}>
+          {TAGS.map((tag) => {
+            const on = tags.includes(tag);
+            return (
+              <Pressable
+                key={tag}
+                onPress={() =>
+                  saveCheckIn(mood, on ? tags.filter((t) => t !== tag) : [...tags, tag])
+                }
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: on }}
+                accessibilityLabel={`${tag} affected today`}
+                style={[styles.tag, on && styles.tagOn]}
+              >
+                <Text style={[styles.tagLabel, on && styles.tagLabelOn]}>{tag}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
 
       {/* The composer. Posting is the app's supply of content, so it is not
           gated on Tended+ — only on having shown you teach, which is what keeps
@@ -183,9 +229,43 @@ export function FeedScreen() {
         </Pressable>
       )}
 
-      {updates.map((u) => (
-        <OwnPost key={u.id} update={u} onRemove={() => removeUpdate(u.id)} />
-      ))}
+      <View style={styles.scope}>
+        {(['everyone', 'following'] as const).map((key) => {
+          const on = scope === key;
+          return (
+            <Pressable
+              key={key}
+              onPress={() => setScope(key)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: on }}
+              style={[styles.scopeTab, on && styles.scopeTabOn]}
+            >
+              <Text style={[styles.scopeLabel, on && styles.scopeLabelOn]}>
+                {key === 'everyone' ? 'Everyone' : `Following${following.length ? ` · ${following.length}` : ''}`}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {scope === 'everyone' &&
+        updates.map((u) => (
+          <OwnPost
+            key={u.id}
+            update={u}
+            name={account?.name || 'You'}
+            onRemove={() => removeUpdate(u.id)}
+          />
+        ))}
+
+      {scope === 'following' && feed.length === 0 && (
+        <Card style={styles.empty}>
+          <Text style={styles.emptyTitle}>You are not following anyone yet</Text>
+          <Text style={styles.emptySub}>
+            Tap Follow on a teacher whose posts you want to keep seeing. Their posts show up here.
+          </Text>
+        </Card>
+      )}
 
       {/* Posts with the placement rack dealt in — the Tended Collective shelf
           first, then the sold slots. See components/Placements.tsx. */}
@@ -196,8 +276,15 @@ export function FeedScreen() {
             update={row.post}
             mine={reactions[row.post.id] ?? []}
             saved={onList.has(row.post.text)}
-            onSave={() => saveToList(row.post.text)}
+            locked={listFull && !onList.has(row.post.text)}
+            onSave={() => (listFull ? open('plus') : saveToList(row.post.text))}
             onReact={(id) => toggleReaction(row.post.id, id)}
+            following={following.includes(row.post.authorId)}
+            onFollow={() =>
+              following.includes(row.post.authorId)
+                ? unfollow(row.post.authorId)
+                : follow(row.post.authorId)
+            }
           />
         ) : (
           <PlacementCard key={`p${i}`} placement={row.placement} />
@@ -219,14 +306,25 @@ export function FeedScreen() {
 }
 
 /** This teacher's own post. Nobody else's reactions are simulated onto it. */
-function OwnPost({ update, onRemove }: { update: Update; onRemove: () => void }) {
+function OwnPost({
+  update,
+  name,
+  onRemove,
+}: {
+  update: Update;
+  name: string;
+  onRemove: () => void;
+}) {
   return (
     <Card style={styles.card}>
       <View style={styles.cardHead}>
         <View style={[styles.dot, styles.dotMine]} />
-        <MonoLabel size={9.5} em={0.08} tone={color.faint}>
-          YOU · {timeAgoLabel(update.at)}
-        </MonoLabel>
+        <View style={styles.who}>
+          <Text style={styles.whoName}>{name}</Text>
+          <MonoLabel size={9} em={0.08} tone={color.faint}>
+            YOU · {timeAgoLabel(update.at)}
+          </MonoLabel>
+        </View>
         <View style={styles.headSpacer} />
         <Pressable
           onPress={onRemove}
@@ -250,23 +348,53 @@ function FeedCard({
   update,
   mine,
   saved,
+  locked,
   onSave,
   onReact,
+  following,
+  onFollow,
 }: {
   update: FeedUpdate;
   mine: string[];
   saved: boolean;
+  locked: boolean;
   onSave: () => void;
   onReact: (reactionId: string) => void;
+  following: boolean;
+  onFollow: () => void;
 }) {
+  const author = AUTHORS[update.authorId];
+
   return (
     <Card style={styles.card}>
       <View style={styles.cardHead}>
-        <View style={[styles.dot, { backgroundColor: update.dot }]} />
-        <MonoLabel size={9.5} em={0.08} tone={color.faint}>
-          {update.streak ? `${update.streak} · ${update.meta}` : update.meta}
-        </MonoLabel>
+        <View style={[styles.avatar, { backgroundColor: update.dot }]}>
+          <Text style={styles.avatarLetter}>{author?.name.slice(0, 1) ?? '?'}</Text>
+        </View>
+        <View style={styles.who}>
+          <Text style={styles.whoName}>{author?.name ?? 'A teacher'}</Text>
+          <MonoLabel size={9} em={0.08} tone={color.faint}>
+            {author?.role}
+          </MonoLabel>
+        </View>
+        <Pressable
+          onPress={onFollow}
+          accessibilityRole="button"
+          accessibilityState={{ selected: following }}
+          accessibilityLabel={
+            following ? `Unfollow ${author?.name}` : `Follow ${author?.name}`
+          }
+          style={[styles.follow, following && styles.followOn]}
+        >
+          <Text style={[styles.followLabel, following && styles.followLabelOn]}>
+            {following ? 'Following' : 'Follow'}
+          </Text>
+        </Pressable>
       </View>
+
+      <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 8 }}>
+        {update.streak ? `${update.streak} · ${update.meta}` : update.meta}
+      </MonoLabel>
 
       <Text style={styles.text}>{update.text}</Text>
       {update.photo && (
@@ -305,11 +433,17 @@ function FeedCard({
         onPress={onSave}
         disabled={saved}
         accessibilityRole="button"
-        accessibilityLabel={saved ? 'Already on your list' : `Save "${update.text}" to your list`}
+        accessibilityLabel={
+          saved
+            ? 'Already on your list'
+            : locked
+              ? 'Your list is full. Tended+ for an unlimited list'
+              : `Save "${update.text}" to your list`
+        }
         style={[styles.save, saved && styles.saveDone]}
       >
         <Text style={[styles.saveLabel, saved && styles.saveLabelDone]}>
-          {saved ? '✓ On your list' : '+ Save to my list'}
+          {saved ? '✓ On your list' : locked ? 'List full · Tended+' : '+ Save to my list'}
         </Text>
       </Pressable>
     </Card>
@@ -340,6 +474,32 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     color: color.label,
     marginTop: 10,
+  },
+  tags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 12,
+  },
+  tag: {
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: color.outline,
+    justifyContent: 'center',
+  },
+  tagOn: {
+    backgroundColor: color.ink,
+    borderColor: color.ink,
+  },
+  tagLabel: {
+    fontSize: 13,
+    color: color.body,
+  },
+  tagLabelOn: {
+    color: '#fff',
+    fontWeight: '600',
   },
   composer: {
     marginTop: 22,
@@ -430,6 +590,87 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: color.muted,
     marginTop: 4,
+  },
+  scope: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 22,
+  },
+  scopeTab: {
+    height: 34,
+    paddingHorizontal: 15,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: color.outline,
+    justifyContent: 'center',
+  },
+  scopeTabOn: {
+    backgroundColor: color.ink,
+    borderColor: color.ink,
+  },
+  scopeLabel: {
+    fontSize: 13.5,
+    color: color.body,
+  },
+  scopeLabelOn: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  empty: {
+    marginTop: 12,
+    padding: 16,
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: color.ink,
+  },
+  emptySub: {
+    fontSize: 12.5,
+    lineHeight: 19,
+    color: color.muted,
+    marginTop: 4,
+  },
+  avatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 99,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarLetter: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  who: {
+    flex: 1,
+    gap: 2,
+  },
+  whoName: {
+    fontSize: 14.5,
+    fontWeight: '600',
+    color: color.ink,
+  },
+  follow: {
+    height: 30,
+    paddingHorizontal: 13,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: color.accentBorderSoft,
+    justifyContent: 'center',
+  },
+  followOn: {
+    borderColor: color.outline,
+  },
+  followLabel: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: color.accent,
+  },
+  followLabelOn: {
+    fontWeight: '400',
+    color: color.faint,
   },
   card: {
     marginTop: 12,
