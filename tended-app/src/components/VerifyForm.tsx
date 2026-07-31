@@ -9,6 +9,15 @@
  * simpler to trust.
  *
  * The verified address is handed back to the caller and stored on the account.
+ *
+ * The screen carries no explanation of its own beyond the sub-header and the
+ * privacy line. Two blocks used to sit here — a paragraph about what a district
+ * can see in its mail logs, and a NOT CONNECTED banner announcing that any
+ * six-digit code passes. The first answered a question nobody had asked yet and
+ * argued against the very step it was attached to; the second was scaffolding
+ * for whoever is building this, printed on the screen a teacher signs up on.
+ * `PROVIDER_CONFIGURED` in lib/verification.ts is still the flag, and any
+ * six-digit code still passes while it is false — it just no longer says so.
  */
 
 import React, { useState } from 'react';
@@ -17,12 +26,10 @@ import {
   CODE_LENGTH,
   isPlausibleEmail,
   looksLikeEducatorDomain,
-  PROVIDER_CONFIGURED,
   requestCode,
   submitCode,
 } from '../lib/verification';
 import { color, font, radius } from '../theme';
-import { Body, MonoLabel } from './ui';
 
 export function VerifyForm({ onVerified }: { onVerified: (email: string) => void }) {
   const [email, setEmail] = useState('');
@@ -92,14 +99,6 @@ export function VerifyForm({ onVerified }: { onVerified: (email: string) => void
               houstonisd.org, k12.dc.gov. Send the code and see if it arrives.
             </Text>
           )}
-
-          {/* The one part of this we cannot control sits on the district's mail
-              server. Naming it is worth more than any promise we could make
-              about our own storage. */}
-          <Text style={styles.hint}>
-            This goes to your work inbox, which your district can usually see. The email reads only
-            “Your Tended code is …” and does not say what the app does.
-          </Text>
         </>
       ) : (
         <>
@@ -125,17 +124,6 @@ export function VerifyForm({ onVerified }: { onVerified: (email: string) => void
 
       {problem && <Text style={styles.problem}>{problem}</Text>}
 
-
-      {!PROVIDER_CONFIGURED && (
-        <View style={styles.notice}>
-          <MonoLabel size={9} em={0.1} tone={color.muted}>
-            NOT CONNECTED
-          </MonoLabel>
-          <Body size={12} lineHeight={1.55} tone={color.muted} style={{ marginTop: 5 }}>
-            No mail is sent yet. Any {CODE_LENGTH}-digit code will pass.
-          </Body>
-        </View>
-      )}
     </View>
   );
 }
@@ -198,14 +186,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: color.muted,
     paddingVertical: 10,
-  },
-  notice: {
-    marginTop: 20,
-    padding: 13,
-    borderRadius: radius.row,
-    borderWidth: 1,
-    borderColor: color.outline,
-    backgroundColor: color.card,
   },
   primary: {
     height: 52,
