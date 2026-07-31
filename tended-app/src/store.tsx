@@ -12,7 +12,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { FREE_LIST_LIMIT, TRIAL_DAYS } from './data/mock';
 import { normalizeUsername } from './lib/usernames';
 import { normalizeZip, stateForZip } from './lib/zip';
-import { ISODate, todayISO, weekDates, weekdayIndex } from './lib/dates';
+import { ISODate, todayISO, weekDates, weekdayIndex, weekStarts } from './lib/dates';
 
 const STORAGE_KEY = 'tended.v1';
 
@@ -28,6 +28,15 @@ export type Practice = {
   label: string;
   fill: string;
   border: string;
+  /**
+   * The day it went on the list. Needed because a lifetime count means nothing
+   * without a denominator — "34 times" reads as a lot or a little depending
+   * entirely on whether it has been three weeks or three terms.
+   *
+   * Optional because installs from before this field exists have practices
+   * without it; `migrate` backfills from the earliest tick.
+   */
+  startedAt?: ISODate;
 };
 
 /**
@@ -51,10 +60,13 @@ const PRACTICE_PALETTE: { fill: string; border: string }[] = [
 
 /** The three practices the user set up during onboarding — the seed default. */
 function defaultPractices(): Practice[] {
+  // Five weeks back, so the sample list has a plausible history behind it
+  // rather than claiming to have started today.
+  const started = weekStarts(5)[0];
   return [
-    { id: 'lunch', label: 'Eat lunch sitting down', ...PRACTICE_PALETTE[0] },
-    { id: 'leave', label: 'Out of the building by 4', ...PRACTICE_PALETTE[1] },
-    { id: 'outside', label: 'Twenty minutes outside', ...PRACTICE_PALETTE[2] },
+    { id: 'lunch', label: 'Eat lunch sitting down', startedAt: started, ...PRACTICE_PALETTE[0] },
+    { id: 'leave', label: 'Out of the building by 4', startedAt: started, ...PRACTICE_PALETTE[1] },
+    { id: 'outside', label: 'Twenty minutes outside', startedAt: started, ...PRACTICE_PALETTE[2] },
   ];
 }
 
@@ -259,6 +271,21 @@ function migrate(data: Persisted): Persisted {
     educator: { verified: data.educator.verified, verifiedAt: data.educator.verifiedAt },
   };
 
+  // A list item from before `startedAt` existed: date it from its earliest tick,
+  // which is the first day we can prove it was on the list. An item never ticked
+  // gets today — inventing a start date earlier than any evidence would make the
+  // "34× since" line a guess presented as a record.
+  if (data.practices.some((p) => !p.startedAt)) {
+    data = {
+      ...data,
+      practices: data.practices.map((p) => {
+        if (p.startedAt) return p;
+        const ticks = [...(data.practiceDays[p.id] ?? [])].sort();
+        return { ...p, startedAt: ticks[0] ?? todayISO() };
+      }),
+    };
+  }
+
   const account = data.account as (typeof data.account & { shown?: Record<string, unknown> }) | null;
   if (!account?.shown) return data;
 
@@ -306,8 +333,13 @@ function migrate(data: Persisted): Persisted {
 }
 
 /**
- * First-run sample week, so a fresh install opens on the record the design shows
- * rather than an empty chart. Set to false for a genuinely blank first run.
+ * First-run sample data, so a fresh install opens on the record the design shows
+ * rather than an empty chart.
+ *
+ * This is a demo flag and nothing else. It fabricates a week of check-ins and six
+ * weeks of habit ticks that the person holding the phone did not make, and
+ * presents both as their own record — which is fine for reviewing the design and
+ * indefensible in the hands of a real user. **Set it to false before shipping.**
  */
 const SEED_FIRST_RUN = true;
 
@@ -334,10 +366,35 @@ function seed(): Persisted {
     [true, true, true, true, false, false, false],
     [false, true, false, false, false, false, false],
   ];
+
+  /**
+   * How many days each practice was kept in each of the five weeks before this
+   * one, oldest first. Three different shapes on purpose, because the six-week
+   * strip is only worth showing if it can say different things:
+   *
+   *   lunch   — kept, then a week with nothing in it, then kept again. This is
+   *             the case the whole model exists for: a week from hell does not
+   *             undo two months, and this item still reads as sticking.
+   *   leave   — solid throughout. What established looks like.
+   *   outside — twice in five weeks. Honestly not sticking, and the strip says
+   *             so without calling it a failure.
+   */
+  const history: number[][] = [
+    [3, 4, 2, 0, 3],
+    [5, 4, 5, 3, 4],
+    [1, 0, 1, 0, 0],
+  ];
+
   const practices = defaultPractices();
   const practiceDays: Record<string, ISODate[]> = {};
+  const priorWeeks = weekStarts(6).slice(0, 5);
   practices.forEach((p, pi) => {
-    practiceDays[p.id] = week.filter((_, di) => di <= today && kept[pi][di]);
+    const past = priorWeeks.flatMap((start, wi) =>
+      // Spread across the school week rather than the whole seven, so a seeded
+      // history does not claim anyone was doing this on Sundays.
+      weekDates(new Date(`${start}T12:00:00`)).slice(0, 5).slice(0, history[pi][wi]),
+    );
+    practiceDays[p.id] = [...past, ...week.filter((_, di) => di <= today && kept[pi][di])];
   });
 
   return { ...EMPTY, entries, practices, practiceDays, contributing: true };
@@ -509,7 +566,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           if (daysLeft <= 0 && prev.practices.length >= FREE_LIST_LIMIT) return prev;
           const id = `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
           const tint = PRACTICE_PALETTE[prev.practices.length % PRACTICE_PALETTE.length];
-          return { ...prev, practices: [...prev.practices, { id, label: trimmed, ...tint }] };
+          return {
+            ...prev,
+            practices: [...prev.practices, { id, label: trimmed, startedAt: todayISO(), ...tint }],
+          };
         }),
       removePractice: (practiceId) =>
         update((prev) => {
@@ -589,14 +649,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               state: stateForZip(shown.zip) ?? '',
             },
           },
-          practices: labels.map((label, i) => ({
-            id: `p${i}${Date.now().toString(36)}`,
-            label,
-            ...PRACTICE_PALETTE[i % PRACTICE_PALETTE.length],
-          })),
-          // The chosen practices are new rows; any ticks the seed left behind
-          // are keyed to practices that no longer exist.
-          practiceDays: {},
+          // Onboarding no longer asks for habits, so `labels` is normally empty
+          // and whatever the first-run sample left stands. When it is not empty
+          // the chosen items are new rows, and any ticks the sample left are
+          // keyed to practices that no longer exist.
+          practices: labels.length
+            ? labels.map((label, i) => ({
+                id: `p${i}${Date.now().toString(36)}`,
+                label,
+                startedAt: todayISO(),
+                ...PRACTICE_PALETTE[i % PRACTICE_PALETTE.length],
+              }))
+            : prev.practices,
+          practiceDays: labels.length ? {} : prev.practiceDays,
         })),
       setVerified: (email) =>
         update((prev) => ({
@@ -670,6 +735,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               {
                 id: `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
                 label: trimmed,
+                startedAt: todayISO(),
                 ...PRACTICE_PALETTE[prev.practices.length % PRACTICE_PALETTE.length],
               },
             ],

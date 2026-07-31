@@ -4,12 +4,12 @@ import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, Divider, MonoLabel, ScreenHeading } from '../components/ui';
 import {
   shortDateLabel,
-  todayISO,
   WEEKDAY_SHORT,
   weekDates,
   weekdayName,
   weekStarts,
 } from '../lib/dates';
+import { useToday } from '../lib/useToday';
 import { FREE_LIST_LIMIT, PRICING } from '../data/mock';
 import { Entry, useStore } from '../store';
 import { color, font, MOODS, monoLabel, radius } from '../theme';
@@ -60,10 +60,15 @@ function insight(week: Entry[]): Part[] {
 export function RecordScreen() {
   const { entries, plusActive, trialDaysLeft } = useStore();
   const { open } = useSheets();
-  const today = todayISO();
+  // Same fix as the habit grid: captured once on mount, this chart kept drawing
+  // last week if the app was left open over a weekend.
+  const today = useToday();
 
   // The record runs the school week, Monday to Friday.
-  const days = useMemo(() => weekDates().slice(0, 5), []);
+  const days = useMemo(
+    () => weekDates(new Date(`${today}T12:00:00`)).slice(0, 5),
+    [today],
+  );
   const logged = days.map((d) => entries[d]).filter(Boolean) as Entry[];
 
   /**
@@ -71,7 +76,7 @@ export function RecordScreen() {
    * them. `average` is only meaningful where `days > 0`.
    */
   const sixWeeks = useMemo(() => {
-    return weekStarts(6).map((start) => {
+    return weekStarts(6, new Date(`${today}T12:00:00`)).map((start) => {
       const dates = weekDates(new Date(`${start}T12:00:00`));
       const scores = dates.map((d) => entries[d]?.score).filter((n): n is number => !!n);
       const total = scores.reduce((a, b) => a + b, 0);
@@ -81,7 +86,7 @@ export function RecordScreen() {
         average: scores.length ? total / scores.length : 0,
       };
     });
-  }, [entries]);
+  }, [entries, today]);
   const parts = useMemo(() => insight(logged), [logged.map((e) => e.date + e.score).join()]);
 
   return (
@@ -161,7 +166,8 @@ export function RecordScreen() {
           <Body style={{ marginTop: 10 }}>
             The free plan shows this week and holds {FREE_LIST_LIMIT} things on your list. Tended+
             keeps every check-in you have ever made — month and semester views, this year against
-            last — and lets the list run as long as you want.
+            last — shows six weeks of every item on your list, and lets the list run as long as you
+            want.
           </Body>
           <View style={styles.priceRow}>
             <Text style={styles.price}>{PRICING.price}</Text>

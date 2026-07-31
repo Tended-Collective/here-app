@@ -47,7 +47,8 @@ import {
   REACTIONS,
   yearsLabel,
 } from '../data/mock';
-import { longDateLabel, timeAgoLabel, todayISO } from '../lib/dates';
+import { longDateLabel, timeAgoLabel } from '../lib/dates';
+import { useToday } from '../lib/useToday';
 import { isNearby, stateForZip, stateName } from '../lib/zip';
 import { PICKER_CONFIGURED, pickPhoto } from '../lib/photo';
 import { Update, UPDATE_MAX_LENGTH, useStore } from '../store';
@@ -99,7 +100,10 @@ export function FeedScreen({
   } = useStore();
   const { open } = useSheets();
 
-  const today = todayISO();
+  // Not `todayISO()` inline: the check-in itself is always written against the
+  // real date, but the face shown as selected and the date at the top of the
+  // page would otherwise still say yesterday on a phone left open overnight.
+  const today = useToday();
   const mood = entries[today]?.score ?? null;
   const tags = entries[today]?.tags ?? [];
 
@@ -152,7 +156,7 @@ export function FeedScreen({
 
   return (
     <View>
-      <MonoLabel>{longDateLabel()}</MonoLabel>
+      <MonoLabel>{longDateLabel(new Date(`${today}T12:00:00`))}</MonoLabel>
       <Display size={32} style={{ marginTop: 10 }}>
         How are you feeling today?
       </Display>

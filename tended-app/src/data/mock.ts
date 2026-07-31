@@ -514,10 +514,7 @@ export const BOUNDARY_SUGGESTIONS = [
 export const PLUS_BENEFITS = [
   'A self-care list as long as you want, not three items',
   'Every check-in you have ever made, not just this week',
+  'Six weeks of every item on your list, week by week',
   'Month and semester views, and this year against last',
   'Export your full record as a file',
 ];
-
-/** Six-week trend line behind the Tended+ lock, in a 300×90 viewBox. */
-export const LOCKED_TREND =
-  '6,66 32,58 58,70 84,48 110,54 136,38 162,44 188,28 214,34 240,20 266,26 288,18';

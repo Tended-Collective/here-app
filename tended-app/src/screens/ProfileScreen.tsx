@@ -15,7 +15,27 @@
  * onto that: ticks are stored against dates, so nothing resets on Monday — the
  * view moves on. The card names the week it is showing for exactly that reason,
  * because a fresh row of empty boxes otherwise reads as data that was thrown
- * away. Free plans see this week; Tended+ keeps every week.
+ * away.
+ *
+ * Nothing on this list is ever "completed", and that is deliberate.
+ *
+ * The obvious thing to build is a streak, or a 21-day target with a ring that
+ * fills. Both are wrong here. The 21 days is a myth — it comes from a 1960s
+ * surgeon's note about how long patients took to get used to their own face, not
+ * from any study of habits; the actual research (Lally, 2010) found a median of
+ * about 66 days and a spread from 18 to 254, so a single number would be wrong
+ * for almost everybody. And a streak breaks. This app exists for the weeks that
+ * go badly, and a teacher who holds a boundary for nine days, has a week from
+ * hell, and comes back has not failed at anything. An app that shows them a
+ * snapped chain is telling them they have.
+ *
+ * So an item is not finished, it is *sticking*: kept in at least four of the last
+ * six weeks. A bad week cannot erase it and there is nothing to break. Beside it
+ * sits the only other honest number — how many times in total, and since when.
+ *
+ * The verdict is free; the record behind it is Tended+. Free shows this week, the
+ * lifetime count and whether it is sticking. Tended+ adds the six-week strip and
+ * the week-by-week reading, which is the same line the check-in record draws.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -25,17 +45,42 @@ import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
 import { FREE_LIST_LIMIT, yearsLabel } from '../data/mock';
 import {
+  ISODate,
   WEEKDAY_INITIALS,
-  todayISO,
+  shortDateLabel,
   weekDates,
   weekRangeLabel,
+  weekStarts,
   weekdayIndex,
 } from '../lib/dates';
+import { useToday } from '../lib/useToday';
 import { useStore } from '../store';
 import { color, radius } from '../theme';
 import { RecordScreen } from './RecordScreen';
 
 const DAY_COL = 22;
+
+/** Weeks in the strip, and how many of them an item has to survive to stick. */
+const STRIP_WEEKS = 6;
+const STICKING_WEEKS = 4;
+
+/**
+ * One item's history, reduced to the three things worth saying about it.
+ *
+ * `weeks` counts days kept per week, oldest first, and includes the empty ones —
+ * a week with nothing in it is the most informative bar on the strip, so the
+ * series is built from the last six Mondays rather than from whichever dates
+ * happen to have ticks.
+ */
+function history(done: ISODate[], today: ISODate) {
+  const ticked = new Set(done);
+  const weeks = weekStarts(STRIP_WEEKS, new Date(`${today}T12:00:00`)).map((start) => ({
+    start,
+    days: weekDates(new Date(`${start}T12:00:00`)).filter((d) => ticked.has(d)).length,
+  }));
+  const active = weeks.filter((w) => w.days > 0).length;
+  return { weeks, active, total: done.length, sticking: active >= STICKING_WEEKS };
+}
 
 export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void }) {
   const {
@@ -53,9 +98,11 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
   } = useStore();
   const { open } = useSheets();
 
-  const week = useMemo(() => weekDates(), []);
-  const today = todayISO();
-  const todayIdx = weekdayIndex();
+  // Derived from a date that updates when the day flips, not captured once on
+  // mount — the grid used to freeze on whichever week the screen was opened in.
+  const today = useToday();
+  const week = useMemo(() => weekDates(new Date(`${today}T12:00:00`)), [today]);
+  const todayIdx = useMemo(() => weekdayIndex(new Date(`${today}T12:00:00`)), [today]);
   const [draft, setDraft] = useState('');
   const [editing, setEditing] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
@@ -178,6 +225,7 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
         {practices.map((p) => {
           const done = practiceDays[p.id] ?? [];
           const isEditing = editing === p.id;
+          const past = history(done, today);
           return (
             <View key={p.id} style={styles.row}>
               <View style={styles.rowTop}>
@@ -252,9 +300,83 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
                   );
                 })}
               </View>
+
+              {/* The two honest numbers, and the verdict. No target, no streak —
+                  see the note at the top of the file. */}
+              <View style={styles.metaRow}>
+                <MonoLabel size={9} em={0.08} tone={color.faint}>
+                  {[
+                    `${past.total}× TOTAL`,
+                    p.startedAt ? `SINCE ${shortDateLabel(p.startedAt)}` : '',
+                    plusActive ? `${past.active} OF ${STRIP_WEEKS} WEEKS` : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </MonoLabel>
+                {past.sticking && (
+                  <View style={styles.sticking}>
+                    <MonoLabel size={8.5} em={0.08} tone={color.accent}>
+                      STICKING
+                    </MonoLabel>
+                  </View>
+                )}
+              </View>
+
+              {/* Six weeks, oldest on the left. Dimmed rather than removed on the
+                  free plan, the same way the check-in record shows its locked
+                  chart: the shape of what is behind the wall is the honest thing
+                  to show, and an empty space says nothing. */}
+              <View
+                style={[styles.strip, !plusActive && styles.stripLocked]}
+                accessibilityLabel={
+                  plusActive
+                    ? `${p.label}: kept in ${past.active} of the last ${STRIP_WEEKS} weeks`
+                    : undefined
+                }
+                accessibilityElementsHidden={!plusActive}
+                importantForAccessibility={plusActive ? 'auto' : 'no-hide-descendants'}
+              >
+                {past.weeks.map((w) => (
+                  <View
+                    key={w.start}
+                    accessibilityLabel={`Week of ${shortDateLabel(w.start)}, ${w.days} ${
+                      w.days === 1 ? 'day' : 'days'
+                    }`}
+                    style={styles.stripTrack}
+                  >
+                    {w.days > 0 && (
+                      <View
+                        style={[
+                          styles.stripFill,
+                          { width: `${(w.days / 7) * 100}%`, backgroundColor: p.border },
+                        ]}
+                      />
+                    )}
+                  </View>
+                ))}
+              </View>
             </View>
           );
         })}
+
+        {/* One lock for the whole card rather than one under every item. */}
+        {practices.length > 0 && !plusActive && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="See the last six weeks of your list with Tended+"
+            onPress={() => open('plus')}
+            style={styles.stripCta}
+          >
+            <Text style={styles.stripCtaLabel}>See the last six weeks with Tended+ →</Text>
+          </Pressable>
+        )}
+
+        {practices.length > 0 && plusActive && (
+          <Body size={12} tone={color.faint} style={{ marginTop: 12 }}>
+            Each strip is the last six weeks, oldest on the left. Four of six is what counts as
+            sticking — a bad week does not undo the rest.
+          </Body>
+        )}
 
         {/* The free plan's cap. Stated as what it is, with the price of lifting
             it, rather than as a disabled input with no explanation. */}
@@ -366,6 +488,53 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     marginTop: 30,
   },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  sticking: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: color.accentBorderSoft,
+  },
+  strip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 9,
+  },
+  stripLocked: {
+    opacity: 0.28,
+  },
+  /**
+   * Each week is a short track filled left to right, not a vertical bar. Six
+   * columns across a phone card are about fifty pixels wide and twenty tall, and
+   * a bar in that box is wider than it is high — it reads as a dash whose length
+   * means nothing. A part-filled track shows the days kept *and* the days not,
+   * which is the comparison the strip is for.
+   */
+  stripTrack: {
+    flex: 1,
+    height: 7,
+    borderRadius: 99,
+    backgroundColor: color.track,
+    overflow: 'hidden',
+  },
+  stripFill: {
+    height: '100%',
+    borderRadius: 99,
+  },
+  stripCta: {
+    paddingTop: 14,
+  },
+  stripCtaLabel: {
+    fontSize: 13,
+    color: color.accent,
+  },
   capRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -444,7 +613,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   row: {
-    paddingVertical: 12,
+    paddingTop: 12,
+    paddingBottom: 16,
     borderTopWidth: 1,
     borderTopColor: color.rule,
   },
