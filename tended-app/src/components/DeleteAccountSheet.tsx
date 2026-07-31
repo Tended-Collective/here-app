@@ -5,14 +5,13 @@
  * account, and right regardless: an app holding a record of how someone's year
  * actually went has no business making that record hard to end.
  *
- * The sheet lists what goes rather than asking "are you sure?", because the
- * things being destroyed are not equivalent. Losing a follower list is an
- * inconvenience. Losing a year of check-ins is losing the only copy of
- * something nobody wrote down anywhere else, and a teacher deleting in a bad
- * week deserves to be told that before it happens rather than after.
+ * This used to itemise five things in five bullets — posts, follows, the
+ * username hold, the address. Nobody reads a five-line inventory on the way out
+ * of an app, and the length made the one sentence that matters harder to find:
+ * the check-ins are the only copy. That sentence is now the whole warning.
  *
- * Confirmation is typing the word, not a second button. A second button is
- * cleared by the same reflex that pressed the first.
+ * Confirmation is still typing the word rather than a second button, which the
+ * same reflex that pressed the first would clear.
  */
 
 import React, { useState } from 'react';
@@ -33,7 +32,7 @@ const CONFIRM_WORD = 'DELETE';
 export const USERNAME_HOLD_DAYS = 30;
 
 export function DeleteAccountSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const { deleteAccount, account, entries, updates } = useStore();
+  const { deleteAccount, entries } = useStore();
   const [typed, setTyped] = useState('');
 
   const close = () => {
@@ -42,37 +41,21 @@ export function DeleteAccountSheet({ visible, onClose }: { visible: boolean; onC
   };
 
   const days = Object.keys(entries).length;
-  const posts = updates.length;
   const ready = typed.trim().toUpperCase() === CONFIRM_WORD;
 
   return (
     <SheetShell visible={visible} onClose={close}>
       <View style={styles.body}>
-        <MonoLabel>DELETE YOUR ACCOUNT</MonoLabel>
-        <Display size={26} lineHeight={1.15} style={{ marginTop: 10 }}>
-          This cannot be undone.
+        <Display size={26} lineHeight={1.15}>
+          Delete your account?
         </Display>
+        <Body size={14} tone={color.muted} style={{ marginTop: 10 }}>
+          Your posts, your list and your{' '}
+          {days > 0 ? `${days} ${days === 1 ? 'check-in' : 'check-ins'}` : 'check-ins'} are erased.
+          This is the only copy, and it cannot be undone.
+        </Body>
 
-        <View style={styles.list}>
-          <Line>
-            {days > 0
-              ? `${days} ${days === 1 ? 'check-in' : 'check-ins'} and everything on your self-care list. This is the only copy.`
-              : 'Your check-ins and your self-care list. This is the only copy.'}
-          </Line>
-          <Line>
-            {posts > 0
-              ? `Your ${posts} ${posts === 1 ? 'post' : 'posts'}, and the reactions on them.`
-              : 'Any posts you make, and the reactions on them.'}
-          </Line>
-          <Line>Who you follow, and anyone following you.</Line>
-          <Line>
-            {account?.shown.username ? `@${account.shown.username}` : 'Your username'}, held for{' '}
-            {USERNAME_HOLD_DAYS} days so nobody can take it and post as you, then released.
-          </Line>
-          <Line>Your name and work address. Nothing of the account is kept.</Line>
-        </View>
-
-        <MonoLabel style={{ marginTop: 20 }}>TYPE {CONFIRM_WORD} TO CONFIRM</MonoLabel>
+        <MonoLabel style={{ marginTop: 22 }}>TYPE {CONFIRM_WORD} TO CONFIRM</MonoLabel>
         <TextInput
           value={typed}
           onChangeText={setTyped}
@@ -104,41 +87,11 @@ export function DeleteAccountSheet({ visible, onClose }: { visible: boolean; onC
   );
 }
 
-function Line({ children }: { children: React.ReactNode }) {
-  return (
-    <View style={styles.lineRow}>
-      <View style={styles.bullet} />
-      <Text style={styles.lineText}>{children}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   body: {
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 30,
-  },
-  list: {
-    marginTop: 18,
-    gap: 12,
-  },
-  lineRow: {
-    flexDirection: 'row',
-    gap: 11,
-  },
-  bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 99,
-    marginTop: 8,
-    backgroundColor: 'rgba(180,103,98,0.75)',
-  },
-  lineText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 21,
-    color: color.ink,
   },
   input: {
     height: 50,

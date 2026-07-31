@@ -180,22 +180,27 @@ check is simpler to explain and simpler to trust, and the tick now means exactly
 **Reporting, blocking, and deletion.** Apple requires all three of an app like this, and each is
 also the right behaviour on its own terms.
 
-Every card carries a `···` that opens a report sheet (guideline 1.2). The reasons are written as
-things a moderator can act on — "Names a student or colleague" is checkable in four seconds,
-"Offensive" is a feeling and cannot be triaged. The post leaves the feed the moment it is reported
-rather than when someone agrees, because making a reporter keep looking at what they objected to is
-a punishment for reporting. Blocking is offered on the same sheet, since "I do not want to see this
-person again" is usually the real request and the only part the app can honour by itself; blocking
-also drops any follow. `MODERATION_SLA` is the single string stating the 24-hour commitment, shown
-in the sheet and again on the profile.
+Every card carries a **flag** that opens a list of reasons, one tap each (guideline 1.2). A flag
+rather than a `···` menu, because reporting is the only thing behind it and a dots menu makes people
+open it to find out. The reasons are written as things a moderator can act on — "Names a student or
+colleague" is checkable in four seconds, "Offensive" is a feeling and cannot be triaged — and two of
+them exist only because this is a feed of school staff: a post naming a child, and an account that
+does not work in a school.
 
-Account deletion (guideline 5.1.1(v)) lists what is destroyed rather than asking "are you sure?",
-because the items are not equivalent — a follower list is an inconvenience, a year of check-ins is
-the only copy of something nobody wrote down anywhere else. Confirmation is typing DELETE, not a
-second button, since a second button is cleared by the same reflex that pressed the first. The
-username is held for `USERNAME_HOLD_DAYS` before release, so nobody can claim it that afternoon and
-post as the person who left. Deleting removes the storage row outright and returns the app to
-onboarding; the first-run sample data is deliberately not re-seeded.
+One tap per row, no select-then-submit: a form where each row needs choosing and then confirming is
+two taps to do what the row already says. The post leaves the feed the moment it is reported rather
+than when someone agrees, because making a reporter keep looking at what they objected to is a
+punishment for reporting. Blocking sits at the foot of the same list, and drops any follow.
+
+How reporting works is explained in the sheet itself. It used to be a card on the profile — a page
+nobody opens at the moment they want to report something.
+
+Account deletion (guideline 5.1.1(v)) is one sentence: your posts, your list and your N check-ins
+are erased, this is the only copy, it cannot be undone. It was five bullets covering posts, follows,
+the username hold and the address; nobody reads a five-line inventory on the way out of an app, and
+the length buried the only line that matters. Confirmation is still typing DELETE rather than a
+second button, which the same reflex that pressed the first would clear. Deleting removes the
+storage row outright and returns to onboarding, without re-seeding the sample data.
 
 **Signing up is required, and the app is no longer anonymous.** Tended held nothing at all for a
 while: no name, no address, and the verification email discarded the moment it was checked. That
@@ -299,7 +304,7 @@ ask who is in those tiles.
 | | Free | Tended+ |
 |---|---|---|
 | Self-care list | `FREE_LIST_LIMIT` (3) | no cap |
-| Check-in history | this week | everything, with month and semester views |
+| Check-in history | this week | six weeks and beyond |
 
 The feed is not the thing being sold. Reading it, posting to it and reacting are free at every
 tier, because a feed with a paywall across it has no supply and nothing to sell. The cap is
@@ -379,6 +384,22 @@ row, and re-encoding through a canvas drops the EXIF block — which on a photo 
 carries GPS coordinates and a capture time. An anonymous feed cannot pass those on. Web is
 implemented because that is what the preview runs; the native branch wants `expo-image-picker` and
 is a no-op behind `PICKER_CONFIGURED` until it is installed.
+
+**The week grid, and what it does not do.** The self-care list draws seven boxes per habit under a
+`M T W T F S S` axis, with today's column tinted and today's letter in full ink. Boxes rather than
+circles, because a grid should look like a grid.
+
+It does not reset. Ticks are stored against dates in `practiceDays`, so Monday moves the window
+rather than clearing the data — which is why the card names the week it is showing (`THIS WEEK ·
+27 JUL – 2 AUG`). A fresh row of empty boxes with no date on it reads as data that was thrown away.
+
+**Six weeks, computed.** The multi-week chart used to be `LOCKED_TREND`, a hardcoded polyline: the
+same invented line for every user, drawn identically whether the term had gone well or badly. It now
+reads the stored entries — one bar per week, height being that week's average, tinted with that
+average's mood colour, and a thin rule where a week has nothing in it. The series is built from the
+last six Mondays rather than from whichever dates have data, because an empty week is a real
+finding and has to occupy its slot. Free plans see it dimmed with the upgrade line; Tended+ shows it
+with a count of how many of the six have anything in them.
 
 **The check-in is one tap.** Five faces, saved on the tap, no button to reach and no confirm step.
 This is a direct answer to the sharpest piece of teacher feedback the project has had — that

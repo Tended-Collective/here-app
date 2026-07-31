@@ -69,3 +69,33 @@ export function timeAgoLabel(at: number, now: number = Date.now()): string {
 
 export const WEEKDAY_INITIALS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 export const WEEKDAY_SHORT = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+
+/**
+ * Monday of each of the last `count` weeks, oldest first and ending with the
+ * current week. Used by the multi-week chart, which needs the empty weeks too —
+ * a gap is information, so the series cannot be built from whatever dates
+ * happen to have entries.
+ */
+export function weekStarts(count: number, from: Date = new Date()): ISODate[] {
+  const monday = mondayOf(from);
+  const out: ISODate[] = [];
+  for (let i = count - 1; i >= 0; i--) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() - i * 7);
+    out.push(toISO(d));
+  }
+  return out;
+}
+
+/** "27 JUL" — short enough to sit under a bar. */
+export function shortDateLabel(iso: ISODate): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const month = new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short' });
+  return `${d} ${month.toUpperCase()}`;
+}
+
+/** "27 JUL – 2 AUG", for naming the week a grid is showing. */
+export function weekRangeLabel(week: ISODate[]): string {
+  if (week.length === 0) return '';
+  return `${shortDateLabel(week[0])} – ${shortDateLabel(week[week.length - 1])}`;
+}

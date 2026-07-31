@@ -7,33 +7,28 @@
  * between the two once they land, because a boundary someone else holds is
  * just a line on your list once you have taken it.
  *
- * Ticking is per day and writes on the tap. The week grid on the same rows is
- * the history, so ticking here and reading the week are the same object.
+ * Ticking is per day and writes on the tap. The grid is a week-shaped window
+ * onto that: ticks are stored against dates, so nothing resets on Monday — the
+ * view moves on. The card names the week it is showing for exactly that reason,
+ * because a fresh row of empty boxes otherwise reads as data that was thrown
+ * away. Free plans see this week; Tended+ keeps every week.
  */
 
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { PodcastSection } from '../components/PodcastSection';
-import { MODERATION_SLA } from '../components/ReportSheet';
 import { Toggle } from '../components/Toggle';
 import { UsernameField, UsernameState } from '../components/UsernameField';
 import { useSheets } from '../components/Sheet';
-import { StripedPlaceholder } from '../components/StripedPlaceholder';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
-import {
-  AUTHORS,
-  FREE_LIST_LIMIT,
-  JOBS,
-  LEVELS,
-  POSTS,
-  postUrl,
-  SITE,
-  TAKEN_USERNAMES,
-  yearsLabel,
-} from '../data/mock';
-import { openLink } from '../lib/links';
+import { AUTHORS, FREE_LIST_LIMIT, JOBS, LEVELS, TAKEN_USERNAMES, yearsLabel } from '../data/mock';
 import { stateForZip, stateName } from '../lib/zip';
-import { WEEKDAY_INITIALS, todayISO, weekDates, weekdayIndex } from '../lib/dates';
+import {
+  WEEKDAY_INITIALS,
+  todayISO,
+  weekDates,
+  weekRangeLabel,
+  weekdayIndex,
+} from '../lib/dates';
 import { useStore } from '../store';
 import { color, radius } from '../theme';
 import { RecordScreen } from './RecordScreen';
@@ -314,14 +309,33 @@ export function ProfileScreen() {
         </MonoLabel>
       </View>
       <Card style={styles.listCard}>
-        <View style={styles.dayHeader}>
-          <View style={styles.spacer} />
-          {WEEKDAY_INITIALS.map((d, i) => (
-            <MonoLabel key={i} size={9} em={0} tone={color.faint} style={styles.dayHeaderCell}>
-              {d}
-            </MonoLabel>
-          ))}
+        {/* Naming the week answers the question the grid otherwise raises: it
+            looks like it resets, and it does not. Ticks are stored against
+            dates; this is a window onto one week of them. */}
+        <View style={styles.weekHead}>
+          <MonoLabel size={9} em={0.1} tone={color.faint}>
+            THIS WEEK
+          </MonoLabel>
+          <MonoLabel size={9} em={0.06} tone={color.fainter}>
+            {weekRangeLabel(week)}
+          </MonoLabel>
         </View>
+
+        {practices.length > 0 && (
+          <View style={styles.dayHeader}>
+            {WEEKDAY_INITIALS.map((d, i) => (
+              <MonoLabel
+                key={i}
+                size={9}
+                em={0}
+                tone={i === todayIdx ? color.ink : color.faint}
+                style={styles.dayHeaderCell}
+              >
+                {d}
+              </MonoLabel>
+            ))}
+          </View>
+        )}
 
         {practices.length === 0 && (
           <Body size={13.5} tone={color.muted} style={{ paddingVertical: 14 }}>
@@ -369,10 +383,13 @@ export function ProfileScreen() {
                 </Pressable>
               </View>
 
+              {/* Seven boxes on the same axis as the header above, rather than
+                  seven circles floating under a long label. Boxes read as a
+                  grid; circles read as decoration. */}
               <View style={styles.ticks}>
-                <View style={styles.spacer} />
                 {week.map((date, di) => {
                   const on = done.includes(date);
+                  const isToday = date === today;
                   return (
                     <Pressable
                       key={date}
@@ -381,17 +398,26 @@ export function ProfileScreen() {
                       accessibilityState={{ checked: on }}
                       accessibilityLabel={`${p.label}, ${WEEKDAY_INITIALS[di]}`}
                       style={[
-                        styles.tick,
-                        {
-                          backgroundColor: on ? p.fill : 'transparent',
-                          borderColor: on
-                            ? p.border
-                            : date === today
-                              ? 'rgba(0,0,0,0.28)'
-                              : color.outline,
-                        },
+                        styles.cellHit,
+                        // A tinted column marks today down the whole grid, so
+                        // "which box is now" does not need counting.
+                        isToday && styles.cellToday,
                       ]}
-                    />
+                    >
+                      <View
+                        style={[
+                          styles.tick,
+                          {
+                            backgroundColor: on ? p.fill : 'transparent',
+                            borderColor: on
+                              ? p.border
+                              : isToday
+                                ? 'rgba(0,0,0,0.3)'
+                                : color.outline,
+                          },
+                        ]}
+                      />
+                    </Pressable>
                   );
                 })}
               </View>
@@ -440,47 +466,6 @@ export function ProfileScreen() {
         )}
       </Card>
 
-      {/* Tended Collective's own writing and podcast. These had a tab of their
-          own; the ad inventory that shared it moved into the feed, and what is
-          left is reading rather than part of the daily loop, so it sits at the
-          foot of the teacher's own page instead of costing a fifth of the tab
-          bar. The free-therapy shelf is not here — it holds the first placement
-          in the feed, where it gets seen. */}
-      <View style={styles.sectionHead}>
-        <MonoLabel>FROM TENDED COLLECTIVE</MonoLabel>
-        <Pressable
-          accessibilityRole="link"
-          accessibilityLabel="All posts on tendedcollective.com"
-          onPress={() => openLink(SITE.blog)}
-          hitSlop={8}
-        >
-          <Text style={styles.link}>All posts</Text>
-        </Pressable>
-      </View>
-
-      {POSTS.map((post) => (
-        <Pressable
-          key={post.id}
-          accessibilityRole="link"
-          accessibilityLabel={`${post.title}, opens tendedcollective.com`}
-          onPress={() => openLink(postUrl(post.slug))}
-        >
-          <Card style={styles.postCard}>
-            <StripedPlaceholder />
-            <View style={styles.postCopy}>
-              <MonoLabel size={9.5} em={0.1} tone={color.faint}>
-                {post.kicker}
-              </MonoLabel>
-              <Display size={19} lineHeight={1.2} weight="regular" style={{ marginTop: 6 }}>
-                {post.title}
-              </Display>
-            </View>
-          </Card>
-        </Pressable>
-      ))}
-
-      <PodcastSection />
-
       {/* Everything to do with the account itself, at the bottom where a
           settings section belongs. Blocked accounts are listed rather than
           hidden in a submenu — a block made in a bad week should be easy to
@@ -512,14 +497,6 @@ export function ProfileScreen() {
           })}
         </Card>
       )}
-
-      <Card style={styles.moderationCard}>
-        <Text style={styles.moderationTitle}>Reporting</Text>
-        <Body size={12.5} tone={color.muted} style={{ marginTop: 4 }}>
-          Tap ··· on any post to report it or block whoever wrote it. {MODERATION_SLA} A reported
-          post leaves your feed immediately, and nobody is told who reported it.
-        </Body>
-      </Card>
 
       <Pressable
         accessibilityRole="button"
@@ -605,15 +582,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: color.accent,
-  },
-  moderationCard: {
-    marginTop: 12,
-    padding: 16,
-  },
-  moderationTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: color.ink,
   },
   deleteRow: {
     flexDirection: 'row',
@@ -749,27 +717,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: color.accent,
   },
-  sectionHead: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginTop: 30,
-    marginBottom: 12,
-  },
-  link: {
-    fontSize: 13,
-    color: color.accent,
-  },
-  postCard: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    overflow: 'hidden',
-  },
-  postCopy: {
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
   badges: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -803,16 +750,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 6,
   },
+  weekHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingTop: 14,
+  },
   dayHeader: {
     flexDirection: 'row',
-    gap: 5,
-    paddingTop: 12,
-  },
-  spacer: {
-    flex: 1,
+    marginTop: 12,
   },
   dayHeaderCell: {
-    width: DAY_COL,
+    flex: 1,
     textAlign: 'center',
   },
   row: {
@@ -853,13 +802,21 @@ const styles = StyleSheet.create({
   },
   ticks: {
     flexDirection: 'row',
-    gap: 5,
     marginTop: 9,
+  },
+  cellHit: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  cellToday: {
+    backgroundColor: 'rgba(0,0,0,0.035)',
   },
   tick: {
     width: DAY_COL,
     height: DAY_COL,
-    borderRadius: 99,
+    borderRadius: 7,
     borderWidth: 1,
   },
   addRow: {

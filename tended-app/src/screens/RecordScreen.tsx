@@ -1,10 +1,16 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Polyline } from 'react-native-svg';
 import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, Divider, MonoLabel, ScreenHeading } from '../components/ui';
-import { todayISO, WEEKDAY_SHORT, weekDates, weekdayName } from '../lib/dates';
-import { FREE_LIST_LIMIT, LOCKED_TREND, PRICING } from '../data/mock';
+import {
+  shortDateLabel,
+  todayISO,
+  WEEKDAY_SHORT,
+  weekDates,
+  weekdayName,
+  weekStarts,
+} from '../lib/dates';
+import { FREE_LIST_LIMIT, PRICING } from '../data/mock';
 import { Entry, useStore } from '../store';
 import { color, font, MOODS, monoLabel, radius } from '../theme';
 
@@ -59,6 +65,23 @@ export function RecordScreen() {
   // The record runs the school week, Monday to Friday.
   const days = useMemo(() => weekDates().slice(0, 5), []);
   const logged = days.map((d) => entries[d]).filter(Boolean) as Entry[];
+
+  /**
+   * One entry per week for the last six, including the ones with nothing in
+   * them. `average` is only meaningful where `days > 0`.
+   */
+  const sixWeeks = useMemo(() => {
+    return weekStarts(6).map((start) => {
+      const dates = weekDates(new Date(`${start}T12:00:00`));
+      const scores = dates.map((d) => entries[d]?.score).filter((n): n is number => !!n);
+      const total = scores.reduce((a, b) => a + b, 0);
+      return {
+        start,
+        days: scores.length,
+        average: scores.length ? total / scores.length : 0,
+      };
+    });
+  }, [entries]);
   const parts = useMemo(() => insight(logged), [logged.map((e) => e.date + e.score).join()]);
 
   return (
@@ -154,31 +177,59 @@ export function RecordScreen() {
         </View>
       )}
 
+      {/* Six weeks, computed. This was a hardcoded polyline — the same
+          invented line for everybody, drawn identically whether the term had
+          gone well or badly, which is worse than no chart at all. It now reads
+          the stored entries: one bar per week, the height being that week's
+          average, and an empty slot where nothing was logged. A gap is a real
+          finding, so the series is built from the last six Mondays rather than
+          from whichever dates happen to have data. */}
+      <View style={styles.sixHead}>
+        <MonoLabel tone={plusActive ? color.accent : color.faint}>SIX WEEKS</MonoLabel>
+        <MonoLabel em={0} tone={color.faint}>
+          {plusActive ? 'TENDED+' : 'TENDED+ ONLY'}
+        </MonoLabel>
+      </View>
       <Card style={styles.lockedCard}>
-        <MonoLabel tone={plusActive ? color.accent : color.faint}>SIX WEEKS · TENDED+</MonoLabel>
-        <View style={[styles.lockedChart, plusActive && styles.unlockedChart]}>
-          <Svg viewBox="0 0 300 90" width="100%" height={90}>
-            <Polyline
-              points={LOCKED_TREND}
-              fill="none"
-              stroke={color.accent}
-              strokeWidth={2.2}
-              strokeLinejoin="round"
-            />
-          </Svg>
-        </View>
-        {!plusActive && (
-          <Pressable
-            style={styles.lockedOverlay}
-            accessibilityRole="button"
-            accessibilityLabel="Unlock the six-week chart with Tended+"
-            onPress={() => open('plus')}
-          >
-            <View style={styles.lockedPill}>
-              <MonoLabel size={11} em={0.12} bold tone={color.muted}>
-                LOCKED
+        <View style={[styles.sixChart, !plusActive && styles.blurred]}>
+          {sixWeeks.map((wk) => (
+            <View key={wk.start} style={styles.sixCol}>
+              <View style={styles.sixBarSlot}>
+                {wk.days > 0 ? (
+                  <View
+                    style={[
+                      styles.sixBar,
+                      {
+                        height: barHeight(wk.average),
+                        backgroundColor: MOODS[Math.round(wk.average) - 1].fill,
+                      },
+                    ]}
+                  />
+                ) : (
+                  <View style={styles.sixEmpty} />
+                )}
+              </View>
+              <MonoLabel size={8.5} em={0.04} tone={color.fainter} style={styles.sixLabel}>
+                {shortDateLabel(wk.start)}
               </MonoLabel>
             </View>
+          ))}
+        </View>
+
+        {plusActive ? (
+          <Body size={12.5} tone={color.muted} style={{ marginTop: 12 }}>
+            {logged.length === 0 && sixWeeks.every((w) => w.days === 0)
+              ? 'Nothing logged yet. Each bar fills in as a week goes by.'
+              : `${sixWeeks.filter((w) => w.days > 0).length} of 6 weeks logged. Taller means a harder week.`}
+          </Body>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="See six weeks with Tended+"
+            style={styles.sixCta}
+            onPress={() => open('plus')}
+          >
+            <Text style={styles.sixCtaLabel}>See beyond this week with Tended+ →</Text>
           </Pressable>
         )}
       </Card>
@@ -274,12 +325,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     overflow: 'hidden',
   },
-  lockedChart: {
-    marginTop: 10,
-    opacity: 0.22,
+  sixHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginTop: 26,
   },
-  unlockedChart: {
-    opacity: 1,
+  sixChart: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'flex-end',
+  },
+  sixCol: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+  },
+  sixBarSlot: {
+    height: 96,
+    width: '100%',
+    justifyContent: 'flex-end',
+  },
+  sixBar: {
+    width: '100%',
+    borderRadius: radius.bar,
+  },
+  sixEmpty: {
+    height: 3,
+    width: '100%',
+    borderRadius: 99,
+    backgroundColor: color.track,
+  },
+  sixLabel: {
+    textAlign: 'center',
+  },
+  blurred: {
+    opacity: 0.28,
+  },
+  sixCta: {
+    marginTop: 14,
+  },
+  sixCtaLabel: {
+    fontSize: 13.5,
+    color: color.accent,
   },
   manage: {
     height: 46,
@@ -294,22 +382,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: color.ink,
-  },
-  lockedOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lockedPill: {
-    backgroundColor: color.ground,
-    borderWidth: 1,
-    borderColor: color.outline,
-    borderRadius: radius.pill,
-    paddingVertical: 9,
-    paddingHorizontal: 15,
   },
 });

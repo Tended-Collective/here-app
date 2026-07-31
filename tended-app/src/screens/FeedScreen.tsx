@@ -370,10 +370,6 @@ export function FeedScreen() {
         ),
       )}
 
-      <Body size={12} lineHeight={1.6} tone={color.label} style={{ marginTop: 14 }}>
-        Sponsored placements are labeled. Sponsors fund the free plan and never receive your data.
-        Opening one is not logged or shared.
-      </Body>
 
       {!showMore && (
         <Pressable accessibilityRole="button" style={styles.seeMore} onPress={() => setShowMore(true)}>
@@ -489,17 +485,19 @@ function FeedCard({
             {following ? 'Following' : 'Follow'}
           </Text>
         </Pressable>
-        {/* Small and always present. A report button that has to be hunted for
-            is a report button people give up on, and Apple requires one on any
-            app carrying posts (guideline 1.2). */}
+        {/* A flag rather than a "···" menu: the only thing behind it is
+            reporting, and a dots menu makes people open it to find out. Always
+            present, because a report button that has to be hunted for is one
+            people give up on — and Apple requires one on any app carrying posts
+            (guideline 1.2). */}
         <Pressable
           onPress={onReport}
           accessibilityRole="button"
           accessibilityLabel={`Report this post or block @${author?.username}`}
-          hitSlop={10}
+          hitSlop={12}
           style={styles.more}
         >
-          <Text style={styles.moreDots}>···</Text>
+          <Text style={styles.flag}>⚑</Text>
         </Pressable>
       </View>
 
@@ -931,10 +929,9 @@ const styles = StyleSheet.create({
   more: {
     paddingHorizontal: 2,
   },
-  moreDots: {
-    fontSize: 16,
+  flag: {
+    fontSize: 15,
     lineHeight: 18,
-    fontWeight: '700',
     color: color.faint,
   },
   seeMore: {
