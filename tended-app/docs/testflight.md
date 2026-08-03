@@ -9,6 +9,18 @@ account or a Mac, which are marked **[needs Apple]**.
 
 ---
 
+## iPhone only
+
+Portrait, iPhone, no iPad and no Android. Every screen is a single column sized
+for a phone held in one hand, so `supportsTablet` is `false` and the Android
+target is gone from `app.config.js` — claiming a device means App Review tests
+on it, and the feed stretched to 1024pt is not a design anyone approved.
+
+Web stays in `platforms` because `expo export --platform web` is what builds the
+shareable preview. It is a review tool, not a product surface.
+
+---
+
 ## What is in this build, honestly
 
 - **The feed is fixed sample content.** Six accounts, a fixed set of posts. Every
@@ -148,6 +160,7 @@ them:
 | `src/components/RulesSheet.tsx` | The rules, openable from sign-up and from Settings. |
 | Sign-up | A tick box gating the send button, and `agreedToRulesAt` on the account as the record that it happened. |
 | `src/screens/SignIn.tsx` | The other front door. Sign-up used to be the only way in, so anyone who signed out was walked through the whole story again. Honest about the fact that a device with no account has nothing to sign in to. |
+| `assets/welcome.jpg` | The illustration above both front doors, pre-cropped to the band it is drawn at because React Native's `Image` has no `object-position`. |
 
 ### The one that needed care
 

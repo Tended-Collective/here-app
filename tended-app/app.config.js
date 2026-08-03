@@ -7,6 +7,17 @@
  * and a wrong privacy declaration is the kind of mistake that is discovered by
  * Apple rather than by us.
  *
+ * ─── iPhone only, on purpose ─────────────────────────────────────────────────
+ *
+ * `platforms` is iOS and web. Web is the preview pipeline — `expo export
+ * --platform web` is what builds the shareable artifact — and is not a product
+ * surface; nobody is meant to use Tended in a browser.
+ *
+ * Android is gone rather than unfinished. `supportsTablet` is false for the
+ * same reason: every screen here is a single column sized for a phone held in
+ * one hand, and an iPad would stretch that column to 1024pt with 24pt of
+ * padding either side. Claiming the device also means App Review tests on it.
+ *
  * ─── Read this before the first build with a server behind it ────────────────
  *
  * `ios.privacyManifests.NSPrivacyCollectedDataTypes` below is empty, and that is
@@ -23,7 +34,11 @@ module.exports = {
     name: IS_PRODUCTION ? 'Tended' : 'Tended (dev)',
     slug: 'tended-app',
     version: '1.0.0',
+    // Portrait only: the check-in is five faces in a row and the feed is one
+    // column. Neither gains anything from landscape and both would need a
+    // second layout to survive it.
     orientation: 'portrait',
+    platforms: ['ios', 'web'],
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
     backgroundColor: '#f6f5f2',
@@ -31,7 +46,7 @@ module.exports = {
     // extra: { eas: { projectId: '…' } },
 
     ios: {
-      supportsTablet: true,
+      supportsTablet: false,
       // A separate identifier for dev builds means both can sit on one phone,
       // which is how you compare a change against what testers currently have.
       bundleIdentifier: IS_PRODUCTION
@@ -80,19 +95,6 @@ module.exports = {
           },
         ],
       },
-    },
-
-    android: {
-      package: IS_PRODUCTION
-        ? 'com.tendedcollective.tended'
-        : 'com.tendedcollective.tended.dev',
-      adaptiveIcon: {
-        backgroundColor: '#f6f5f2',
-        foregroundImage: './assets/android-icon-foreground.png',
-        backgroundImage: './assets/android-icon-background.png',
-        monochromeImage: './assets/android-icon-monochrome.png',
-      },
-      predictiveBackGestureEnabled: false,
     },
 
     web: {

@@ -9,10 +9,10 @@
  * and services consumed outside the app, so shipping a $4.99/month Apple Pay
  * subscription inside the iOS build would be rejected. The two routes are:
  *
- *   route 'app-store'      iOS (and Play Billing on Android) — StoreKit, via
- *                          RevenueCat (`react-native-purchases`) or
- *                          `react-native-iap`. Both need a native build: they
- *                          do not run in Expo Go, and they do not exist on web.
+ *   route 'app-store'      iOS — StoreKit, via RevenueCat
+ *                          (`react-native-purchases`) or `react-native-iap`.
+ *                          Both need a native build: they do not run in Expo
+ *                          Go, and they do not exist on web.
  *
  *   route 'apple-pay-web'  the web build — Apple Pay through a processor
  *                          (Stripe's Payment Request / Payment Element). Needs
@@ -30,7 +30,7 @@
  *
  * To connect it for real:
  *   1. Set up the product ($4.99/month with a 30-day introductory free period)
- *      in App Store Connect and Google Play, or in RevenueCat over the top.
+ *      in App Store Connect, or in RevenueCat over the top.
  *   2. Implement `purchase()` per route below and flip PROVIDER_CONFIGURED.
  *   3. Validate receipts server-side and hold entitlement there — the
  *      `plus.trialStartedAt` in the store is device-local state for the preview
@@ -39,7 +39,12 @@
 
 import { Platform } from 'react-native';
 
-export type PaymentRoute = 'app-store' | 'play-billing' | 'apple-pay-web' | 'unavailable';
+/**
+ * Android is not a target — the app is iPhone only (see app.config.js) — so
+ * there is no Play Billing route. `unavailable` covers everywhere that is not
+ * an iPhone or a Safari that can raise an Apple Pay sheet.
+ */
+export type PaymentRoute = 'app-store' | 'apple-pay-web' | 'unavailable';
 
 /** Flip once a processor is actually wired up in `purchase()`. */
 export const PROVIDER_CONFIGURED = false;
@@ -63,7 +68,6 @@ function applePayAvailable(): boolean {
 
 export function paymentRoute(): PaymentRoute {
   if (Platform.OS === 'ios') return 'app-store';
-  if (Platform.OS === 'android') return 'play-billing';
   if (applePayAvailable()) return 'apple-pay-web';
   return 'unavailable';
 }
@@ -75,8 +79,6 @@ export function routeLabel(route: PaymentRoute): string {
       return 'Continue with Apple Pay';
     case 'app-store':
       return 'Continue with the App Store';
-    case 'play-billing':
-      return 'Continue with Google Play';
     default:
       return 'Start 30 days free';
   }
@@ -98,7 +100,7 @@ export async function purchase(): Promise<PurchaseResult> {
   }
 
   // ── Connect here ──────────────────────────────────────────────────────────
-  // 'app-store' / 'play-billing':
+  // 'app-store':
   //   const { customerInfo } = await Purchases.purchasePackage(pkg);
   //   return { ok: true, charged: true, route };
   // 'apple-pay-web':
