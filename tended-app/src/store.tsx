@@ -20,7 +20,6 @@ export type Entry = {
   date: ISODate;
   /** 1 = Great … 5 = Rough, evenly spread. Index into MOODS is score - 1. */
   score: number;
-  tags: string[];
 };
 
 export type Practice = {
@@ -71,6 +70,14 @@ function defaultPractices(): Practice[] {
 }
 
 /** A standing rule. Either in force or not — unlike a habit, it is not ticked. */
+/**
+ * One comment under a post. `mine` because everything the teacher writes is
+ * real and stored, while the other side is sample content resolved at render
+ * time — the same split messages used, and the same split a backend will
+ * replace wholesale.
+ */
+export type Comment = { id: string; postId: string; text: string; at: number };
+
 export type Boundary = { id: string; label: string; active: boolean };
 
 /**
@@ -80,12 +87,6 @@ export type Boundary = { id: string; label: string; active: boolean };
  */
 export type Contact = { id: string; name: string; phone: string };
 
-/**
- * One message in a conversation. `mine` because the sender is either this
- * teacher or the other party — there are no group threads, which keeps a
- * private channel between two people from becoming a room.
- */
-export type Message = { id: string; mine: boolean; text: string; at: number };
 
 /** One sentence the teacher posted to the feed. */
 export type Update = {
@@ -211,6 +212,19 @@ type Persisted = {
    * never given.
    */
   agreedToRulesAt: number | null;
+  /**
+   * Set when the teacher signs out, cleared when they sign back in.
+   *
+   * Signing out does not erase anything. The record is the point of the app and
+   * it lives on this device — wiping it because someone wanted to sign out on a
+   * shared phone would be destroying the thing they came for. `deleteAccount()`
+   * is the destructive one, and it says so.
+   *
+   * The account stays on the device behind this flag, which is why signing back
+   * in is a check against the address already stored rather than a lookup. With
+   * a backend it becomes a real session and this becomes the absence of a token.
+   */
+  signedOutAt: number | null;
   /** Author ids this teacher follows. See AUTHORS in data/mock.ts. */
   following: string[];
   /** The self-care plan's standing rules. */
@@ -218,18 +232,15 @@ type Persisted = {
   /** Who to call. Local only, never sent anywhere. */
   contacts: Contact[];
   /**
-   * Which reactions this teacher has sent, keyed by the update they were sent
-   * to. The sample feed's own counts live in data/mock.ts; these add to them.
+   * Which posts this teacher has liked. Was `reactions`, which held up to three
+   * different reactions per post; there is one now, so a set of ids is enough.
+   * The sample feed's own counts live in data/mock.ts; these add to them.
    */
-  reactions: Record<string, string[]>;
-  /**
-   * Conversations, keyed by the other person's author id. Only the teacher's own
-   * side is real; the opening messages come from CONVERSATIONS in data/mock.ts
-   * until there is a server. Local like everything else here.
-   */
-  messages: Record<string, Message[]>;
-  /** Author ids whose thread has been opened, so the inbox can mark unread. */
-  readThreads: string[];
+  likes: string[];
+  /** Posts passed on to their own followers. */
+  reposts: string[];
+  /** Comments this teacher wrote, keyed by the post they sit under. */
+  comments: Record<string, Comment[]>;
   /**
    * Posts this teacher has reported, and why. Kept locally so a reported post
    * disappears from their feed the instant they report it — waiting for a
@@ -253,19 +264,20 @@ const EMPTY: Persisted = {
   practiceDays: {},
   contributing: true,
   updates: [],
-  reactions: {},
+  likes: [],
+  reposts: [],
+  comments: {},
   plus: { trialStartedAt: null },
   onboardedAt: null,
   account: null,
   educator: { verified: false, verifiedAt: null },
   agreedToRulesAt: null,
+  signedOutAt: null,
   following: [],
   boundaries: [],
   contacts: [],
   reported: {},
   blocked: [],
-  messages: {},
-  readThreads: [],
 };
 
 /**
@@ -363,16 +375,16 @@ function seed(): Persisted {
   const today = weekdayIndex();
 
   // A sample week on the even scale: okay, great, rough, worn down, good.
-  const days: { score: number; tags: string[] }[] = [
-    { score: 3, tags: ['Workload'] },
-    { score: 1, tags: [] },
-    { score: 5, tags: ['Workload', 'No break'] },
-    { score: 4, tags: ['Workload', 'No break'] },
-    { score: 2, tags: ['Sleep'] },
+  const days: { score: number }[] = [
+    { score: 3 },
+    { score: 1 },
+    { score: 5 },
+    { score: 4 },
+    { score: 2 },
   ];
   const entries: Record<ISODate, Entry> = {};
   for (let i = 0; i < days.length && i < today; i++) {
-    entries[week[i]] = { date: week[i], score: days[i].score, tags: days[i].tags };
+    entries[week[i]] = { date: week[i], score: days[i].score };
   }
 
   // The prototype's practice grid, clipped to days that have actually happened.
@@ -430,7 +442,7 @@ type StoreValue = Persisted & {
   /** Whole days remaining, 0 when there is no trial. */
   trialDaysLeft: number;
   /** Tags are optional: the feed asks the question with faces and nothing else. */
-  saveCheckIn: (score: number, tags?: string[]) => void;
+  saveCheckIn: (score: number) => void;
   clearCheckIn: () => void;
   togglePracticeDay: (practiceId: string, date: ISODate) => void;
   addPractice: (label: string) => void;
@@ -440,7 +452,13 @@ type StoreValue = Persisted & {
   setContributing: (on: boolean) => void;
   postUpdate: (text: string, photo?: string | null) => void;
   removeUpdate: (id: string) => void;
-  toggleReaction: (updateId: string, reactionId: string) => void;
+  toggleLike: (postId: string) => void;
+  /** Pass someone else's post on to your own followers. */
+  toggleRepost: (postId: string) => void;
+  /** Say something under a post. */
+  addComment: (postId: string, text: string) => void;
+  /** Remove one of your own comments. */
+  removeComment: (postId: string, commentId: string) => void;
   startTrial: () => void;
   endTrial: () => void;
   /** Finishes onboarding: who they are, how they appear, and the starting list. */
@@ -468,10 +486,6 @@ type StoreValue = Persisted & {
   updateShown: (patch: Partial<NonNullable<Persisted['account']>['shown']>) => void;
   follow: (authorId: string) => void;
   unfollow: (authorId: string) => void;
-  /** Adds this teacher's own message to a thread. */
-  sendMessage: (authorId: string, text: string) => void;
-  /** Marks a thread read, so the inbox stops flagging it. */
-  markThreadRead: (authorId: string) => void;
   /** Hides the post here and, with a backend, queues it for a moderator. */
   reportPost: (updateId: string, reason: string) => void;
   /** Hides everything by this author and drops any follow. */
@@ -484,6 +498,16 @@ type StoreValue = Persisted & {
    * let you end that record.
    */
   deleteAccount: () => void;
+  /**
+   * Lock the app without erasing anything. The next launch lands on sign-in.
+   */
+  signOut: () => void;
+  /**
+   * Unlock it. Returns false if the address is not the one this device holds,
+   * which is the only check available without a server — and is honest about
+   * that in the UI rather than pretending to have looked anything up.
+   */
+  signIn: (email: string) => boolean;
   /** For an account that verifies from inside the app rather than at sign-up. */
   setVerified: (email: string) => void;
   /** Writes the whole plan at once, as the builder produces it. */
@@ -508,6 +532,13 @@ export function trialDaysRemaining(startedAt: number | null, now: number = Date.
 
 /** Long enough for a sentence, short enough that it stays one. */
 export const UPDATE_MAX_LENGTH = 140;
+
+/**
+ * A comment can run longer than a post. A post is a single move stated plainly;
+ * a comment is usually the explanation of how it went, which needs more room —
+ * but not so much that a thread turns into an essay nobody reads.
+ */
+export const COMMENT_MAX_LENGTH = 280;
 
 const StoreContext = createContext<StoreValue | null>(null);
 
@@ -554,13 +585,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       trialDaysLeft: daysLeft,
       listLimit: daysLeft > 0 ? Infinity : FREE_LIST_LIMIT,
       listFull: daysLeft <= 0 && data.practices.length >= FREE_LIST_LIMIT,
-      saveCheckIn: (score, tags) =>
+      saveCheckIn: (score) =>
         update((prev) => {
           const date = todayISO();
-          // Tapping a face is the whole check-in, and it must not wipe tags a
-          // teacher added earlier in the day from somewhere that collects them.
-          const kept = tags ?? prev.entries[date]?.tags ?? [];
-          return { ...prev, entries: { ...prev.entries, [date]: { date, score, tags: kept } } };
+          return { ...prev, entries: { ...prev.entries, [date]: { date, score } } };
         }),
       clearCheckIn: () =>
         update((prev) => {
@@ -626,17 +654,42 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }),
       removeUpdate: (id) =>
         update((prev) => ({ ...prev, updates: prev.updates.filter((u) => u.id !== id) })),
-      toggleReaction: (updateId, reactionId) =>
+      toggleLike: (postId) =>
+        update((prev) => ({
+          ...prev,
+          likes: prev.likes.includes(postId)
+            ? prev.likes.filter((id) => id !== postId)
+            : [...prev.likes, postId],
+        })),
+      toggleRepost: (postId) =>
+        update((prev) => ({
+          ...prev,
+          reposts: prev.reposts.includes(postId)
+            ? prev.reposts.filter((id) => id !== postId)
+            : [...prev.reposts, postId],
+        })),
+      addComment: (postId, text) =>
         update((prev) => {
-          const current = prev.reactions[updateId] ?? [];
-          const next = current.includes(reactionId)
-            ? current.filter((r) => r !== reactionId)
-            : [...current, reactionId];
-          const reactions = { ...prev.reactions };
-          // Drop the key entirely rather than leaving an empty array behind.
-          if (next.length === 0) delete reactions[updateId];
-          else reactions[updateId] = next;
-          return { ...prev, reactions };
+          const trimmed = text.trim();
+          if (!trimmed) return prev;
+          const entry: Comment = {
+            id: `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+            postId,
+            text: trimmed.slice(0, COMMENT_MAX_LENGTH),
+            at: Date.now(),
+          };
+          return {
+            ...prev,
+            comments: { ...prev.comments, [postId]: [...(prev.comments[postId] ?? []), entry] },
+          };
+        }),
+      removeComment: (postId, commentId) =>
+        update((prev) => {
+          const next = (prev.comments[postId] ?? []).filter((c) => c.id !== commentId);
+          const comments = { ...prev.comments };
+          if (next.length === 0) delete comments[postId];
+          else comments[postId] = next;
+          return { ...prev, comments };
         }),
       startTrial: () =>
         update((prev) =>
@@ -684,6 +737,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             : prev.practices,
           practiceDays: labels.length ? {} : prev.practiceDays,
         })),
+      signOut: () => update((prev) => ({ ...prev, signedOutAt: Date.now() })),
+      signIn: (email) => {
+        const held = data.account?.email?.trim().toLowerCase();
+        const given = email.trim().toLowerCase();
+        // No account on this device yet: nothing to sign in to.
+        if (!held) return false;
+        if (held !== given) return false;
+        update((prev) => ({ ...prev, signedOutAt: null }));
+        return true;
+      },
       setVerified: (email) =>
         update((prev) => ({
           ...prev,
@@ -795,27 +858,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           following: prev.following.filter((id) => id !== authorId),
         })),
-      sendMessage: (authorId, text) =>
-        update((prev) => {
-          const trimmed = text.trim();
-          if (!trimmed) return prev;
-          const entry: Message = {
-            id: `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
-            mine: true,
-            text: trimmed,
-            at: Date.now(),
-          };
-          return {
-            ...prev,
-            messages: { ...prev.messages, [authorId]: [...(prev.messages[authorId] ?? []), entry] },
-          };
-        }),
-      markThreadRead: (authorId) =>
-        update((prev) =>
-          prev.readThreads.includes(authorId)
-            ? prev
-            : { ...prev, readThreads: [...prev.readThreads, authorId] },
-        ),
       reportPost: (updateId, reason) =>
         update((prev) => ({
           ...prev,

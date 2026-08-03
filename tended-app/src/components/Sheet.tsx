@@ -39,7 +39,7 @@ export type SheetName = 'plus' | 'verify' | 'report' | 'delete' | 'rules';
 export type ReportSubject = {
   updateId: string;
   authorId: string;
-  kind?: 'post' | 'message';
+  kind?: 'post' | 'comment';
 };
 
 type SheetsValue = {
@@ -50,9 +50,9 @@ type SheetsValue = {
    * root rather than in the card — so the subject travels with the request
    * instead of being duplicated as state in every screen that can open one.
    *
-   * `kind` is what is being reported. It only changes the wording — a reported
-   * post leaves the feed, a reported message thread does not — but the two need
-   * different sentences and the sheet cannot tell them apart from the ids.
+   * `kind` is what is being reported: a post or a comment under one. It only
+   * changes the wording, but the two need different sentences and the sheet
+   * cannot tell them apart from the ids alone.
    */
   subject: ReportSubject | null;
   open: (name: SheetName, subject?: ReportSubject) => void;

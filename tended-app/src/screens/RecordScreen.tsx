@@ -19,42 +19,21 @@ const CHART_HEIGHT = 124;
 /** Worst days are tallest: score 1 → 26% of the chart, score 5 → 76%. */
 const barHeight = (score: number) => ((26 + (score - 1) * 12.5) / 100) * CHART_HEIGHT;
 
-type Part = { text: string; bold?: boolean };
-
-/** Reads the week back to the teacher: heaviest day, then what they named on it. */
-function insight(week: Entry[]): Part[] {
+/**
+ * Reads the week back to the teacher: which day was heaviest.
+ *
+ * It used to add "You named workload and no break both times it got heavy",
+ * built from tags picked after each check-in. The tags are gone — they were
+ * collected every day and read by this one sentence and nothing else, which is
+ * a lot to ask of someone at the end of a bad afternoon for a clause they might
+ * see once a week.
+ */
+function insight(week: Entry[]): string {
   if (week.length === 0) {
-    return [{ text: 'No days logged yet this week. The chart fills in as you check in.' }];
+    return 'No days logged yet this week. The chart fills in as you check in.';
   }
-
   const heaviest = week.reduce((a, b) => (b.score > a.score ? b : a));
-  const parts: Part[] = [
-    { text: `${weekdayName(heaviest.date)} was your heaviest day.` },
-  ];
-
-  const heavy = week.filter((e) => e.score >= 4);
-  const source = heavy.length ? heavy : week;
-  const counts = new Map<string, number>();
-  source.forEach((e) => e.tags.forEach((t) => counts.set(t, (counts.get(t) ?? 0) + 1)));
-  const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([t]) => t);
-
-  if (top.length === 0) return parts;
-
-  parts.push({ text: ' You named ' });
-  top.forEach((tag, i) => {
-    if (i > 0) parts.push({ text: ' and ' });
-    parts.push({ text: tag.toLowerCase(), bold: true });
-  });
-
-  if (heavy.length >= 2) {
-    parts.push({ text: heavy.length === 2 ? ' both times it got heavy.' : ' most times it got heavy.' });
-  } else if (heavy.length === 1) {
-    parts.push({ text: ' the day it got heavy.' });
-  } else {
-    parts.push({ text: ' this week.' });
-  }
-
-  return parts;
+  return `${weekdayName(heaviest.date)} was your heaviest day.`;
 }
 
 export function RecordScreen() {
@@ -87,7 +66,7 @@ export function RecordScreen() {
       };
     });
   }, [entries, today]);
-  const parts = useMemo(() => insight(logged), [logged.map((e) => e.date + e.score).join()]);
+  const line = useMemo(() => insight(logged), [logged.map((e) => e.date + e.score).join()]);
 
   return (
     <View>
@@ -131,13 +110,7 @@ export function RecordScreen() {
 
         <Divider style={styles.chartDivider} />
 
-        <Text style={styles.insight}>
-          {parts.map((p, i) => (
-            <Text key={i} style={p.bold ? styles.insightStrong : undefined}>
-              {p.text}
-            </Text>
-          ))}
-        </Text>
+        <Text style={styles.insight}>{line}</Text>
       </Card>
 
       {plusActive ? (
@@ -283,10 +256,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
     color: color.body,
-  },
-  insightStrong: {
-    color: color.ink,
-    fontWeight: '700',
   },
   plusCard: {
     marginTop: 18,

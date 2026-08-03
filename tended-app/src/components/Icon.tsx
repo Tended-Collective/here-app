@@ -16,17 +16,15 @@ import { color } from '../theme';
 
 export type IconName =
   | 'home'
-  | 'message'
   | 'plus'
   | 'person'
   | 'gear'
   | 'heart'
-  | 'hug'
-  | 'hand'
+  | 'comment'
+  | 'repost'
   | 'bookmark'
   | 'flag'
-  | 'back'
-  | 'send';
+  | 'back';
 
 export function Icon({
   name,
@@ -59,20 +57,6 @@ export function Icon({
           {...common}
           fill={filled ? tone : 'none'}
         />
-      )}
-
-      {/* The paper plane Threads uses for messages: one outline, one crease. */}
-      {name === 'message' && (
-        <>
-          <Path d="M21.2 3.4 2.9 10.2a.55.55 0 0 0 .05 1.04l7.3 2.3 2.3 7.3a.55.55 0 0 0 1.04.05Z" {...common} />
-          <Path d="M10.25 13.54 21.2 3.4" {...common} />
-        </>
-      )}
-
-      {name === 'send' && (
-        <>
-          <Path d="M21.2 3.4 2.9 10.2a.55.55 0 0 0 .05 1.04l7.3 2.3 2.3 7.3a.55.55 0 0 0 1.04.05Z" {...common} fill={tone} stroke={tone} />
-        </>
       )}
 
       {name === 'plus' && (
@@ -108,23 +92,22 @@ export function Icon({
         />
       )}
 
-      {/* Reaction glyphs. Two arms around a shape for "needed this", a raised
-          hand for "doing this too" — both readable at 20px, which the emoji
-          they replace were not. */}
-      {name === 'hug' && (
-        <>
-          <Circle cx={12} cy={9.4} r={3.4} {...common} fill={fill} />
-          <Path d="M4.8 20.2c0-2.6 1.6-4.6 3.6-4.6M19.2 20.2c0-2.6-1.6-4.6-3.6-4.6" {...common} />
-          <Path d="M8.4 15.6h7.2" {...common} />
-        </>
-      )}
-
-      {name === 'hand' && (
+      {/* A speech bubble with a tail, and two arrows chasing each other. Both
+          are the shape people already recognise from every other feed, which is
+          most of why they do not need a label. */}
+      {name === 'comment' && (
         <Path
-          d="M9 12.6V6.4a1.5 1.5 0 0 1 3 0v5m0-1.2a1.5 1.5 0 0 1 3 0v1.6m0-.8a1.5 1.5 0 0 1 3 0v3.4c0 3.1-2.4 5.6-5.4 5.6-3 0-5.4-2.5-5.4-5.6v-2.9a1.5 1.5 0 0 1 3 0"
+          d="M20.5 11.6c0 4-3.8 7.2-8.5 7.2a9.8 9.8 0 0 1-2.6-.35L4.6 20.4l1.35-3.7A6.9 6.9 0 0 1 3.5 11.6c0-4 3.8-7.2 8.5-7.2s8.5 3.2 8.5 7.2Z"
           {...common}
           fill={fill}
         />
+      )}
+
+      {name === 'repost' && (
+        <>
+          <Path d="M6.6 8.4h10.1l-2.6-2.7M17.4 15.6H7.3l2.6 2.7" {...common} />
+          <Path d="M17.4 8.4v4.1M6.6 15.6v-4.1" {...common} />
+        </>
       )}
 
       {name === 'bookmark' && (

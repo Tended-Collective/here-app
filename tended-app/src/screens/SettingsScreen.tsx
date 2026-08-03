@@ -25,7 +25,8 @@ import { useStore } from '../store';
 import { color, radius } from '../theme';
 
 export function SettingsScreen() {
-  const { educator, account, updateShown, blocked, unblockAuthor, agreedToRulesAt } = useStore();
+  const { educator, account, updateShown, blocked, unblockAuthor, agreedToRulesAt, signOut } =
+    useStore();
   const { open } = useSheets();
 
   const shown = account?.shown;
@@ -250,6 +251,15 @@ export function SettingsScreen() {
           hint={SUPPORT_EMAIL}
           onPress={() => openLink(`mailto:${SUPPORT_EMAIL}`)}
           external
+        />
+      </Card>
+
+      <MonoLabel style={{ marginTop: 30 }}>THIS DEVICE</MonoLabel>
+      <Card style={styles.linksCard}>
+        <LinkRow
+          label="Sign out"
+          hint="Keeps your record on this phone"
+          onPress={signOut}
         />
       </Card>
 

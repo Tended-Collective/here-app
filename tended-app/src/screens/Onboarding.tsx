@@ -69,7 +69,7 @@ const IDENTITY_STEP = VERIFY_STEP + 1;
 const CONTEXT_STEP = IDENTITY_STEP + 1;
 const STEPS = CONTEXT_STEP + 1;
 
-export function Onboarding() {
+export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
   const { completeOnboarding } = useStore();
   const { topInset } = useChrome();
   const [step, setStep] = useState(0);
@@ -412,6 +412,18 @@ export function Onboarding() {
             ) : (
               <View />
             )}
+            {/* Only on the first screen. Once someone is three screens into
+                signing up, offering to take them somewhere else is noise. */}
+            {step === 0 && onSignIn && (
+              <Pressable
+                onPress={onSignIn}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in to an existing account"
+                hitSlop={8}
+              >
+                <Text style={styles.signIn}>I already have an account</Text>
+              </Pressable>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -448,6 +460,10 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: color.ground,
+  },
+  signIn: {
+    fontSize: 13.5,
+    color: color.accent,
   },
   agreeRow: {
     flexDirection: 'row',

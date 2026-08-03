@@ -75,28 +75,6 @@ export const MOODS: Mood[] = [
   { label: 'Rough', emoji: '😞', color: '#b46762', fill: 'rgba(180,103,98,0.5)' }, //      oklch(.6 .1 25)
 ];
 
-/**
- * What a teacher can name as the cause. Rewritten from a reviewer's note: the
- * old list had "Parents" (read as the teacher's own parents) and "Admin asks"
- * (administrative work, or work the administration asked for — nobody could
- * tell). Student behavior and learning needs are split because they call for
- * opposite responses, and "Something else" exists because forcing a wrong tag
- * corrupts the data the others carry.
- */
-export const TAGS = [
-  'Workload',
-  'School leadership',
-  'Administrative tasks',
-  'Student behavior',
-  'Learning needs',
-  'No break',
-  'Sleep',
-  'Personal life',
-  'Something else',
-];
-
-
-
 export const font = {
   displayLight: 'Newsreader_300Light',
   displayRegular: 'Newsreader_400Regular',

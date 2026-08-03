@@ -65,24 +65,33 @@ export function podcastUrl(showId: string | null = PODCAST_SHOW_ID): string {
 export const postUrl = (slug: string) => `${SITE.blog}/${slug}`;
 
 /**
- * The three ways to answer someone else's update. Reactions are the only
- * response the feed allows in public: there are no replies and no free-text
- * answers under a post, so a hard day can be met without the feed turning into a
- * thread to argue in. Anything longer than a reaction goes to messages, where it
- * is between two people.
+ * The three things you can do under someone else's post.
  *
- * `icon` is what you see, drawn as a line glyph rather than an emoji so the three
- * sit at one stroke weight and one size (see components/Icon.tsx). `label` is
- * what a screen reader says, so the button announces "Needed this" rather than
- * describing a shape.
+ * This replaces a set of three reactions — good idea / needed this / doing this
+ * too — with the shape people already know from every other feed: like it, say
+ * something, pass it on.
+ *
+ * That is a real change of policy, not just of icons. The feed used to have no
+ * replies at all, on the grounds that a reaction is a complete answer and a post
+ * with nothing to argue under it cannot become an argument. Comments give that
+ * up deliberately. What replaces the guardrail is moderation: a comment can be
+ * reported and its author blocked on exactly the same flag and the same reason
+ * list as a post, and a blocked account's comments disappear along with their
+ * posts.
+ *
+ * `icon` is a line glyph rather than an emoji so all three sit at one stroke
+ * weight and one size (see components/Icon.tsx), and `label` is what a screen
+ * reader announces.
  */
-export const REACTIONS = [
-  { id: 'felt', label: 'Good idea', icon: 'heart' },
-  { id: 'holding', label: 'Needed this', icon: 'hug' },
-  { id: 'same', label: 'Doing this too', icon: 'hand' },
+export const POST_ACTIONS = [
+  { id: 'like', label: 'Like', icon: 'heart' },
+  { id: 'comment', label: 'Comment', icon: 'comment' },
+  { id: 'repost', label: 'Repost', icon: 'repost' },
 ] as const;
 
-export type ReactionId = (typeof REACTIONS)[number]['id'];
+export type PostActionId = (typeof POST_ACTIONS)[number]['id'];
+
+
 
 /**
  * Who posted — as they chose to appear, not as they verified.
@@ -247,8 +256,48 @@ export type FeedUpdate = {
   dot: string;
   /** Optional photo, as a data URI. See the samples below. */
   photo?: string;
-  /** What other people have already sent. The user's own tap adds to these. */
-  reactions: Partial<Record<ReactionId, number>>;
+  /** Likes and reposts already on it. The user's own tap adds to these. */
+  counts: Partial<Record<PostActionId, number>>;
+};
+
+/**
+ * Comments already under the sample posts.
+ *
+ * Written as the kind of thing that is worth having comments for at all: the
+ * practical follow-up a reaction cannot carry — how long it took to stick, what
+ * the principal said, what to do when the plan fails. If the answer to "why
+ * comments" is not visible in this list, the feature is not earning the
+ * moderation cost it brings.
+ */
+export type SampleComment = { authorId: string; text: string; minutesAgo: number };
+
+export const SAMPLE_COMMENTS: Record<string, SampleComment[]> = {
+  '1': [
+    {
+      authorId: 't3',
+      text: 'Took me a term to make this stick. The first fortnight was the hard part — after that nobody once asked where I had gone.',
+      minutesAgo: 26,
+    },
+    {
+      authorId: 't5',
+      text: 'As an admin: I would far rather be told than left guessing. Say it out loud once and it usually just becomes normal.',
+      minutesAgo: 14,
+    },
+  ],
+  '2': [
+    {
+      authorId: 't6',
+      text: 'First year here and I have not managed this once. Does it get easier or do you just get stubborn?',
+      minutesAgo: 71,
+    },
+  ],
+  '4': [
+    {
+      authorId: 't1',
+      text: 'The walk to the car with no phone is the only version of this that has ever worked for me.',
+      minutesAgo: 96,
+    },
+  ],
 };
 
 /**
@@ -281,7 +330,7 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
     text: 'Left at 4:30 and did the grading at home with the TV on.',
     meta: '40 MIN AGO',
     dot: 'rgba(117,174,129,0.65)',
-    reactions: { felt: 14, holding: 3, same: 6 },
+    counts: { like: 17, repost: 6 },
   },
   {
     id: '2',
@@ -290,7 +339,7 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
     meta: '2 HR AGO',
     dot: 'rgba(120,180,152,0.65)',
     photo: SAMPLE_PHOTO_PARK,
-    reactions: { felt: 21, same: 9 },
+    counts: { like: 21, repost: 9 },
   },
   {
     id: '3',
@@ -298,7 +347,7 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
     text: 'Said no to covering another class this week.',
     meta: '3 HR AGO',
     dot: 'rgba(112,180,168,0.65)',
-    reactions: { felt: 30, holding: 11, same: 4 },
+    counts: { like: 41, repost: 4 },
   },
   {
     id: '4',
@@ -307,7 +356,7 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
     meta: '5 HR AGO',
     dot: 'rgba(108,178,184,0.6)',
     photo: SAMPLE_PHOTO_DRAWER,
-    reactions: { felt: 17, holding: 2, same: 12 },
+    counts: { like: 19, repost: 12 },
   },
 ];
 
@@ -336,7 +385,7 @@ export const LAST_HOUR_UPDATES: FeedUpdate[] = [
     text: 'Walked the long way to the car. Fifteen minutes, no phone.',
     meta: '6 HR AGO',
     dot: 'rgba(120,180,152,0.65)',
-    reactions: { felt: 12, same: 7 },
+    counts: { like: 12, repost: 7 },
   },
   {
     id: '6',
@@ -344,7 +393,7 @@ export const LAST_HOUR_UPDATES: FeedUpdate[] = [
     text: 'Booked the therapy appointment I had been putting off since March.',
     meta: '7 HR AGO',
     dot: 'rgba(117,174,129,0.65)',
-    reactions: { felt: 41, holding: 9, same: 3 },
+    counts: { like: 50, repost: 3 },
   },
   {
     id: '7',
@@ -353,7 +402,7 @@ export const LAST_HOUR_UPDATES: FeedUpdate[] = [
     meta: '8 HR AGO',
     dot: 'rgba(112,175,197,0.6)',
     photo: SAMPLE_PHOTO_SUNDAY,
-    reactions: { felt: 9, holding: 4, same: 15 },
+    counts: { like: 13, repost: 15 },
   },
 ];
 
@@ -427,57 +476,6 @@ export const SPONSORS: Sponsor[] = [
  */
 export const SHOW_UNSOLD_SLOTS = true;
 
-/**
- * Sample conversations, so the inbox has something in it before there is a
- * backend. The teacher's own replies are real and persist; these opening
- * messages stand in for what a server would deliver.
- *
- * Every thread starts from something the other person posted. That is
- * deliberate: a message you can only send after reading someone's post about
- * their own week is a different object from a cold DM, and it is the only kind
- * this app has a reason to carry.
- */
-export type SampleMessage = { from: 'them' | 'me'; text: string; minutesAgo: number };
-
-export const CONVERSATIONS: { authorId: string; messages: SampleMessage[] }[] = [
-  {
-    authorId: 't3',
-    messages: [
-      {
-        from: 'them',
-        text: 'Saw you saved the 4:30 one. It took me a term to make it stick — the first fortnight was the hard part.',
-        minutesAgo: 95,
-      },
-      { from: 'me', text: 'That is reassuring. Three days in and it feels rude.', minutesAgo: 82 },
-      {
-        from: 'them',
-        text: 'It stops feeling rude. Nobody has ever once asked me where I went.',
-        minutesAgo: 74,
-      },
-    ],
-  },
-  {
-    authorId: 't5',
-    messages: [
-      {
-        from: 'them',
-        text: 'As an admin — if someone tells me they are leaving at 4:30, I would far rather know than guess. Say it out loud and it usually just becomes normal.',
-        minutesAgo: 400,
-      },
-    ],
-  },
-  {
-    authorId: 't6',
-    messages: [
-      { from: 'them', text: 'First year here. How do you stop taking the bad days home?', minutesAgo: 1500 },
-      {
-        from: 'me',
-        text: 'Badly, mostly. The walk to the car with no phone is the only thing that has worked.',
-        minutesAgo: 1440,
-      },
-    ],
-  },
-];
 
 export const PRICING = {
   price: '$4.99',

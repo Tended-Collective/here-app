@@ -11,6 +11,10 @@
  * carries an accessibility label and the centre item is the one glyph everybody
  * already knows. The compose button is not a tab: it takes you to the feed and
  * puts the cursor in the box, because that is where posting happens.
+ *
+ * There were five items. Messages has been removed for a later rollout, which
+ * leaves four — still more than fits as words, and the pill is better balanced
+ * with compose in the middle of an even number than off-centre in an odd one.
  */
 
 import React from 'react';
@@ -19,14 +23,13 @@ import { color } from '../theme';
 import { Icon, IconName } from './Icon';
 import { useChrome } from './PhoneFrame';
 
-export type TabKey = 'feed' | 'messages' | 'profile' | 'settings';
+export type TabKey = 'feed' | 'profile' | 'settings';
 
 /** What the pill can ask for: a tab, or the compose action in the middle. */
 export type NavAction = TabKey | 'compose';
 
 const ITEMS: { key: NavAction; icon: IconName; label: string }[] = [
   { key: 'feed', icon: 'home', label: 'Feed' },
-  { key: 'messages', icon: 'message', label: 'Messages' },
   { key: 'compose', icon: 'plus', label: 'Write a post' },
   { key: 'profile', icon: 'person', label: 'Profile' },
   { key: 'settings', icon: 'gear', label: 'Settings' },
@@ -34,12 +37,9 @@ const ITEMS: { key: NavAction; icon: IconName; label: string }[] = [
 
 export function TabBar({
   active,
-  unread,
   onSelect,
 }: {
   active: TabKey;
-  /** Threads on the messages tab with something unread. 0 hides the dot. */
-  unread: number;
   onSelect: (action: NavAction) => void;
 }) {
   const { tabBarHeight } = useChrome();
@@ -66,13 +66,6 @@ export function TabBar({
                 tone={on ? color.ink : color.tabIdle}
                 filled={on && item.key === 'feed'}
               />
-              {/* Only on messages, and only a dot with a count — the number of
-                  unread threads is small by nature, so it never needs "9+". */}
-              {item.key === 'messages' && unread > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeCount}>{unread}</Text>
-                </View>
-              )}
             </Pressable>
           );
         })}
@@ -123,23 +116,5 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  badge: {
-    position: 'absolute',
-    top: 13,
-    right: 12,
-    minWidth: 16,
-    height: 16,
-    paddingHorizontal: 4,
-    borderRadius: 99,
-    backgroundColor: color.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeCount: {
-    fontSize: 10,
-    fontWeight: '700',
-    lineHeight: 14,
-    color: '#fff',
   },
 });

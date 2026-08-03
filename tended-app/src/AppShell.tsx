@@ -3,26 +3,49 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useChrome } from './components/PhoneFrame';
 import { DeleteAccountSheet } from './components/DeleteAccountSheet';
 import { PlusSheet } from './components/PlusSheet';
+import { CommentsSheet } from './components/CommentsSheet';
 import { ReportSheet } from './components/ReportSheet';
 import { RulesSheet } from './components/RulesSheet';
 import { SheetsProvider, useSheets } from './components/Sheet';
 import { VerifySheet } from './components/VerifySheet';
 import { NavAction, TabBar, TabKey } from './components/TabBar';
 import { FeedScreen } from './screens/FeedScreen';
-import { MessagesScreen, unreadThreadCount } from './screens/MessagesScreen';
 import { Onboarding } from './screens/Onboarding';
+import { SignIn } from './screens/SignIn';
 import { ProfileScreen } from './screens/ProfileScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { useStore } from './store';
 import { color, SCREEN_PADDING } from './theme';
 
 export function AppShell() {
-  const { hydrated, onboardedAt } = useStore();
+  const { hydrated, onboardedAt, signedOutAt } = useStore();
+  /**
+   * Which door to show when there is no session: sign-up, or sign-in.
+   *
+   * A returning teacher on a phone that still holds their account lands
+   * straight on the feed and never sees either — that is the common case and it
+   * costs nothing. This only decides what someone *without* a session sees
+   * first, and either door can reach the other.
+   */
+  const [door, setDoor] = useState<'signup' | 'signin'>('signup');
 
   // Nothing until storage has been read, or onboarding flashes over a returning
   // teacher's app for a frame.
   if (!hydrated) return <View style={styles.root} />;
-  if (onboardedAt === null) return <Onboarding />;
+
+  // Signed out on purpose: the account is still here, so offer the lock rather
+  // than the whole sign-up story again.
+  if (onboardedAt !== null && signedOutAt !== null) {
+    return <SignIn onCreateAccount={() => setDoor('signup')} />;
+  }
+
+  if (onboardedAt === null) {
+    return door === 'signin' ? (
+      <SignIn onCreateAccount={() => setDoor('signup')} />
+    ) : (
+      <Onboarding onSignIn={() => setDoor('signin')} />
+    );
+  }
 
   return (
     <SheetsProvider>
@@ -36,17 +59,11 @@ function Shell() {
   // Bumped by the compose button. The feed watches it and focuses its box —
   // a counter rather than a boolean, so pressing + twice works twice.
   const [composeAt, setComposeAt] = useState(0);
-  // Which thread the messages tab should open on. Set by tapping the message
-  // icon on a post; cleared by any deliberate navigation, so the tab bar always
-  // lands on the inbox.
-  const [thread, setThread] = useState<string | null>(null);
-  // Bumped on every tab-bar press. Tapping the tab you are already on returns
-  // that tab to its root — an open message thread back to the inbox — which is
-  // what a bottom bar is expected to do.
-  const [navAt, setNavAt] = useState(0);
+  // Which post's comments are open, if any. Held here because the sheet is
+  // mounted at the shell — see components/Sheet.tsx for why.
+  const [commentsOn, setCommentsOn] = useState<string | null>(null);
   const { topInset, tabBarHeight } = useChrome();
   const scroller = useRef<ScrollView>(null);
-  const { messages, readThreads, blocked } = useStore();
 
   const select = (next: NavAction) => {
     // Compose is not a place, it is an action: it takes you to the feed, where
@@ -57,8 +74,7 @@ function Shell() {
     } else {
       setTab(next);
     }
-    setThread(null);
-    setNavAt((n) => n + 1);
+    setCommentsOn(null);
     scroller.current?.scrollTo({ y: 0, animated: false });
   };
 
@@ -73,31 +89,29 @@ function Shell() {
         showsVerticalScrollIndicator={false}
       >
         {tab === 'feed' && (
-          <FeedScreen
-            composeAt={composeAt}
-            onMessage={(authorId) => {
-              setThread(authorId);
-              setTab('messages');
-              scroller.current?.scrollTo({ y: 0, animated: false });
-            }}
-          />
+          <FeedScreen composeAt={composeAt} onComments={(postId) => setCommentsOn(postId)} />
         )}
-        {tab === 'messages' && <MessagesScreen initialThread={thread} resetAt={navAt} />}
         {tab === 'profile' && <ProfileScreen onEditProfile={() => select('settings')} />}
         {tab === 'settings' && <SettingsScreen />}
       </ScrollView>
 
-      <TabBar active={tab} unread={unreadThreadCount(messages, readThreads, blocked)} onSelect={select} />
+      <TabBar active={tab} onSelect={select} />
 
       {/* Sheets live above the tab bar and inside the device, so they are
           mounted here rather than in the screen that opens them. */}
-      <Sheets />
+      <Sheets commentsOn={commentsOn} closeComments={() => setCommentsOn(null)} />
     </View>
   );
 }
 
-function Sheets() {
-  const { current, subject, close } = useSheets();
+function Sheets({
+  commentsOn,
+  closeComments,
+}: {
+  commentsOn: string | null;
+  closeComments: () => void;
+}) {
+  const { current, subject, close, open } = useSheets();
   const {
     plusActive,
     trialDaysLeft,
@@ -109,6 +123,17 @@ function Sheets() {
   return (
     <>
       <ReportSheet visible={current === 'report'} onClose={close} subject={subject} />
+      <CommentsSheet
+        visible={commentsOn !== null && current === null}
+        postId={commentsOn}
+        onClose={closeComments}
+        // Reporting a comment reports its author. The comment's own id is not
+        // stable across a reload — their side is sample content — so blocking
+        // the account is the part that has to work, and it does.
+        onReport={(authorId) =>
+          open('report', { updateId: `comment:${authorId}`, authorId, kind: 'comment' })
+        }
+      />
       <RulesSheet visible={current === 'rules'} onClose={close} />
       <DeleteAccountSheet visible={current === 'delete'} onClose={close} />
       <VerifySheet

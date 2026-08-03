@@ -21,9 +21,14 @@
  * What a post never carries is anything derived from the check-in record. The
  * record stays on the phone, and that includes counts drawn from it.
  *
- * The other guardrail survives: there are no replies under a post. A reaction is
- * the whole public vocabulary, so the feed cannot turn into somewhere to argue.
- * Anything longer goes to messages, in private, between two people.
+ * The no-replies guardrail is gone. It held for a long time — a reaction was the
+ * whole vocabulary, so a post had nothing to argue under it — and it is given up
+ * deliberately, because the follow-up a reaction cannot carry is most of what
+ * makes someone else's practice usable: how long it took to stick, what their
+ * principal said, what to do when it fails. What replaces it is moderation, on
+ * comments as much as on posts. See components/CommentsSheet.tsx.
+ *
+ * Private messages were built and then removed. They are a later rollout.
  *
  * The cards are flat rows rather than raised cards — avatar in a left column,
  * everything else stacked in a right one, hairline between posts. A feed of
@@ -44,7 +49,8 @@ import {
   FeedUpdate,
   LAST_HOUR_UPDATES,
   NEARBY_UPDATES,
-  REACTIONS,
+  POST_ACTIONS,
+  SAMPLE_COMMENTS,
   yearsLabel,
 } from '../data/mock';
 import { longDateLabel, timeAgoLabel } from '../lib/dates';
@@ -52,7 +58,7 @@ import { useToday } from '../lib/useToday';
 import { isNearby, stateForZip, stateName } from '../lib/zip';
 import { PICKER_CONFIGURED, pickPhoto } from '../lib/photo';
 import { Update, UPDATE_MAX_LENGTH, useStore } from '../store';
-import { color, MOODS, radius, TAGS } from '../theme';
+import { color, MOODS, radius } from '../theme';
 
 /**
  * Three ways to narrow the feed.
@@ -73,11 +79,11 @@ const SCOPES: { key: Scope; label: string }[] = [
 
 export function FeedScreen({
   composeAt = 0,
-  onMessage,
+  onComments,
 }: {
   composeAt?: number;
-  /** Open a message thread with this author. Provided by the shell. */
-  onMessage?: (authorId: string) => void;
+  /** Open the comments for a post. The sheet is mounted by the shell. */
+  onComments?: (postId: string) => void;
 }) {
   const {
     entries,
@@ -85,8 +91,11 @@ export function FeedScreen({
     updates,
     postUpdate,
     removeUpdate,
-    reactions,
-    toggleReaction,
+    likes,
+    toggleLike,
+    reposts,
+    toggleRepost,
+    comments,
     practices,
     saveToList,
     educator,
@@ -105,7 +114,6 @@ export function FeedScreen({
   // page would otherwise still say yesterday on a phone left open overnight.
   const today = useToday();
   const mood = entries[today]?.score ?? null;
-  const tags = entries[today]?.tags ?? [];
 
   const [draft, setDraft] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
@@ -187,32 +195,6 @@ export function FeedScreen({
           instruction: there is no save button, so something has to say the day
           was written. */}
       {mood !== null && <Text style={styles.moodCaption}>Saved — {MOODS[mood - 1].label}.</Text>}
-
-      {/* Only after a face is tapped, and never required. The check-in is one
-          tap; this is the second tap for anyone who wants the record to say
-          why, which is what the weekly insight reads back. Skipping it costs
-          nothing and the day is already saved. */}
-      {mood !== null && (
-        <View style={styles.tags}>
-          {TAGS.map((tag) => {
-            const on = tags.includes(tag);
-            return (
-              <Pressable
-                key={tag}
-                onPress={() =>
-                  saveCheckIn(mood, on ? tags.filter((t) => t !== tag) : [...tags, tag])
-                }
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: on }}
-                accessibilityLabel={`${tag} affected today`}
-                style={[styles.tag, on && styles.tagOn]}
-              >
-                <Text style={[styles.tagLabel, on && styles.tagLabelOn]}>{tag}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      )}
 
       {/* The composer. Posting is the app's supply of content, so it is not
           gated on Tended+ — only on having shown you teach, which is what keeps
@@ -378,11 +360,18 @@ export function FeedScreen({
           <FeedCard
             key={row.post.id}
             update={row.post}
-            mine={reactions[row.post.id] ?? []}
+            liked={likes.includes(row.post.id)}
+            reposted={reposts.includes(row.post.id)}
+            commentCount={
+              (SAMPLE_COMMENTS[row.post.id] ?? []).length +
+              (comments[row.post.id] ?? []).length
+            }
             saved={onList.has(row.post.text)}
             locked={listFull && !onList.has(row.post.text)}
             onSave={() => (listFull ? open('plus') : saveToList(row.post.text))}
-            onReact={(id) => toggleReaction(row.post.id, id)}
+            onLike={() => toggleLike(row.post.id)}
+            onRepost={() => toggleRepost(row.post.id)}
+            onComments={() => onComments?.(row.post.id)}
             onReport={() =>
               open('report', { updateId: row.post.id, authorId: row.post.authorId })
             }
@@ -392,7 +381,6 @@ export function FeedScreen({
                 ? unfollow(row.post.authorId)
                 : follow(row.post.authorId)
             }
-            onMessage={onMessage && (() => onMessage(row.post.authorId))}
           />
         ) : (
           <PlacementCard key={`p${i}`} placement={row.placement} />
@@ -463,34 +451,55 @@ function OwnPost({
 
 function FeedCard({
   update,
-  mine,
+  liked,
+  reposted,
+  commentCount,
   saved,
   locked,
   onSave,
-  onReact,
+  onLike,
+  onRepost,
+  onComments,
   onReport,
   following,
   onFollow,
-  onMessage,
 }: {
   update: FeedUpdate;
-  mine: string[];
+  liked: boolean;
+  reposted: boolean;
+  commentCount: number;
   saved: boolean;
   locked: boolean;
   onSave: () => void;
-  onReact: (reactionId: string) => void;
+  onLike: () => void;
+  onRepost: () => void;
+  onComments: () => void;
   onReport: () => void;
   following: boolean;
   onFollow: () => void;
-  /**
-   * Absent unless this is someone the teacher follows. Anyone can be followed,
-   * so this is friction rather than protection — the protection is the flag and
-   * the block, which work in the thread as well as here — but it does mean a
-   * message only ever starts from someone whose posts you chose to keep reading.
-   */
-  onMessage?: () => void;
 }) {
   const author = AUTHORS[update.authorId];
+
+  /**
+   * Three actions and a save, in the order every other feed uses. Counts include
+   * the teacher's own tap, so the number moves the moment they press it rather
+   * than waiting for a server that does not exist.
+   */
+  const actions = [
+    {
+      ...POST_ACTIONS[0],
+      count: (update.counts.like ?? 0) + (liked ? 1 : 0),
+      on: liked,
+      press: onLike,
+    },
+    { ...POST_ACTIONS[1], count: commentCount, on: false, press: onComments },
+    {
+      ...POST_ACTIONS[2],
+      count: (update.counts.repost ?? 0) + (reposted ? 1 : 0),
+      on: reposted,
+      press: onRepost,
+    },
+  ];
 
   return (
     <View style={styles.row}>
@@ -557,50 +566,32 @@ function FeedCard({
           />
         )}
 
-        {/* One row of line icons rather than pills of emoji. The pills were
-            three bordered boxes wide enough to push the save button onto its own
-            line; at this weight the row is quiet enough to sit under the
-            sentence, which is what should be loudest in a post. */}
         <View style={styles.actions}>
-          {REACTIONS.map((r) => {
-            const on = mine.includes(r.id);
-            const count = (update.reactions[r.id] ?? 0) + (on ? 1 : 0);
-            return (
-              <Pressable
-                key={r.id}
-                onPress={() => onReact(r.id)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}
-                accessibilityLabel={`${r.label}${on ? ', sent' : ''}`}
-                hitSlop={8}
-                style={styles.action}
-              >
-                <Icon
-                  name={r.icon}
-                  size={20}
-                  tone={on ? color.accent : color.label}
-                  filled={on}
-                />
-                {count > 0 && (
-                  <Text style={[styles.actionCount, on && styles.actionCountOn]}>{count}</Text>
-                )}
-              </Pressable>
-            );
-          })}
-
-          {/* Only for someone you follow, and only ever a private thread — there
-              are still no replies under the post itself. */}
-          {following && onMessage && (
+          {actions.map((a) => (
             <Pressable
-              onPress={onMessage}
+              key={a.id}
+              onPress={a.press}
               accessibilityRole="button"
-              accessibilityLabel={`Message @${author?.username}`}
+              accessibilityState={a.id === 'comment' ? undefined : { selected: a.on }}
+              accessibilityLabel={
+                a.id === 'comment'
+                  ? `Comments${a.count ? `, ${a.count}` : ', none yet'}`
+                  : `${a.label}${a.on ? ', done' : ''}`
+              }
               hitSlop={8}
               style={styles.action}
             >
-              <Icon name="message" size={19} tone={color.label} />
+              <Icon
+                name={a.icon}
+                size={20}
+                tone={a.on ? color.accent : color.label}
+                filled={a.on && a.id === 'like'}
+              />
+              {a.count > 0 && (
+                <Text style={[styles.actionCount, a.on && styles.actionCountOn]}>{a.count}</Text>
+              )}
             </Pressable>
-          )}
+          ))}
 
           <View style={styles.headSpacer} />
 
@@ -676,32 +667,6 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     color: color.label,
     marginTop: 10,
-  },
-  tags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 12,
-  },
-  tag: {
-    height: 32,
-    paddingHorizontal: 12,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: color.outline,
-    justifyContent: 'center',
-  },
-  tagOn: {
-    backgroundColor: color.ink,
-    borderColor: color.ink,
-  },
-  tagLabel: {
-    fontSize: 13,
-    color: color.body,
-  },
-  tagLabelOn: {
-    color: '#fff',
-    fontWeight: '600',
   },
   composer: {
     marginTop: 22,
