@@ -56,7 +56,10 @@ export function RulesSheet({ visible, onClose }: { visible: boolean; onClose: ()
           </View>
 
           <Text style={styles.contact}>
-            Report a post with the flag on it, or a conversation with the flag in the thread. For
+            {/* "or a conversation with the flag in the thread" used to be here
+                and named a feature that no longer exists — private messaging
+                was pulled. Comments are what is left to report. */}
+            Report a post with the flag on it, or a comment with the flag beside the name. For
             anything urgent, email{' '}
             <Text
               style={styles.link}

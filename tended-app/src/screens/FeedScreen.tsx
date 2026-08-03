@@ -55,7 +55,7 @@ import {
 } from '../data/mock';
 import { longDateLabel, timeAgoLabel } from '../lib/dates';
 import { useToday } from '../lib/useToday';
-import { isNearby, stateForZip, stateName } from '../lib/zip';
+import { isNearby } from '../lib/zip';
 import { PICKER_CONFIGURED, pickPhoto } from '../lib/photo';
 import { Update, UPDATE_MAX_LENGTH, useStore } from '../store';
 import { color, MOODS, radius } from '../theme';
@@ -345,10 +345,14 @@ export function FeedScreen({
 
       {scope === 'nearby' && !!myZip && feed.length === 0 && (
         <Card style={styles.empty}>
+          {/* No "we have not launched in your state yet". The app is national
+              from day one and every post is already readable from anywhere —
+              this tab is a filter, not a region, so the empty state points at
+              the filter rather than implying a rollout. */}
           <Text style={styles.emptyTitle}>Nobody near you has posted yet</Text>
           <Text style={styles.emptySub}>
-            {stateName(stateForZip(myZip)) ?? 'Your area'} is new to Here. Everywhere still has
-            plenty to read.
+            Near my school only shows people who work close to your ZIP. Tap Everywhere for the
+            full feed.
           </Text>
         </Card>
       )}

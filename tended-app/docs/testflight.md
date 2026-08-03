@@ -20,7 +20,7 @@ something real:
 | Still says "tended" | Why |
 |---|---|
 | `STORAGE_KEY = 'tended.v1'` | The key a phone's data is filed under. Renaming it makes every existing install look brand new and silently drops their check-ins. If it moves, it moves by reading the old key and writing the new one. |
-| `tendedcollective.com`, `support@`, `safety@` | Real domain, real mailboxes, real podcast. The app was renamed; the company was not. Relabelling a link that still resolves to tendedcollective.com would misdescribe where it goes. |
+| `tendedcollective.com`, `hello@` | Real domain, real mailbox, real podcast. The app was renamed; the company was not. Relabelling a link that still resolves to tendedcollective.com would misdescribe where it goes. |
 | "Tended Collective" in the resource shelf and the podcast row | Same reason — that is the organisation, and it is what the reader will see when the link opens. |
 
 The bundle identifier **did** change, to `com.tendedcollective.here`. That is
@@ -29,8 +29,8 @@ bundle id is permanent and a rename means a new app. If a record has already
 been created against `com.tendedcollective.tended`, change this back before
 building.
 
-If the company is renaming too, the domain and the two addresses are the next
-thing to sort out, and they need DNS and a mailbox rather than a commit.
+If the company is renaming too, the domain and `hello@` are the next thing to
+sort out, and they need DNS and a mailbox rather than a commit.
 
 ---
 
@@ -144,16 +144,18 @@ them:
 - [x] ~~**Terms with a no-tolerance clause, agreed at sign-up.**~~ Done. Sign-up
       now has a tick box that gates the verification button; the six community
       rules are in the bundle and readable from sign-up and from Settings; the
-      no-tolerance sentence and the 24-hour commitment are stated; `support@` and
-      `safety@` are published in-app; and the agreement date is recorded on the
-      account as `agreedToRulesAt`.
+      no-tolerance sentence and the 24-hour commitment are stated; `hello@` is
+      published in-app; and the agreement date is recorded on the account as
+      `agreedToRulesAt`.
 - [ ] **The two hosted pages must exist.** `SITE.terms` and `SITE.privacy` point
       at `tendedcollective.com/terms` and `/privacy`. Both are linked from
       sign-up and from Settings, and **neither page exists yet**. A 404 on either
       is a rejection. The in-app rules cover what Apple wants users to agree to;
       these are the legal documents behind them and need a lawyer, not this repo.
-- [ ] **`support@tendedcollective.com` and `safety@tendedcollective.com` must
-      route somewhere a human reads.** They are printed in the app now.
+- [ ] **`hello@tendedcollective.com` must route somewhere a human reads.** It
+      is the only address the app publishes — Settings → Contact us, and the
+      urgent line in the community rules both point at it — and it is printed
+      in the app, so it has to exist before anyone installs this.
 - [ ] **Age rating.** User content — posts and comments — usually lands 12+ or
       17+ depending on how moderation is evidenced. Lower than it would have
       been: there is no private messaging in this build, which is the thing that

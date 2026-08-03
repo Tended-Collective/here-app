@@ -73,8 +73,15 @@ export const COMMUNITY_RULES: Rule[] = [
 export const NO_TOLERANCE =
   'There is no tolerance for objectionable content or abusive behaviour on Here. Reported posts are removed from your feed immediately and reviewed within 24 hours. Accounts that break these rules are removed, and serious breaches are removed without warning.';
 
-/** Published contact, which is itself one of the four things 1.2 asks for. */
-export const SUPPORT_EMAIL = 'support@tendedcollective.com';
+/**
+ * Published contact, which is itself one of the four things 1.2 asks for.
+ *
+ * One address for everything. Two constants rather than one because the app
+ * says different things next to each — "contact us" in Settings, "report
+ * something urgent" in the rules — and because the day this splits into a
+ * support queue and a safety queue, it splits here and nowhere else.
+ */
+export const SUPPORT_EMAIL = 'hello@tendedcollective.com';
 
 /** Where to report something urgent that cannot wait for the in-app flow. */
-export const SAFETY_EMAIL = 'safety@tendedcollective.com';
+export const SAFETY_EMAIL = SUPPORT_EMAIL;
