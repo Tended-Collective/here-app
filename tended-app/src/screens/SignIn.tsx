@@ -27,7 +27,15 @@
  */
 
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useChrome } from '../components/PhoneFrame';
 import { VerifyForm } from '../components/VerifyForm';
 import { Body, Display, MonoLabel } from '../components/ui';
@@ -37,6 +45,7 @@ import { color, radius, SCREEN_PADDING } from '../theme';
 export function SignIn({ onCreateAccount }: { onCreateAccount: () => void }) {
   const { signIn, account } = useStore();
   const { topInset } = useChrome();
+  const { width: screenWidth } = useWindowDimensions();
   const [problem, setProblem] = useState<string | null>(null);
 
   // Nothing on this device to sign in to. Worth saying before they type an
@@ -46,6 +55,15 @@ export function SignIn({ onCreateAccount }: { onCreateAccount: () => void }) {
   return (
     <View style={[styles.root, { paddingTop: topInset }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* The same picture that opens sign-up, so the two doors feel like two
+            doors into one building rather than two different apps. Shorter
+            here: someone signing back in wants the field, not the view. */}
+        <Image
+          source={require('../../assets/welcome.jpg')}
+          style={[styles.welcome, { width: screenWidth }]}
+          resizeMode="cover"
+          accessibilityLabel="Watercolour of school staff walking home along a sunlit sidewalk at the end of the day."
+        />
         <MonoLabel>TENDED</MonoLabel>
         <Display size={29} style={{ marginTop: 12 }}>
           Welcome back.
@@ -105,6 +123,15 @@ const styles = StyleSheet.create({
   content: {
     ...SCREEN_PADDING,
     paddingBottom: 24,
+  },
+  welcome: {
+    // See the note in Onboarding: the width has to come from the window, not
+    // from the image's intrinsic size.
+    marginLeft: -24,
+    marginTop: -6,
+    marginBottom: 24,
+    height: 280,
+    backgroundColor: color.cardSoft,
   },
   empty: {
     marginTop: 24,

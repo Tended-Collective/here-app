@@ -20,7 +20,16 @@
  */
 
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useChrome } from '../components/PhoneFrame';
 import { Body, Display, MonoLabel } from '../components/ui';
 import { Toggle } from '../components/Toggle';
@@ -72,6 +81,7 @@ const STEPS = CONTEXT_STEP + 1;
 export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
   const { completeOnboarding } = useStore();
   const { topInset } = useChrome();
+  const { width: screenWidth } = useWindowDimensions();
   const [step, setStep] = useState(0);
   // Guideline 1.2: users must agree to terms stating there is no tolerance for
   // objectionable content. A tick rather than "by continuing you agree", because
@@ -142,6 +152,19 @@ export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
 
         {story && (
           <>
+            {/* Only on the first screen. The illustration is the one moment the
+                app is allowed to be a picture rather than a tool, and repeating
+                it on every slide would turn it into wallpaper. Full-bleed —
+                negative margins undo the screen padding — because a warm image
+                inside a 24pt frame reads as a stock photo in a box. */}
+            {step === 0 && (
+              <Image
+                source={require('../../assets/welcome.jpg')}
+                style={[styles.welcome, { width: screenWidth }]}
+                resizeMode="cover"
+                accessibilityLabel="Watercolour of school staff walking home along a sunlit sidewalk at the end of the day."
+              />
+            )}
             <MonoLabel>{story.kicker}</MonoLabel>
             <Display size={step === 0 ? 32 : 29} style={{ marginTop: 12 }}>
               {story.title}
@@ -460,6 +483,25 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: color.ground,
+  },
+  welcome: {
+    // Undoes SCREEN_PADDING's 24pt inset so the art runs edge to edge.
+    /**
+     * Width comes from the window at render time, not from the stylesheet.
+     * An Image with a `require`d source and no explicit width lays out at the
+     * file's intrinsic width — 1150px — and `alignSelf: 'stretch'` does not
+     * override that. The band then drew as a 1150-wide box clipped by its
+     * parent, so `cover` cropped against 1150 rather than the screen and threw
+     * away everything but the middle.
+     *
+     * One negative margin, not two: the width is already the whole screen, so
+     * it only needs pulling left over the 24pt inset.
+     */
+    marginLeft: -24,
+    marginTop: -6,
+    marginBottom: 26,
+    height: 320,
+    backgroundColor: color.cardSoft,
   },
   signIn: {
     fontSize: 13.5,

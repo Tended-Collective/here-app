@@ -3,14 +3,19 @@
  * publishing as an Artifact.
  *
  * Artifacts are served under a strict CSP with no external hosts and no sibling
- * files, so the JS bundle and the four bundled font files all have to travel
- * inside the one document:
+ * files, so the JS bundle and every bundled asset have to travel inside the one
+ * document:
  *
- *   1. each font's asset path in the bundle becomes a data: URI, which `font-src`
- *      allows, and
+ *   1. each asset's path in the bundle becomes a data: URI — fonts, which
+ *      `font-src` allows, and images, which `img-src` allows — and
  *   2. the bundle goes into a genuinely inline <script>. A `data:` URI script is
  *      still a fetch as far as `script-src` is concerned and the CSP drops it,
  *      which renders as a blank page — inline is the only thing that survives.
+ *
+ * Assets are found by extension rather than listed, so adding an image to a
+ * screen does not silently ship a broken one: anything the bundle references
+ * from /assets is inlined, and an unknown extension throws rather than passing
+ * a dead path through.
  *
  * Run `npx expo export --platform web` first, then `node scripts/build-artifact.mjs`.
  */
@@ -36,16 +41,36 @@ if (!bundleName) throw new Error(`no web bundle in ${bundleDir} — run expo exp
 
 let bundle = readFileSync(join(bundleDir, bundleName), 'utf8');
 
-// The bundle refers to each font as an absolute path ("/assets/node_modules/….ttf")
-// in its own tiny module. Swap each for the font itself.
-const FONT_RE = /"(\/assets\/[^"]*\.ttf)"/g;
-const fonts = [...new Set([...bundle.matchAll(FONT_RE)].map((m) => m[1]))];
-if (fonts.length === 0) throw new Error('no font assets found in bundle — did the export change?');
+// The bundle refers to each asset as an absolute path ("/assets/….ttf") in its
+// own tiny module. Swap each for the asset itself.
+const MIME = {
+  ttf: 'font/ttf',
+  otf: 'font/otf',
+  woff: 'font/woff',
+  woff2: 'font/woff2',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  svg: 'image/svg+xml',
+  webp: 'image/webp',
+};
 
-for (const path of fonts) {
+const ASSET_RE = /"(\/assets\/[^"]*\.([A-Za-z0-9]+))"/g;
+const assets = [...new Set([...bundle.matchAll(ASSET_RE)].map((m) => m[1]))];
+if (assets.length === 0) throw new Error('no assets found in bundle — did the export change?');
+
+const counts = {};
+for (const path of assets) {
+  const ext = path.split('.').pop().toLowerCase();
+  const mime = MIME[ext];
+  // Better to fail the build than to publish a page with a dead asset path,
+  // which looks fine everywhere except in the one place it is served from.
+  if (!mime) throw new Error(`no mime type for "${ext}" (${path}) — add it to MIME`);
   const bytes = readFileSync(join(DIST, path.replace(/^\//, '')));
-  const uri = `data:font/ttf;base64,${bytes.toString('base64')}`;
+  const uri = `data:${mime};base64,${bytes.toString('base64')}`;
   bundle = bundle.split(`"${path}"`).join(JSON.stringify(uri));
+  counts[ext] = (counts[ext] ?? 0) + 1;
 }
 
 // Neutralise the only two sequences that could close the inline script early.
@@ -79,4 +104,7 @@ const html = `<title>Tended</title>
 
 writeFileSync(OUT, html);
 const mb = (html.length / 1024 / 1024).toFixed(2);
-console.log(`wrote ${OUT} (${mb} MB, ${fonts.length} fonts inlined)`);
+const inventory = Object.entries(counts)
+  .map(([ext, n]) => `${n} ${ext}`)
+  .join(', ');
+console.log(`wrote ${OUT} (${mb} MB, inlined: ${inventory})`);
