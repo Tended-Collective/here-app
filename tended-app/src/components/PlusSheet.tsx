@@ -1,5 +1,5 @@
 /**
- * The Tended+ sheet: what you get, what it costs, and the one button that
+ * The Here+ sheet: what you get, what it costs, and the one button that
  * starts it. Also where a running trial is managed, so "Try 30 days free" is
  * not a door that only opens one way.
  *
@@ -53,7 +53,7 @@ export function PlusSheet({
     <SheetShell visible={visible} onClose={onClose}>
       <View style={styles.body}>
           <View style={styles.head}>
-            <MonoLabel tone={color.accent}>TENDED+</MonoLabel>
+            <MonoLabel tone={color.accent}>HERE+</MonoLabel>
             <Pressable
               onPress={onClose}
               accessibilityRole="button"
@@ -127,7 +127,7 @@ export function PlusSheet({
                 NOT CONNECTED TO BILLING
               </MonoLabel>
               <Body size={12} lineHeight={1.55} tone={color.muted} style={{ marginTop: 5 }}>
-                No card is charged and no subscription is created. This unlocks Tended+ on this
+                No card is charged and no subscription is created. This unlocks Here+ on this
                 device only, for review.
               </Body>
             </View>

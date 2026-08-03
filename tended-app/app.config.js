@@ -11,7 +11,7 @@
  *
  * `platforms` is iOS and web. Web is the preview pipeline — `expo export
  * --platform web` is what builds the shareable artifact — and is not a product
- * surface; nobody is meant to use Tended in a browser.
+ * surface; nobody is meant to use Here in a browser.
  *
  * Android is gone rather than unfinished. `supportsTablet` is false for the
  * same reason: every screen here is a single column sized for a phone held in
@@ -31,8 +31,8 @@ const IS_PRODUCTION = process.env.APP_VARIANT !== 'development';
 
 module.exports = {
   expo: {
-    name: IS_PRODUCTION ? 'Tended' : 'Tended (dev)',
-    slug: 'tended-app',
+    name: IS_PRODUCTION ? 'Here' : 'Here (dev)',
+    slug: 'here-app',
     version: '1.0.0',
     // Portrait only: the check-in is five faces in a row and the feed is one
     // column. Neither gains anything from landscape and both would need a
@@ -50,8 +50,8 @@ module.exports = {
       // A separate identifier for dev builds means both can sit on one phone,
       // which is how you compare a change against what testers currently have.
       bundleIdentifier: IS_PRODUCTION
-        ? 'com.tendedcollective.tended'
-        : 'com.tendedcollective.tended.dev',
+        ? 'com.tendedcollective.here'
+        : 'com.tendedcollective.here.dev',
 
       infoPlist: {
         /**
@@ -124,7 +124,7 @@ module.exports = {
            * concrete: it names the one place a photo is used.
            */
           photosPermission:
-            'Tended uses your photos only when you choose one to attach to a post. Nothing is uploaded until you tap Post.',
+            'Here uses your photos only when you choose one to attach to a post. Nothing is uploaded until you tap Post.',
           // No camera and no microphone: the composer attaches an existing
           // photo and never records. Set to false so the strings are not added
           // and iOS never asks for permissions the app cannot use.

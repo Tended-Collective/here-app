@@ -115,7 +115,7 @@ export function RecordScreen() {
 
       {plusActive ? (
         <View style={styles.plusCard}>
-          <MonoLabel tone={color.accent}>TENDED+ · TRIAL</MonoLabel>
+          <MonoLabel tone={color.accent}>HERE+ · TRIAL</MonoLabel>
           <Display size={27} lineHeight={1.15} style={{ marginTop: 10 }}>
             {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left in your trial.
           </Display>
@@ -137,7 +137,7 @@ export function RecordScreen() {
             Keep more than seven days.
           </Display>
           <Body style={{ marginTop: 10 }}>
-            The free plan shows this week and holds {FREE_LIST_LIMIT} things on your list. Tended+
+            The free plan shows this week and holds {FREE_LIST_LIMIT} things on your list. Here+
             keeps every check-in you have ever made — month and semester views, this year against
             last — shows six weeks of every item on your list, and lets the list run as long as you
             want.
@@ -166,7 +166,7 @@ export function RecordScreen() {
       <View style={styles.sixHead}>
         <MonoLabel tone={plusActive ? color.accent : color.faint}>SIX WEEKS</MonoLabel>
         <MonoLabel em={0} tone={color.faint}>
-          {plusActive ? 'TENDED+' : 'TENDED+ ONLY'}
+          {plusActive ? 'HERE+' : 'HERE+ ONLY'}
         </MonoLabel>
       </View>
       <Card style={styles.lockedCard}>
@@ -204,11 +204,11 @@ export function RecordScreen() {
         ) : (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="See six weeks with Tended+"
+            accessibilityLabel="See six weeks with Here+"
             style={styles.sixCta}
             onPress={() => open('plus')}
           >
-            <Text style={styles.sixCtaLabel}>See beyond this week with Tended+ →</Text>
+            <Text style={styles.sixCtaLabel}>See beyond this week with Here+ →</Text>
           </Pressable>
         )}
       </Card>

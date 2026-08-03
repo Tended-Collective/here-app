@@ -19,6 +19,14 @@ import { normalizeUsername } from './lib/usernames';
 import { normalizeZip, stateForZip } from './lib/zip';
 import { ISODate, todayISO, weekDates, weekdayIndex, weekStarts } from './lib/dates';
 
+/**
+ * Deliberately still the old name. This is the key a phone's data is filed
+ * under, not something anyone reads — renaming it to `here.v1` would make every
+ * existing install look like a fresh one and silently drop their check-ins,
+ * which is the one kind of data loss this app has no way to undo. If it ever
+ * does move, it moves by reading the old key and writing the new one, not by
+ * editing this line.
+ */
 const STORAGE_KEY = 'tended.v1';
 
 export type Entry = {
@@ -118,7 +126,7 @@ type Persisted = {
   /** The teacher's own updates. Newest first. */
   updates: Update[];
   /**
-   * Tended+ trial state. Device-local, and only good enough to drive the
+   * Here+ trial state. Device-local, and only good enough to drive the
    * preview: real entitlement belongs on a server behind a validated receipt
    * (see lib/billing.ts). `trialStartedAt` is epoch milliseconds.
    */
@@ -437,12 +445,12 @@ type StoreValue = Persisted & {
   /** True while the trial has days left on it. */
   plusActive: boolean;
   /**
-   * How many list items this plan allows. The free plan stops at three; Tended+
+   * How many list items this plan allows. The free plan stops at three; Here+
    * does not stop. Enforced in one place so the paywall cannot drift from what
    * the paywall copy claims.
    */
   listLimit: number;
-  /** True when the list is full and the next item needs Tended+. */
+  /** True when the list is full and the next item needs Here+. */
   listFull: boolean;
   /** Whole days remaining, 0 when there is no trial. */
   trialDaysLeft: number;

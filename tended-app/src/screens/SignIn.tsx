@@ -64,7 +64,7 @@ export function SignIn({ onCreateAccount }: { onCreateAccount: () => void }) {
           resizeMode="cover"
           accessibilityLabel="Watercolour of school staff walking home along a sunlit sidewalk at the end of the day."
         />
-        <MonoLabel>TENDED</MonoLabel>
+        <MonoLabel>HERE</MonoLabel>
         <Display size={29} style={{ marginTop: 12 }}>
           Welcome back.
         </Display>

@@ -33,8 +33,8 @@
  * six weeks. A bad week cannot erase it and there is nothing to break. Beside it
  * sits the only other honest number — how many times in total, and since when.
  *
- * The verdict is free; the record behind it is Tended+. Free shows this week, the
- * lifetime count and whether it is sticking. Tended+ adds the six-week strip and
+ * The verdict is free; the record behind it is Here+. Free shows this week, the
+ * lifetime count and whether it is sticking. Here+ adds the six-week strip and
  * the week-by-week reading, which is the same line the check-in record draws.
  */
 
@@ -175,7 +175,7 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
         </Pressable>
       )}
 
-      {/* The week chart, the insight and the Tended+ lock. */}
+      {/* The week chart, the insight and the Here+ lock. */}
       <View style={{ marginTop: 26 }}>
         <RecordScreen />
       </View>
@@ -183,7 +183,7 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
       <View style={styles.listHead}>
         <MonoLabel>MY SELF-CARE LIST</MonoLabel>
         <MonoLabel em={0} tone={listFull ? color.accent : color.faint}>
-          {plusActive ? `${practices.length} · TENDED+` : `${practices.length} OF ${FREE_LIST_LIMIT}`}
+          {plusActive ? `${practices.length} · HERE+` : `${practices.length} OF ${FREE_LIST_LIMIT}`}
         </MonoLabel>
       </View>
       <Card style={styles.listCard}>
@@ -363,11 +363,11 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
         {practices.length > 0 && !plusActive && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="See the last six weeks of your list with Tended+"
+            accessibilityLabel="See the last six weeks of your list with Here+"
             onPress={() => open('plus')}
             style={styles.stripCta}
           >
-            <Text style={styles.stripCtaLabel}>See the last six weeks with Tended+ →</Text>
+            <Text style={styles.stripCtaLabel}>See the last six weeks with Here+ →</Text>
           </Pressable>
         )}
 
@@ -383,14 +383,14 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
         {listFull ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Your list is full. See Tended+"
+            accessibilityLabel="Your list is full. See Here+"
             onPress={() => open('plus')}
             style={styles.capRow}
           >
             <View style={styles.capCopy}>
               <Text style={styles.capTitle}>Your list is full</Text>
               <Text style={styles.capSub}>
-                The free plan holds {FREE_LIST_LIMIT}. Tended+ holds as many as you want.
+                The free plan holds {FREE_LIST_LIMIT}. Here+ holds as many as you want.
               </Text>
             </View>
             <Text style={styles.capArrow}>→</Text>

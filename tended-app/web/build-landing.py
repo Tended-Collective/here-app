@@ -42,6 +42,9 @@ for key, value in subs.items():
         sys.exit(f'placeholder {key} is missing from landing.src.html')
     src = src.replace(key, value)
 
+# Still the old filename on purpose. The published artifact's URL is bound to
+# this path — renaming the file mints a new link and orphans the one people
+# already have. The page itself says Here everywhere.
 out = APP / 'dist' / 'tended-landing.html'
 out.parent.mkdir(exist_ok=True)
 out.write_text(src, encoding='utf-8')

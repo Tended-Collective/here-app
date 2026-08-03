@@ -112,7 +112,7 @@ export function UsernameField({
           autoCapitalize="none"
           autoCorrect={false}
           autoFocus={autoFocus}
-          accessibilityLabel="Your username, unique across Tended"
+          accessibilityLabel="Your username, unique across Here"
         />
         {state === 'checking' && <ActivityIndicator size="small" color={color.faint} />}
         {state === 'available' && <Text style={styles.tick}>✓</Text>}

@@ -54,7 +54,7 @@ export const COMMUNITY_RULES: Rule[] = [
   },
   {
     title: 'Do not sell things here',
-    body: 'No advertising, no recruiting, no affiliate links, no promoting your own paid resources. Anything paid on Tended is labelled as a placement and never posted as though it came from a teacher.',
+    body: 'No advertising, no recruiting, no affiliate links, no promoting your own paid resources. Anything paid on Here is labelled as a placement and never posted as though it came from a teacher.',
   },
   {
     title: 'Be who you said you were',
@@ -71,7 +71,7 @@ export const COMMUNITY_RULES: Rule[] = [
  * "at our discretion", nothing that reads as a policy we might not apply.
  */
 export const NO_TOLERANCE =
-  'There is no tolerance for objectionable content or abusive behaviour on Tended. Reported posts are removed from your feed immediately and reviewed within 24 hours. Accounts that break these rules are removed, and serious breaches are removed without warning.';
+  'There is no tolerance for objectionable content or abusive behaviour on Here. Reported posts are removed from your feed immediately and reviewed within 24 hours. Accounts that break these rules are removed, and serious breaches are removed without warning.';
 
 /** Published contact, which is itself one of the four things 1.2 asks for. */
 export const SUPPORT_EMAIL = 'support@tendedcollective.com';

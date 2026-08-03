@@ -56,9 +56,9 @@ import { color, radius, SCREEN_PADDING } from '../theme';
  */
 const STORY = [
   {
-    kicker: 'TENDED',
+    kicker: 'HERE',
     title: 'A moment for yourself.',
-    body: "In the work that we do, it's easy to give to our students, staff members, and families. Tended is the intentional pause that we need—a moment to check in with ourselves.",
+    body: 'In the work that we do, it’s easy to give to our students, staff members, and families. Here is the intentional pause that we need—a moment to check in with ourselves.',
   },
   {
     kicker: 'THE DAILY ASK',
@@ -69,7 +69,7 @@ const STORY = [
   {
     kicker: 'WHAT YOU GET',
     title: 'See what works and why.',
-    body: 'Taking this daily pause gives you a clear look at what actually protects your peace over time. And you are not working it out alone — Tended is a community of educators sharing what they do to take care of themselves, so you can learn from people who know the job.',
+    body: 'Taking this daily pause gives you a clear look at what actually protects your peace over time. And you are not working it out alone — Here is a community of educators sharing what they do to take care of themselves, so you can learn from people who know the job.',
   },
 ];
 
@@ -239,7 +239,7 @@ export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
                     >
                       terms
                     </Text>
-                    . Tended has no tolerance for abuse, and never name a student.
+                    . Here has no tolerance for abuse, and never name a student.
                   </Text>
                 </Pressable>
               }
@@ -255,7 +255,8 @@ export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
             />
 
             <Text style={styles.privacy}>
-              Your check-ins are 100% private. We never share your email, school name, or data.
+              Your check-ins on Here are 100% private. We never share your email, school name, or
+              data.
             </Text>
           </>
         )}

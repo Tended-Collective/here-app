@@ -1,5 +1,5 @@
 /**
- * Design tokens for the "quiet paper" treatment (Tended App v3).
+ * Design tokens for the "quiet paper" treatment (Here App v3).
  *
  * The prototype was authored in OKLCH, which React Native cannot parse, so every
  * colour below is the sRGB conversion of its OKLCH source. The source value is

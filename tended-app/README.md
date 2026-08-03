@@ -1,6 +1,6 @@
-# Tended
+# Here
 
-An Expo / React Native implementation of **Tended App v3** from the Claude Design handoff
+An Expo / React Native implementation of **Here App v3** from the Claude Design handoff
 (`../project/Tended App v3.dc.html`) — the simplified four-tab teacher wellness app in the
 "quiet paper" treatment.
 
@@ -44,7 +44,7 @@ device from the design canvas, scaled down if the window is shorter than the dev
 | Tab | What it does |
 | --- | --- |
 | **Today** | "How was your day?" — five-step mood ramp, one tap, plus optional tags. Saves to the device. |
-| **Record** | This week's bars, an insight line read back from your own entries, the Tended+ card at $4.99, and the six-week chart behind the lock. |
+| **Record** | This week's bars, an insight line read back from your own entries, the Here+ card at $4.99, and the six-week chart behind the lock. |
 | **Your area** | ZIP heatmap with the steady→rough legend, your-ZIP card, what people named here, the contribution toggle, and the live nearby feed — post a sentence, react to other people's. |
 | **Support** | The self-care practice tracker (seven tappable days per practice), two reading cards and the podcast's episodes, both opening Tended Collective, and the sponsored shelf below them. |
 
@@ -165,7 +165,7 @@ server to burn it, which is what `PROVIDER_CONFIGURED` in `invites.ts` gates.
 whether your check-ins reach the ZIP aggregate, since those figures are meant to describe teachers
 and an unverified check-in has not shown it is one.
 
-It does not gate the paid tier. Every benefit Tended+ advertises is about the personal record —
+It does not gate the paid tier. Every benefit Here+ advertises is about the personal record —
 month and term views, year against year, the tags behind the hardest days, the export — and all of
 it is computed on device from data that needs no verification. An unverified teacher can subscribe
 and receive everything the paywall lists, which is why the paywall names no feed benefit: the two
@@ -202,7 +202,7 @@ the length buried the only line that matters. Confirmation is still typing DELET
 second button, which the same reflex that pressed the first would clear. Deleting removes the
 storage row outright and returns to onboarding, without re-seeding the sample data.
 
-**Signing up is required, and the app is no longer anonymous.** Tended held nothing at all for a
+**Signing up is required, and the app is no longer anonymous.** Here held nothing at all for a
 while: no name, no address, and the verification email discarded the moment it was checked. That
 was right for a feed of bad days, where the exposure was a colleague identified complaining about
 their school.
@@ -299,9 +299,9 @@ knowing the building down the road is also having a rough week is not something 
 on, and a map of where morale is worst is a dangerous object to have built once someone thinks to
 ask who is in those tiles.
 
-**What Tended+ sells.** Two limits, both on the teacher's own record, neither on the feed:
+**What Here+ sells.** Two limits, both on the teacher's own record, neither on the feed:
 
-| | Free | Tended+ |
+| | Free | Here+ |
 |---|---|---|
 | Self-care list | `FREE_LIST_LIMIT` (3) | no cap |
 | Check-in history | this week | six weeks and beyond |
@@ -407,7 +407,7 @@ same invented line for every user, drawn identically whether the term had gone w
 reads the stored entries — one bar per week, height being that week's average, tinted with that
 average's mood colour, and a thin rule where a week has nothing in it. The series is built from the
 last six Mondays rather than from whichever dates have data, because an empty week is a real
-finding and has to occupy its slot. Free plans see it dimmed with the upgrade line; Tended+ shows it
+finding and has to occupy its slot. Free plans see it dimmed with the upgrade line; Here+ shows it
 with a count of how many of the six have anything in them.
 
 **The check-in is one tap.** Five faces, saved on the tap, no button to reach and no confirm step.
@@ -427,7 +427,7 @@ Reactions are emoji, each keeping its wording as the accessible name so a screen
 wrong one — at pill size it collapses into an unreadable blob, where a face still reads.
 
 **What the free tier gets of the feed.** `FREE_FEED_VIEWS` updates — three — and then a line
-saying how many are behind Tended+. Posting is Plus only; the composer is replaced by a note
+saying how many are behind Here+. Posting is Plus only; the composer is replaced by a note
 explaining that. Reacting is free at every tier, deliberately: answering someone's bad day is not
 the thing to charge for, and a feed where only paying teachers can respond would be a worse feed
 for the people still on free.
@@ -483,7 +483,7 @@ than advertise that nobody bought it.
 Every resource row follows the same rule: one with an `href` opens it and shows an arrow; one
 without reads as text rather than pretending to be a button.
 
-**Tended+ and the trial.** "Try 30 days free" and the locked six-week chart both open
+**Here+ and the trial.** "Try 30 days free" and the locked six-week chart both open
 `src/components/PlusSheet.tsx`: what you get, the price, one button, and — once a trial is running —
 the days left and a way out of it. While it is running the six-week chart is drawn at full opacity
 and the record card leads with the trial instead of the pitch. `plus.trialStartedAt` persists, so
@@ -515,7 +515,7 @@ entitlement to a server behind a validated receipt — `plus.trialStartedAt` is 
 not be what gates a paid feature in production.
 
 **Sheets are not `Modal`s.** React Native's `Modal` portals to the document root on web, which put
-the practice editor and the Tended+ sheet outside the device mock in the framed preview — they slid
+the practice editor and the Here+ sheet outside the device mock in the framed preview — they slid
 up across the whole browser window. `src/components/Sheet.tsx` is an absolutely-positioned overlay
 instead, mounted once in `AppShell` above the tab bar so it is clipped by the phone; screens ask for
 a sheet by name through `useSheets()`.

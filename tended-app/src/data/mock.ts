@@ -26,7 +26,7 @@ export const SITE = {
    * derived from it; until then it is a real Apple Podcasts URL that resolves,
    * rather than a guessed ID that would 404.
    */
-  podcast: 'https://podcasts.apple.com/us/search?term=Tended%20Collective',
+  podcast: 'https://podcasts.apple.com/us/search?term=Here%20Collective',
   /**
    * The two documents App Review will click on. **Neither page exists yet** —
    * they are linked from sign-up and from Settings, and a 404 on either is a
@@ -365,7 +365,7 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
  *
  * The feed is not the thing being sold. Reading it, posting to it and reacting
  * are all free at every tier, because a feed with a paywall across it has no
- * supply and nothing to sell. What Tended+ buys is depth in the teacher's own
+ * supply and nothing to sell. What Here+ buys is depth in the teacher's own
  * record: a list longer than three lines, and a history longer than this week.
  *
  * Both limits are chosen so the free plan is genuinely usable — three habits is

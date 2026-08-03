@@ -197,7 +197,7 @@ export function FeedScreen({
       {mood !== null && <Text style={styles.moodCaption}>Saved — {MOODS[mood - 1].label}.</Text>}
 
       {/* The composer. Posting is the app's supply of content, so it is not
-          gated on Tended+ — only on having shown you teach, which is what keeps
+          gated on Here+ — only on having shown you teach, which is what keeps
           the feed teachers-only. */}
       {educator.verified ? (
         <Card style={styles.composer}>
@@ -347,7 +347,7 @@ export function FeedScreen({
         <Card style={styles.empty}>
           <Text style={styles.emptyTitle}>Nobody near you has posted yet</Text>
           <Text style={styles.emptySub}>
-            Tended is new in {stateName(stateForZip(myZip)) ?? 'your area'}. Everywhere still has
+            {stateName(stateForZip(myZip)) ?? 'Your area'} is new to Here. Everywhere still has
             plenty to read.
           </Text>
         </Card>
@@ -607,7 +607,7 @@ function FeedCard({
               saved
                 ? 'Already on your list'
                 : locked
-                  ? 'Your list is full. Tended+ for an unlimited list'
+                  ? 'Your list is full. Here+ for an unlimited list'
                   : `Save "${update.text}" to your list`
             }
             hitSlop={8}
@@ -620,7 +620,7 @@ function FeedCard({
               filled={saved}
             />
             <Text style={[styles.saveLabel, saved && styles.saveLabelDone]}>
-              {saved ? 'On your list' : locked ? 'List full · Tended+' : 'Save'}
+              {saved ? 'On your list' : locked ? 'List full · Here+' : 'Save'}
             </Text>
           </Pressable>
         </View>

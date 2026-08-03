@@ -39,7 +39,7 @@
  * store. We can only keep that trace uninformative, so whatever sends the code
  * must obey these — the UI beside this promises them:
  *
- *   Subject   "Your Tended code is 123456"
+ *   Subject   "Your Here code is 123456"
  *   Body      the code, an expiry, and nothing else
  *   Sender    the product name only
  *

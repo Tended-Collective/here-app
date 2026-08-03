@@ -31,7 +31,7 @@ export function RulesSheet({ visible, onClose }: { visible: boolean; onClose: ()
             six rules and the enforcement note are more than fits at once. */}
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
           <Display size={22} lineHeight={1.2} style={{ marginTop: 18 }}>
-            What Tended is for.
+            What Here is for.
           </Display>
           <Body size={13.5} tone={color.muted} style={{ marginTop: 8 }}>
             People who work in schools, saying what they did to look after themselves. Six rules

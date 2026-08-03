@@ -36,10 +36,16 @@ export const PROVIDER_CONFIGURED = false;
 /**
  * Names that cannot be claimed. Two groups: ones that would let an account
  * pass as the app itself, and ones that would let it pass as a school official.
- * An account called "tendedsupport" or "principal" is a phishing surface before
- * it is anything else.
+ * An account called "heresupport" or "principal" is a phishing surface before it
+ * is anything else.
+ *
+ * The old name is still held. Tended Collective owns the domain the app links
+ * to and the podcast it points at, so "tended" is exactly as impersonable after
+ * the rename as it was before — releasing it would hand someone the previous
+ * name of the app they are reading.
  */
 const RESERVED = new Set([
+  'here', 'hereapp', 'herecollective',
   'tended', 'tendedapp', 'tendedcollective', 'support', 'help', 'admin', 'administrator',
   'moderator', 'mod', 'staff', 'team', 'official', 'security', 'billing', 'privacy',
   'principal', 'superintendent', 'hr', 'district', 'everyone', 'me', 'you', 'null',

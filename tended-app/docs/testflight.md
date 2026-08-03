@@ -1,4 +1,4 @@
-# Getting Tended onto TestFlight
+# Getting Here onto TestFlight
 
 The goal of this build is a pilot: twenty or so teachers with the app on their
 own phone for a fortnight, so we learn whether the daily interaction survives a
@@ -6,6 +6,31 @@ real week. It runs entirely on sample content and needs no server.
 
 Everything below has been verified locally except the steps that need an Apple
 account or a Mac, which are marked **[needs Apple]**.
+
+---
+
+## The name
+
+The app is **Here**. It was Tended. Everything a user reads says Here, and the
+paid tier is Here+.
+
+Three things deliberately did **not** change, because each one would break
+something real:
+
+| Still says "tended" | Why |
+|---|---|
+| `STORAGE_KEY = 'tended.v1'` | The key a phone's data is filed under. Renaming it makes every existing install look brand new and silently drops their check-ins. If it moves, it moves by reading the old key and writing the new one. |
+| `tendedcollective.com`, `support@`, `safety@` | Real domain, real mailboxes, real podcast. The app was renamed; the company was not. Relabelling a link that still resolves to tendedcollective.com would misdescribe where it goes. |
+| "Tended Collective" in the resource shelf and the podcast row | Same reason — that is the organisation, and it is what the reader will see when the link opens. |
+
+The bundle identifier **did** change, to `com.tendedcollective.here`. That is
+safe only because no App Store Connect record exists yet; once one does, the
+bundle id is permanent and a rename means a new app. If a record has already
+been created against `com.tendedcollective.tended`, change this back before
+building.
+
+If the company is renaming too, the domain and the two addresses are the next
+thing to sort out, and they need DNS and a mailbox rather than a commit.
 
 ---
 
@@ -44,7 +69,7 @@ finds out later stops trusting the rest of it.
 
 1. **Apple Developer Program** — $99/year, enrolled as Tended Collective.
 2. **App Store Connect** — create the app record against bundle id
-   `com.tendedcollective.tended`. Note the numeric Apple ID it gets.
+   `com.tendedcollective.here`. Note the numeric Apple ID it gets.
 3. **Expo account** — `npx eas login`, then `npx eas init` from `tended-app/`.
    That writes `extra.eas.projectId` into `app.config.js`; uncomment the line
    that is waiting for it.
@@ -85,7 +110,7 @@ npx expo prebuild --platform ios --no-install   # writes ./ios, which is gitigno
 
 ## App Review notes — copy this into the submission
 
-> Tended is for school staff. Accounts are verified by emailing a code to a work
+> Here is for school staff. Accounts are verified by emailing a code to a work
 > address, so a reviewer cannot sign up with a personal email — the app refuses
 > consumer domains such as icloud.com and gmail.com by design.
 >
