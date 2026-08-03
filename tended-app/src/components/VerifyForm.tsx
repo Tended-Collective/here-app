@@ -31,7 +31,31 @@ import {
 } from '../lib/verification';
 import { color, font, radius } from '../theme';
 
-export function VerifyForm({ onVerified }: { onVerified: (email: string) => void }) {
+export function VerifyForm({
+  onVerified,
+  blocked = false,
+  agreement,
+}: {
+  onVerified: (email: string) => void;
+  /**
+   * Held shut until something upstream is satisfied — at sign-up, until the
+   * community rules have been agreed to. The form stays visible and the address
+   * stays typeable; only sending is withheld, so nobody is confronted with a
+   * dead screen and no explanation of what it is waiting for.
+   */
+  blocked?: boolean;
+  /**
+   * Rendered directly above the send button. Sign-up puts the rules agreement
+   * here; verifying later from Settings passes nothing, because that account
+   * agreed when it joined.
+   *
+   * A slot rather than a prop-driven checkbox because the thing being agreed to
+   * belongs to the caller, and because the agreement has to sit against the
+   * button it gates — first attempt put it between the name and the email field,
+   * where it read as a condition on the name.
+   */
+  agreement?: React.ReactNode;
+}) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
@@ -88,11 +112,15 @@ export function VerifyForm({ onVerified }: { onVerified: (email: string) => void
             keyboardType="email-address"
             accessibilityLabel="Your school email address"
           />
+          {agreement}
           <Primary
             label={busy ? 'Sending…' : 'Send verification code'}
-            disabled={busy || !isPlausibleEmail(email)}
+            disabled={busy || blocked || !isPlausibleEmail(email)}
             onPress={send}
           />
+          {blocked && isPlausibleEmail(email) && (
+            <Text style={styles.hint}>Tick the box above to continue.</Text>
+          )}
           {isPlausibleEmail(email) && !looksLikeEducatorDomain(email) && !problem && (
             <Text style={styles.hint}>
               We do not recognize that domain as a school, but districts use all sorts — lausd.net,

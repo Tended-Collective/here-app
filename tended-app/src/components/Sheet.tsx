@@ -34,7 +34,7 @@ export function SheetShell({
   );
 }
 
-export type SheetName = 'plus' | 'verify' | 'report' | 'delete';
+export type SheetName = 'plus' | 'verify' | 'report' | 'delete' | 'rules';
 
 export type ReportSubject = {
   updateId: string;

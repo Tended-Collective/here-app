@@ -4,6 +4,7 @@ import { useChrome } from './components/PhoneFrame';
 import { DeleteAccountSheet } from './components/DeleteAccountSheet';
 import { PlusSheet } from './components/PlusSheet';
 import { ReportSheet } from './components/ReportSheet';
+import { RulesSheet } from './components/RulesSheet';
 import { SheetsProvider, useSheets } from './components/Sheet';
 import { VerifySheet } from './components/VerifySheet';
 import { NavAction, TabBar, TabKey } from './components/TabBar';
@@ -108,6 +109,7 @@ function Sheets() {
   return (
     <>
       <ReportSheet visible={current === 'report'} onClose={close} subject={subject} />
+      <RulesSheet visible={current === 'rules'} onClose={close} />
       <DeleteAccountSheet visible={current === 'delete'} onClose={close} />
       <VerifySheet
         visible={current === 'verify'}

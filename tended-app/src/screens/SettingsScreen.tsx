@@ -16,13 +16,16 @@ import { useSheets } from '../components/Sheet';
 import { Toggle } from '../components/Toggle';
 import { UsernameField, UsernameState } from '../components/UsernameField';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
-import { AUTHORS, JOBS, LEVELS, TAKEN_USERNAMES } from '../data/mock';
+import { SITE, AUTHORS, JOBS, LEVELS, TAKEN_USERNAMES } from '../data/mock';
+import { shortDateLabel, toISO } from '../lib/dates';
 import { stateForZip, stateName } from '../lib/zip';
+import { openLink } from '../lib/links';
+import { SUPPORT_EMAIL } from '../data/rules';
 import { useStore } from '../store';
 import { color, radius } from '../theme';
 
 export function SettingsScreen() {
-  const { educator, account, updateShown, blocked, unblockAuthor } = useStore();
+  const { educator, account, updateShown, blocked, unblockAuthor, agreedToRulesAt } = useStore();
   const { open } = useSheets();
 
   const shown = account?.shown;
@@ -225,6 +228,31 @@ export function SettingsScreen() {
         </View>
       </Card>
 
+      {/* Guideline 1.2 wants the rules reachable and contact details published,
+          not only shown once at sign-up and then buried. Someone deciding
+          whether to report a post is exactly the person who needs to reread
+          what the rules say. */}
+      <MonoLabel style={{ marginTop: 30 }}>RULES AND CONTACT</MonoLabel>
+      <Card style={styles.linksCard}>
+        <LinkRow
+          label="Community rules"
+          hint={
+            agreedToRulesAt
+              ? `Agreed ${shortDateLabel(toISO(new Date(agreedToRulesAt)))}`
+              : 'The six rules of the feed'
+          }
+          onPress={() => open('rules')}
+        />
+        <LinkRow label="Terms of service" onPress={() => openLink(SITE.terms)} external />
+        <LinkRow label="Privacy policy" onPress={() => openLink(SITE.privacy)} external />
+        <LinkRow
+          label="Contact us"
+          hint={SUPPORT_EMAIL}
+          onPress={() => openLink(`mailto:${SUPPORT_EMAIL}`)}
+          external
+        />
+      </Card>
+
       {blocked.length > 0 && (
         <>
           <MonoLabel style={{ marginTop: 30 }}>BLOCKED ACCOUNTS</MonoLabel>
@@ -252,7 +280,64 @@ export function SettingsScreen() {
   );
 }
 
+function LinkRow({
+  label,
+  hint,
+  onPress,
+  external = false,
+}: {
+  label: string;
+  hint?: string;
+  onPress: () => void;
+  external?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole={external ? 'link' : 'button'}
+      accessibilityLabel={hint ? `${label}. ${hint}` : label}
+      style={styles.linkRow}
+    >
+      <View style={styles.linkCopy}>
+        <Text style={styles.linkLabel}>{label}</Text>
+        {!!hint && <Text style={styles.linkHint}>{hint}</Text>}
+      </View>
+      {/* An arrow leaves the app, a chevron stays inside it. */}
+      <Text style={styles.linkMark}>{external ? '↗' : '›'}</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  linksCard: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: color.rule,
+  },
+  linkCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  linkLabel: {
+    fontSize: 15,
+    color: color.ink,
+  },
+  linkHint: {
+    fontSize: 12.5,
+    color: color.faint,
+  },
+  linkMark: {
+    fontSize: 16,
+    lineHeight: 20,
+    color: color.faint,
+  },
   badges: {
     flexDirection: 'row',
     flexWrap: 'wrap',

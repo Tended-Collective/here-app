@@ -27,6 +27,17 @@ export const SITE = {
    * rather than a guessed ID that would 404.
    */
   podcast: 'https://podcasts.apple.com/us/search?term=Tended%20Collective',
+  /**
+   * The two documents App Review will click on. **Neither page exists yet** —
+   * they are linked from sign-up and from Settings, and a 404 on either is a
+   * rejection, so they have to be live before submission.
+   *
+   * The community rules are in the bundle (data/rules.ts) rather than only
+   * here, so the part that describes behaviour is readable without a network.
+   * These two are the legal documents, which have to be hosted to be versioned.
+   */
+  terms: 'https://www.tendedcollective.com/terms',
+  privacy: 'https://www.tendedcollective.com/privacy',
 } as const;
 
 /**

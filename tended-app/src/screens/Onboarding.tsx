@@ -26,6 +26,9 @@ import { Body, Display, MonoLabel } from '../components/ui';
 import { Toggle } from '../components/Toggle';
 import { UsernameField, UsernameState } from '../components/UsernameField';
 import { VerifyForm } from '../components/VerifyForm';
+import { RulesSheet } from '../components/RulesSheet';
+import { openLink } from '../lib/links';
+import { SITE } from '../data/mock';
 import { JOBS, LEVELS, TAKEN_USERNAMES, yearsLabel } from '../data/mock';
 import { normalizeUsername } from '../lib/usernames';
 import { isCompleteZip, normalizeZip, stateForZip, stateName } from '../lib/zip';
@@ -70,6 +73,12 @@ export function Onboarding() {
   const { completeOnboarding } = useStore();
   const { topInset } = useChrome();
   const [step, setStep] = useState(0);
+  // Guideline 1.2: users must agree to terms stating there is no tolerance for
+  // objectionable content. A tick rather than "by continuing you agree", because
+  // this is the evidence that it happened and a deliberate act is better
+  // evidence than an inferred one.
+  const [agreed, setAgreed] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -108,6 +117,7 @@ export function Onboarding() {
       // Nobody starts with a list. Habits arrive from the feed, or from the
       // add row on the profile, once there is a reason to want one.
       practices: [],
+      agreedToRules: agreed,
     });
 
   // What the byline will look like, built the same way the feed builds it.
@@ -177,6 +187,39 @@ export function Onboarding() {
             />
 
             <VerifyForm
+              blocked={!agreed}
+              agreement={
+                <Pressable
+                  onPress={() => setAgreed((a) => !a)}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: agreed }}
+                  accessibilityLabel="I agree to the community rules and the terms of service"
+                  style={styles.agreeRow}
+                >
+                  <View style={[styles.box, agreed && styles.boxOn]}>
+                    {agreed && <Text style={styles.boxTick}>✓</Text>}
+                  </View>
+                  <Text style={styles.agreeText}>
+                    I agree to the{' '}
+                    <Text
+                      style={styles.agreeLink}
+                      onPress={() => setShowRules(true)}
+                      accessibilityRole="link"
+                    >
+                      community rules
+                    </Text>{' '}
+                    and the{' '}
+                    <Text
+                      style={styles.agreeLink}
+                      onPress={() => openLink(SITE.terms)}
+                      accessibilityRole="link"
+                    >
+                      terms
+                    </Text>
+                    . Tended has no tolerance for abuse, and never name a student.
+                  </Text>
+                </Pressable>
+              }
               onVerified={(address) => {
                 setEmail(address);
                 // Sensible defaults they can overwrite next. The username is
@@ -372,6 +415,10 @@ export function Onboarding() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Onboarding sits outside SheetsProvider — it renders before the app
+          shell exists — so this one is held locally. */}
+      <RulesSheet visible={showRules} onClose={() => setShowRules(false)} />
     </View>
   );
 }
@@ -401,6 +448,44 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: color.ground,
+  },
+  agreeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 11,
+    marginTop: 20,
+    marginBottom: 4,
+  },
+  box: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: color.outlineStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    // Nudged down so the box sits on the first line of type rather than above it.
+    marginTop: 1,
+  },
+  boxOn: {
+    backgroundColor: color.accent,
+    borderColor: color.accent,
+  },
+  boxTick: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  agreeText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+    color: color.body,
+  },
+  agreeLink: {
+    color: color.accent,
+    textDecorationLine: 'underline',
   },
   content: {
     ...SCREEN_PADDING,

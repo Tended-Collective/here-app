@@ -197,6 +197,20 @@ type Persisted = {
    * simpler to explain and simpler to trust.
    */
   educator: { verified: boolean; verifiedAt: number | null };
+  /**
+   * When this person accepted the community rules, or null if they never did.
+   *
+   * App Store guideline 1.2 wants an app carrying user content to have its users
+   * agree to terms that state there is no tolerance for objectionable content.
+   * The agreement happens at sign-up; this is the evidence it happened, and the
+   * date matters because the rules can be revised and a future version will need
+   * to know who agreed to which.
+   *
+   * Deliberately not backfilled for installs from before it existed: a
+   * timestamp invented from `onboardedAt` would be a record of consent that was
+   * never given.
+   */
+  agreedToRulesAt: number | null;
   /** Author ids this teacher follows. See AUTHORS in data/mock.ts. */
   following: string[];
   /** The self-care plan's standing rules. */
@@ -244,6 +258,7 @@ const EMPTY: Persisted = {
   onboardedAt: null,
   account: null,
   educator: { verified: false, verifiedAt: null },
+  agreedToRulesAt: null,
   following: [],
   boundaries: [],
   contacts: [],
@@ -446,6 +461,8 @@ type StoreValue = Persisted & {
       showYears: boolean;
     };
     practices: string[];
+    /** True only if they ticked the box; the caller must not default it. */
+    agreedToRules: boolean;
   }) => void;
   /** Change how you appear, at any time, without touching what was verified. */
   updateShown: (patch: Partial<NonNullable<Persisted['account']>['shown']>) => void;
@@ -629,11 +646,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             : { ...prev, plus: { trialStartedAt: Date.now() } },
         ),
       endTrial: () => update((prev) => ({ ...prev, plus: { trialStartedAt: null } })),
-      completeOnboarding: ({ name, email, shown, practices: labels }) =>
+      completeOnboarding: ({ name, email, shown, practices: labels, agreedToRules }) =>
         update((prev) => ({
           ...prev,
           onboardedAt: Date.now(),
           educator: { verified: true, verifiedAt: Date.now() },
+          // Recorded from what they actually did. Onboarding will not let anyone
+          // reach this point without ticking the box, but the flag is passed
+          // through rather than assumed so the record cannot drift from the UI.
+          agreedToRulesAt: agreedToRules ? Date.now() : null,
           account: {
             name: name.trim(),
             email: email.trim(),

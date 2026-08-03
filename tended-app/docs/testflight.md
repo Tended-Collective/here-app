@@ -98,11 +98,19 @@ on into the app.
 These are not needed for an internal TestFlight group, but App Review will want
 them:
 
-- [ ] **Terms of service with a no-tolerance clause for objectionable content**,
-      agreed at sign-up. Guideline 1.2 requires this specifically for apps
-      carrying user content. We have report, block and a stated 24-hour review
-      commitment; we do not have this.
-- [ ] **Privacy policy and support URLs**, live and reachable.
+- [x] ~~**Terms with a no-tolerance clause, agreed at sign-up.**~~ Done. Sign-up
+      now has a tick box that gates the verification button; the six community
+      rules are in the bundle and readable from sign-up and from Settings; the
+      no-tolerance sentence and the 24-hour commitment are stated; `support@` and
+      `safety@` are published in-app; and the agreement date is recorded on the
+      account as `agreedToRulesAt`.
+- [ ] **The two hosted pages must exist.** `SITE.terms` and `SITE.privacy` point
+      at `tendedcollective.com/terms` and `/privacy`. Both are linked from
+      sign-up and from Settings, and **neither page exists yet**. A 404 on either
+      is a rejection. The in-app rules cover what Apple wants users to agree to;
+      these are the legal documents behind them and need a lawyer, not this repo.
+- [ ] **`support@tendedcollective.com` and `safety@tendedcollective.com` must
+      route somewhere a human reads.** They are printed in the app now.
 - [ ] **Age rating.** User content plus private messaging usually lands 17+
       unless moderation can be evidenced.
 - [ ] **Someone actually reading reports.** The report sheet promises "Reports
@@ -128,6 +136,9 @@ them:
 | `eas.json` | Four profiles: `simulator`, `development`, `preview`, `production`. `appVersionSource: remote` with `autoIncrement` so two people building the same day cannot collide on a build number. |
 | `App.tsx` | Holds the native splash until the fonts have loaded. Without it the splash lifts when the JS mounts and the app sits on a blank screen while four font files load. |
 | `src/lib/photo.ts` | Photo picking now works on a device, not only on the web preview. |
+| `src/data/rules.ts` | The six community rules and the no-tolerance statement, in the bundle so they are readable on a phone with no signal and cannot drift from what the app enforces. |
+| `src/components/RulesSheet.tsx` | The rules, openable from sign-up and from Settings. |
+| Sign-up | A tick box gating the send button, and `agreedToRulesAt` on the account as the record that it happened. |
 
 ### The one that needed care
 
