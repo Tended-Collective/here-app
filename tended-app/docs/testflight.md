@@ -13,8 +13,10 @@ account or a Mac, which are marked **[needs Apple]**.
 
 - **The feed is fixed sample content.** Six accounts, a fixed set of posts. Every
   tester sees the same feed and nothing they post reaches anyone else.
-- **Messages are sample threads.** Replies are stored on the device. Nobody is on
-  the other end.
+- **Comments are sample threads.** The comments under a post are fixed content;
+  anything you add is stored on your device and nobody else sees it.
+- **There is no private messaging.** It was built and then pulled for a later
+  rollout.
 - **Verification sends no email.** Any six-digit code is accepted.
 - **The paywall charges nothing.** Starting the trial unlocks the paid views on
   that device and says so.
@@ -82,9 +84,13 @@ npx expo prebuild --platform ios --no-install   # writes ./ios, which is gitigno
 >
 > No mail is sent in this build; the code field accepts any six digits.
 >
+>
 > Reporting and blocking are on every post (the flag icon, top right of a post)
-> and inside every message thread (the flag icon in the thread header). Account
-> deletion is at the bottom of the Profile tab.
+> and on every comment (the flag icon beside the commenter's name — tap the
+> speech bubble under a post to open them). Account deletion is at the bottom of
+> the Profile tab.
+>
+> There is no private messaging in this build.
 
 **This is the single most likely cause of rejection.** It has been verified: a
 reviewer typing `appreview@icloud.com` is refused with "That is a personal email
@@ -111,8 +117,10 @@ them:
       these are the legal documents behind them and need a lawyer, not this repo.
 - [ ] **`support@tendedcollective.com` and `safety@tendedcollective.com` must
       route somewhere a human reads.** They are printed in the app now.
-- [ ] **Age rating.** User content plus private messaging usually lands 17+
-      unless moderation can be evidenced.
+- [ ] **Age rating.** User content — posts and comments — usually lands 12+ or
+      17+ depending on how moderation is evidenced. Lower than it would have
+      been: there is no private messaging in this build, which is the thing that
+      normally forces 17+.
 - [ ] **Someone actually reading reports.** The report sheet promises "Reports
       are reviewed within 24 hours." That is a commitment to a human rota. Either
       resource it or change the sentence.
@@ -120,8 +128,8 @@ them:
       check-ins and six weeks of habit ticks and presents them as the user's own
       record. Fine for a pilot where testers have been told; indefensible in the
       App Store. Note that turning it off does **not** empty the feed or the
-      inbox — those come from hardcoded constants in `src/data/mock.ts` and need
-      a data layer, not a flag.
+      comments — those come from hardcoded constants in `src/data/mock.ts` and
+      need a data layer, not a flag.
 - [ ] **`ios.privacyManifests.NSPrivacyCollectedDataTypes`** in `app.config.js`
       is an empty array. That is accurate today because nothing leaves the
       device. It becomes false the moment any backend is wired up.
@@ -139,6 +147,7 @@ them:
 | `src/data/rules.ts` | The six community rules and the no-tolerance statement, in the bundle so they are readable on a phone with no signal and cannot drift from what the app enforces. |
 | `src/components/RulesSheet.tsx` | The rules, openable from sign-up and from Settings. |
 | Sign-up | A tick box gating the send button, and `agreedToRulesAt` on the account as the record that it happened. |
+| `src/screens/SignIn.tsx` | The other front door. Sign-up used to be the only way in, so anyone who signed out was walked through the whole story again. Honest about the fact that a device with no account has nothing to sign in to. |
 
 ### The one that needed care
 

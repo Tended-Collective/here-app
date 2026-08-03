@@ -1,10 +1,15 @@
 /**
  * The whole app is a view of one small table: one row per day holding a score of
- * 1–5, optional tags, the date and (implicitly) the user's ZIP. The self-care
- * practices are the same shape — a day either has the practice kept or it doesn't.
+ * 1–5 and the date. The self-care practices are the same shape — a day either has
+ * the practice kept or it doesn't.
  *
- * Everything here is the user's own data and never leaves the device. The map,
- * the nearby feed and the reading list are fixed sample content (see data/mock.ts).
+ * A check-in used to carry tags as well, naming what made the day heavy. They
+ * were read in exactly one place — a clause in the weekly insight — and nothing
+ * aggregated or charted them, so asking someone at the end of a bad afternoon to
+ * categorise it was a poor trade. The score and the date are the whole record.
+ *
+ * Everything here is the user's own data and never leaves the device. The feed
+ * and the comments under it are fixed sample content (see data/mock.ts).
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
