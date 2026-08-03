@@ -606,6 +606,13 @@
     align-items: baseline;
     justify-content: space-between;
   }
+  /* The sign-off is the tagline, not a company line. Sentence case and the
+     display face, so it reads as the end of the page rather than as a label. */
+  .footer-line {
+    font-family: var(--display);
+    font-size: 1rem;
+    color: var(--muted);
+  }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -655,10 +662,9 @@
 <section class="hero wrap">
   <div class="stack">
     <p class="eyebrow">The daily check-in</p>
-    <h2>Two questions. One tap.</h2>
+    <h2>Simple, daily check-ins.</h2>
     <p class="lede">
-      How you are feeling, and one thing you did for yourself. It takes under a minute, and it is
-      the whole app.
+      Tap how you’re feeling, record what you did for yourself, and get back to your day.
     </p>
   </div>
 
@@ -673,7 +679,7 @@
       <button type="button" class="face" role="radio" aria-checked="false" aria-label="Rough" data-label="Rough">😞</button>
     </div>
 
-    <p class="saved" id="saved" role="status">Tap one. That is the whole check-in.</p>
+    <p class="saved" id="saved" role="status">Select how you feel to start your check-in.</p>
 
     <div class="second">
       <div>
@@ -883,7 +889,7 @@
 <footer class="wrap">
   <div class="footer-row">
     <span class="mark">Here</span>
-    <p class="eyebrow">Here Collective</p>
+    <p class="footer-line">A moment for yourself.</p>
   </div>
 </footer>
 
