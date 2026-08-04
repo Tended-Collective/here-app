@@ -41,28 +41,28 @@ export type Rule = { title: string; body: string };
 
 export const COMMUNITY_RULES: Rule[] = [
   {
-    title: 'Never name a student',
-    body: 'No names, no initials, no photographs, no detail that would let someone work out which child you mean. This is the one rule with no grey area, and it applies even when what you are saying is kind.',
+    title: 'Never name a student.',
+    body: 'No names, initials, photos, or details that identify a child—even when sharing something kind.',
   },
   {
-    title: 'Do not name colleagues or your school',
-    body: 'Write about what happened to you, not about who did it. Naming a colleague, a principal or a building turns your post into something that can be used against you, and against them.',
+    title: 'Keep colleagues and schools private.',
+    body: 'Focus on what happened to you, not who did it. Never name a colleague, administrator, or school building.',
   },
   {
-    title: 'No harassment, hate or abuse',
-    body: 'Nothing targeting anyone for their race, religion, disability, gender, sexuality or anything else about who they are. This applies in comments as much as in posts — a reply under someone else’s post is not a lesser space.',
+    title: 'No hate, harassment, or abuse.',
+    body: 'Zero tolerance for attacks based on race, religion, disability, gender, sexuality, or identity in posts or comments.',
   },
   {
-    title: 'Do not sell things here',
-    body: 'No advertising, no recruiting, no affiliate links, no promoting your own paid resources. Anything paid on Here is labelled as a placement and never posted as though it came from a teacher.',
+    title: 'No selling or promotion.',
+    body: 'No ads, affiliate links, self-promotion, or recruiting.',
   },
   {
-    title: 'Be who you said you were',
-    body: 'One account per person, and the job and years you show should be true. You can be as anonymous as you like — a handle and nothing else is fine — but do not claim to work in a school if you do not.',
+    title: 'Be honest about who you are.',
+    body: 'One account per person. You can post anonymously, but your school role must be accurate.',
   },
   {
-    title: 'Take care with a hard day',
-    body: 'You can say a day was rough. Do not post graphic detail about self-harm or suicide. If you are in danger, please contact your local emergency services rather than posting — this app has nobody watching in real time.',
+    title: 'Handle tough moments with care.',
+    body: 'It’s okay to share that a day was hard. Avoid graphic details about self-harm or suicide. If you are in immediate danger, please reach out to emergency services directly—this app is not monitored in real time.',
   },
 ];
 

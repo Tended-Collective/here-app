@@ -760,6 +760,92 @@
     color: var(--muted);
   }
 
+  /* ── The app itself ─────────────────────────────────────────────────────────
+     Signing up used to close the sheet and drop you back onto the landing page
+     you had just agreed to leave. There is no iOS build to hand off to yet, so
+     the page becomes the app: the same check-in, saved for real, and the feed.
+
+     It borrows the landing page's own tokens and the .checkin/.post rules
+     rather than restating them, so the two cannot drift apart. */
+  .app { display: none; }
+  .app.on { display: block; }
+  body.in-app > section,
+  body.in-app > footer { display: none; }
+
+  .app-bar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 1.5rem 0;
+  }
+  .app-who { font-size: 0.85rem; color: var(--muted); }
+  .app-out {
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 0.3rem 0;
+  }
+  .app-day {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-top: 2rem;
+  }
+  .app h1 { font-size: clamp(1.9rem, 7vw, 2.4rem); margin-top: 0.35rem; }
+
+  .app .checkin { margin-top: 1.6rem; }
+  .app textarea {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0.85rem;
+    min-height: 5.5rem;
+    padding: 0.85rem 0.95rem;
+    font: inherit;
+    font-size: 0.98rem;
+    color: var(--ink);
+    background: var(--ground);
+    border: 1px solid var(--outline);
+    border-radius: 14px;
+    resize: vertical;
+  }
+  .app textarea:focus { outline: none; border-color: var(--accent); }
+  .app-post {
+    margin-top: 0.9rem;
+    padding: 0.7rem 1.3rem;
+    border: 0;
+    border-radius: 99px;
+    background: var(--ink);
+    color: var(--ground);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .app-post[disabled] { opacity: 0.4; cursor: default; }
+
+  .week { display: flex; gap: 0.4rem; margin-top: 1rem; }
+  .week span {
+    flex: 1;
+    min-width: 0;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    border: 1px solid var(--outline);
+    display: grid;
+    place-items: center;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--faint);
+  }
+  .week span.on { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent); }
+  .week span.today { border-width: 2px; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.001ms !important;
@@ -794,7 +880,7 @@
       <form class="signin" id="signin" novalidate>
         <label class="sr-only" for="email">Your school email</label>
         <input id="email" type="email" inputmode="email" autocomplete="email"
-               placeholder="you@yourschool.edu" />
+               placeholder="School email address" />
         <button class="go" type="submit">Get started <span aria-hidden="true">→</span></button>
       </form>
       <!-- Contents are written by greet(): the caption depends on whether
@@ -1021,6 +1107,53 @@
   </div>
 </footer>
 
+<!-- ── The app ──────────────────────────────────────────────────────────────
+     Where sign-up actually lands. Hidden until there is an account, and it
+     replaces the landing page rather than sitting under it. -->
+<div class="app wrap" id="app">
+  <div class="app-bar">
+    <span class="mark">Here</span>
+    <span class="app-who" id="app-who"></span>
+  </div>
+
+  <p class="app-day" id="app-day"></p>
+  <h1>How are you feeling today?</h1>
+
+  <div class="checkin" id="app-checkin">
+    <div class="faces" role="radiogroup" aria-label="How are you feeling today?">
+      <button type="button" class="face" role="radio" aria-checked="false" aria-label="Great" data-score="1">😄</button>
+      <button type="button" class="face" role="radio" aria-checked="false" aria-label="Good" data-score="2">🙂</button>
+      <button type="button" class="face" role="radio" aria-checked="false" aria-label="Okay" data-score="3">😐</button>
+      <button type="button" class="face" role="radio" aria-checked="false" aria-label="Worn down" data-score="4">😮‍💨</button>
+      <button type="button" class="face" role="radio" aria-checked="false" aria-label="Rough" data-score="5">😞</button>
+    </div>
+    <p class="saved" id="app-saved" role="status">Select how you feel to start your check-in.</p>
+
+    <div class="second">
+      <div>
+        <div class="second-inner">
+          <p class="question">How did you take care of yourself today?</p>
+          <label class="sr-only" for="app-note">What you did for yourself today</label>
+          <textarea id="app-note" placeholder="One sentence is plenty."></textarea>
+          <button type="button" class="app-post" id="app-post" disabled>Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="eyebrow" style="margin-top: 2.6rem">Your week</p>
+  <div class="week" id="app-week" aria-label="This week's check-ins"></div>
+
+  <p class="eyebrow" style="margin-top: 2.6rem">The feed</p>
+  <div id="app-feed"></div>
+
+  <div class="note" style="margin-bottom: 3rem">
+    This is the web preview, so the feed is sample content and posts do not reach anyone yet. Your
+    check-ins are saved in this browser and nowhere else.
+    <button type="button" class="app-out" id="app-out">Sign out</button>
+  </div>
+</div>
+
 <!-- ── Sign-up and sign-in ──────────────────────────────────────────────────
      The same six steps the app walks through, in the same order, asking for
      the same things — so the address someone types on the cover carries
@@ -1040,15 +1173,11 @@
     <!-- ── Sign up ─────────────────────────────────────────────────────── -->
     <form class="step" data-step="email" hidden>
       <h2 id="step-title">Create your account</h2>
-      <p class="step-sub">
-        Everyone here works in a school and has shown it. That is the whole reason the feed is
-        worth reading.
-      </p>
-      <label class="field">
+      <label class="field" style="margin-top: 1.9rem">
         <span class="field-label">Your school email</span>
         <input type="email" inputmode="email" autocomplete="email" name="email"
                placeholder="you@yourschool.edu" />
-        <span class="field-hint">Your school’s, not a personal address.</span>
+        <span class="field-hint">We use your school email to verify that you work in education.</span>
       </label>
       <label class="agree">
         <input type="checkbox" name="agree" />
@@ -1069,42 +1198,36 @@
     <!-- The six rules in full, reachable before agreeing rather than behind a
          link nobody opens after the fact. Same text the app carries. -->
     <div class="step" data-step="rules" hidden>
-      <h2>What Here is for</h2>
-      <p class="step-sub">
-        Six rules. The first one is the one that matters most, and it has no grey area.
-      </p>
+      <h2>Community rules</h2>
       <div class="rule">
-        <h3>Never name a student</h3>
-        <p>No names, no initials, no photographs, no detail that would let someone work out which
-          child you mean. This applies even when what you are saying is kind.</p>
+        <h3>1. Never name a student.</h3>
+        <p>No names, initials, photos, or details that identify a child—even when sharing something
+          kind.</p>
       </div>
       <div class="rule">
-        <h3>Do not name colleagues or your school</h3>
-        <p>Write about what happened to you, not about who did it. Naming a colleague, a principal
-          or a building turns your post into something that can be used against you, and against
-          them.</p>
+        <h3>2. Keep colleagues and schools private.</h3>
+        <p>Focus on what happened to you, not who did it. Never name a colleague, administrator, or
+          school building.</p>
       </div>
       <div class="rule">
-        <h3>No harassment, hate or abuse</h3>
-        <p>Nothing targeting anyone for their race, religion, disability, gender, sexuality or
-          anything else about who they are. This applies in comments as much as in posts.</p>
+        <h3>3. No hate, harassment, or abuse.</h3>
+        <p>Zero tolerance for attacks based on race, religion, disability, gender, sexuality, or
+          identity in posts or comments.</p>
       </div>
       <div class="rule">
-        <h3>Do not sell things here</h3>
-        <p>No advertising, no recruiting, no affiliate links, no promoting your own paid resources.
-          Anything paid on Here is labelled as a placement.</p>
+        <h3>4. No selling or promotion.</h3>
+        <p>No ads, affiliate links, self-promotion, or recruiting.</p>
       </div>
       <div class="rule">
-        <h3>Be who you said you were</h3>
-        <p>One account per person, and the job and years you show should be true. You can be as
-          anonymous as you like — a handle and nothing else is fine — but do not claim to work in a
-          school if you do not.</p>
+        <h3>5. Be honest about who you are.</h3>
+        <p>One account per person. You can post anonymously, but your school role must be
+          accurate.</p>
       </div>
       <div class="rule">
-        <h3>Take care with a hard day</h3>
-        <p>You can say a day was rough. Do not post graphic detail about self-harm or suicide. If
-          you are in danger, please contact your local emergency services rather than posting —
-          this app has nobody watching in real time.</p>
+        <h3>6. Handle tough moments with care.</h3>
+        <p>It’s okay to share that a day was hard. Avoid graphic details about self-harm or
+          suicide. If you are in immediate danger, please reach out to emergency services
+          directly—this app is not monitored in real time.</p>
       </div>
       <div class="note">
         There is no tolerance for objectionable content or abusive behaviour on Here. Reported
@@ -1172,15 +1295,6 @@
       <p class="problem" data-problem hidden></p>
       <button class="step-go" type="submit">Create my account</button>
     </form>
-
-    <div class="step" data-step="done" hidden>
-      <h2 data-done-title>You’re in.</h2>
-      <p class="step-sub">Now that you’re Here, find moments for yourself.</p>
-      <div class="note">
-        Free to test while Here is in pilot. The feed is sample content, so posts do not reach
-        anyone yet, and nothing you entered left this browser.
-      </div>
-    </div>
 
     <!-- ── Sign in ─────────────────────────────────────────────────────── -->
     <form class="step" data-step="signin-email" hidden>
@@ -1255,7 +1369,7 @@
 
     // Which bar of the four is lit. The two sign-in screens borrow the first
     // one rather than claiming their own length.
-    var BARS = { email: 1, rules: 1, code: 2, profile: 3, context: 4, done: 4, 'signin-email': 1, 'signin-none': 1 };
+    var BARS = { email: 1, rules: 1, code: 2, profile: 3, context: 4, 'signin-email': 1, 'signin-none': 1 };
 
     var draft = {};
     var current = null;
@@ -1392,11 +1506,8 @@
       // Signing in stops here: the account already exists, so there is nothing
       // left to ask for.
       if (draft.signingIn) {
-        var account = read();
         draft.signingIn = false;
-        steps.done.querySelector('[data-done-title]').textContent =
-          'Welcome back, ' + (account && account.name ? account.name : 'friend') + '.';
-        show('done');
+        enterApp();
         return;
       }
       show('profile');
@@ -1436,8 +1547,7 @@
         agreedAt: draft.agreedAt || Date.now(),
       });
       greet();
-      steps.done.querySelector('[data-done-title]').textContent = 'You’re in, ' + draft.name + '.';
-      show('done');
+      enterApp();
     });
 
     steps['signin-email'].addEventListener('submit', function (e) {
@@ -1470,8 +1580,165 @@
       if (e.key === 'Escape' && !sheet.hidden) close();
     });
 
-    greet();
+    /* ── The app ──────────────────────────────────────────────────────────────
+       Where sign-up now lands. There is no iOS build to hand off to yet, so
+       the page becomes the app rather than announcing success and returning
+       you to the marketing copy you had just finished reading.
 
+       Same shape as the phone app: check-ins keyed by date, one row per day,
+       kept on the device that made them. */
+
+    var SAMPLE_FEED = [
+      { initial: 'M', tint: '#8a6470', name: 'Marisa Okonjo',
+        meta: '@marisa.okonjo · Teacher · Elementary · DC · 12 yrs',
+        text: 'Left at 4:30 and did the grading at home with the TV on.' },
+      { initial: 'J', tint: '#5f7f68', name: 'Jonah Feld',
+        meta: '@jonahfeld · Principal · Elementary · MD · 22 yrs',
+        text: 'Said no to covering another class this week.' },
+      { initial: 'Q', tint: '#6f5f7d', name: 'quietroom',
+        meta: '@quietroom · Teacher · High · OR · First year',
+        text: 'Walked the long way to the car. Fifteen minutes, no phone.' },
+    ];
+    var MOODS = ['Great', 'Good', 'Okay', 'Worn down', 'Rough'];
+
+    var app = document.getElementById('app');
+    var appNote = document.getElementById('app-note');
+    var appPost = document.getElementById('app-post');
+    var appSaved = document.getElementById('app-saved');
+    var appCheckin = document.getElementById('app-checkin');
+    var appFaces = Array.prototype.slice.call(appCheckin.querySelectorAll('.face'));
+
+    // Local date parts, not toISOString: that is UTC, and it files a 9pm
+    // check-in in Denver under tomorrow.
+    function isoDay(date) {
+      return date.getFullYear() + '-' +
+        String(date.getMonth() + 1).padStart(2, '0') + '-' +
+        String(date.getDate()).padStart(2, '0');
+    }
+
+    /** Monday first, because a school week is. */
+    function weekDates(today) {
+      var offset = (today.getDay() + 6) % 7;
+      return [0, 1, 2, 3, 4, 5, 6].map(function (i) {
+        var d = new Date(today);
+        d.setDate(today.getDate() - offset + i);
+        return d;
+      });
+    }
+
+    function saveEntry(patch) {
+      var account = read();
+      if (!account) return;
+      account.entries = account.entries || {};
+      var key = isoDay(new Date());
+      account.entries[key] = Object.assign({}, account.entries[key], patch);
+      write(account);
+      paintWeek();
+    }
+
+    function paintWeek() {
+      var entries = (read() || {}).entries || {};
+      var today = new Date();
+      var todayKey = isoDay(today);
+      var week = document.getElementById('app-week');
+      week.innerHTML = '';
+      weekDates(today).forEach(function (d) {
+        var key = isoDay(d);
+        var cell = document.createElement('span');
+        cell.textContent = ['M', 'T', 'W', 'T', 'F', 'S', 'S'][(d.getDay() + 6) % 7];
+        if (entries[key]) cell.classList.add('on');
+        if (key === todayKey) cell.classList.add('today');
+        cell.setAttribute('aria-label',
+          d.toDateString() + (entries[key] ? ', checked in' : ', no check-in'));
+        week.appendChild(cell);
+      });
+    }
+
+    function paintFeed() {
+      var feed = document.getElementById('app-feed');
+      if (feed.childElementCount) return;
+      SAMPLE_FEED.forEach(function (post) {
+        var article = document.createElement('article');
+        article.className = 'post';
+        var avatar = document.createElement('span');
+        avatar.className = 'avatar';
+        avatar.style.background = post.tint;
+        avatar.textContent = post.initial;
+        var body = document.createElement('div');
+        body.className = 'post-body';
+        [['post-name', post.name], ['post-meta', post.meta], ['post-text', post.text]]
+          .forEach(function (pair) {
+            var line = document.createElement('p');
+            line.className = pair[0];
+            line.textContent = pair[1];
+            body.appendChild(line);
+          });
+        article.appendChild(avatar);
+        article.appendChild(body);
+        feed.appendChild(article);
+      });
+    }
+
+    function enterApp() {
+      var account = read();
+      if (!account) return;
+      document.getElementById('app-who').textContent = '@' + account.username;
+      document.getElementById('app-day').textContent = new Date().toLocaleDateString(undefined, {
+        weekday: 'long', day: 'numeric', month: 'long',
+      });
+
+      // Today's check-in if it already happened, so coming back shows what you
+      // said rather than asking again.
+      var today = (account.entries || {})[isoDay(new Date())];
+      appFaces.forEach(function (f) {
+        f.setAttribute('aria-checked', String(!!today && Number(f.dataset.score) === today.score));
+      });
+      if (today) {
+        appSaved.textContent = 'Saved — ' + MOODS[today.score - 1] + '.';
+        appCheckin.classList.add('answered');
+        appNote.value = today.note || '';
+      }
+      appPost.disabled = !appNote.value.trim();
+
+      paintWeek();
+      paintFeed();
+      app.classList.add('on');
+      document.body.classList.add('in-app');
+      close();
+      window.scrollTo(0, 0);
+    }
+
+    appFaces.forEach(function (face) {
+      face.addEventListener('click', function () {
+        appFaces.forEach(function (f) { f.setAttribute('aria-checked', 'false'); });
+        face.setAttribute('aria-checked', 'true');
+        appSaved.textContent = 'Saved — ' + face.getAttribute('aria-label') + '.';
+        appCheckin.classList.add('answered');
+        saveEntry({ score: Number(face.dataset.score) });
+      });
+    });
+
+    appNote.addEventListener('input', function () {
+      appPost.disabled = !appNote.value.trim();
+    });
+    appPost.addEventListener('click', function () {
+      saveEntry({ note: appNote.value.trim() });
+      appPost.disabled = true;
+      appPost.textContent = 'Saved';
+      setTimeout(function () { appPost.textContent = 'Save'; }, 1600);
+    });
+
+    // Signing out returns to the landing page but keeps the account, so
+    // logging back in finds the week you have already filled in.
+    document.getElementById('app-out').addEventListener('click', function () {
+      app.classList.remove('on');
+      document.body.classList.remove('in-app');
+      window.scrollTo(0, 0);
+    });
+
+    // An account on this browser means you are past the landing page.
+    if (read()) enterApp();
+    greet();
 
     var checkin = document.getElementById('checkin');
     var saved = document.getElementById('saved');
