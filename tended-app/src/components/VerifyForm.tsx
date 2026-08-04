@@ -35,8 +35,15 @@ export function VerifyForm({
   onVerified,
   blocked = false,
   agreement,
+  initialEmail = '',
 }: {
   onVerified: (email: string) => void;
+  /**
+   * Prefilled from the cover, where sign-up now starts. Typing an address on
+   * the first screen and being handed an empty field on the next one is the
+   * kind of small betrayal that makes people close an app.
+   */
+  initialEmail?: string;
   /**
    * Held shut until something upstream is satisfied — at sign-up, until the
    * community rules have been agreed to. The form stays visible and the address
@@ -56,7 +63,7 @@ export function VerifyForm({
    */
   agreement?: React.ReactNode;
 }) {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);

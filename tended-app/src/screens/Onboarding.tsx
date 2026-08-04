@@ -1,8 +1,14 @@
 /**
  * Onboarding, in six screens.
  *
- *   1–3  Why this exists, what it asks, what it gives back.
- *   4    Sign up with a school email.
+ *   1    The cover — the illustration, the headline and the field that starts
+ *        sign-up. Lives in Cover.tsx, which explains why it looks the way it
+ *        does; the short version is that it and the web page used to be two
+ *        artefacts saying the same thing, and this is the merge.
+ *   2–3  What it asks, and what it gives back. Skipped when an address was
+ *        typed on the cover: an empty field means "tell me more", a filled one
+ *        means "let's go".
+ *   4    Sign up with a school email, carried in from the cover.
  *   5–6  Choose how you appear: who you are, then the context around it.
  *
  * Two screens for the profile rather than one because the roles list runs to
@@ -21,15 +27,14 @@
 
 import React, { useState } from 'react';
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from 'react-native';
+import { Cover } from './Cover';
 import { useChrome } from '../components/PhoneFrame';
 import { Body, Display, MonoLabel } from '../components/ui';
 import { Toggle } from '../components/Toggle';
@@ -56,11 +61,6 @@ import { color, radius, SCREEN_PADDING } from '../theme';
  */
 const STORY = [
   {
-    kicker: 'HERE',
-    title: 'A moment for yourself.',
-    body: 'In the work that we do, it’s easy to give to our students, staff members, and families. Here is the intentional pause that we need—a moment to check in with ourselves.',
-  },
-  {
     kicker: 'THE DAILY ASK',
     title: 'Two simple questions.',
     /** Rendered as the two questions themselves, not as a paragraph about them. */
@@ -73,7 +73,10 @@ const STORY = [
   },
 ];
 
-const VERIFY_STEP = STORY.length;
+/** The cover is step 0; the story slides follow it. */
+const COVER_STEP = 0;
+const STORY_START = 1;
+const VERIFY_STEP = STORY_START + STORY.length;
 const IDENTITY_STEP = VERIFY_STEP + 1;
 const CONTEXT_STEP = IDENTITY_STEP + 1;
 const STEPS = CONTEXT_STEP + 1;
@@ -81,7 +84,6 @@ const STEPS = CONTEXT_STEP + 1;
 export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
   const { completeOnboarding } = useStore();
   const { topInset } = useChrome();
-  const { width: screenWidth } = useWindowDimensions();
   const [step, setStep] = useState(0);
   // Guideline 1.2: users must agree to terms stating there is no tolerance for
   // objectionable content. A tick rather than "by continuing you agree", because
@@ -104,8 +106,14 @@ export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
   const [showState, setShowState] = useState(true);
   const [showYears, setShowYears] = useState(true);
 
+  // Whether the story was jumped over. Without this, Back from sign-up walks
+  // into the last slide of a story they chose not to read — a screen they have
+  // never seen, arrived at by going backwards.
+  const [skippedStory, setSkippedStory] = useState(false);
+
   const next = () => setStep((s) => Math.min(STEPS - 1, s + 1));
-  const back = () => setStep((s) => Math.max(0, s - 1));
+  const back = () =>
+    setStep((s) => (s === VERIFY_STEP && skippedStory ? COVER_STEP : Math.max(0, s - 1)));
 
   const finish = () =>
     completeOnboarding({
@@ -139,7 +147,31 @@ export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
   ]
     .filter(Boolean)
     .join(' · ');
-  const story = step < STORY.length ? STORY[step] : null;
+  const story =
+    step >= STORY_START && step < VERIFY_STEP ? STORY[step - STORY_START] : null;
+
+  if (step === COVER_STEP) {
+    return (
+      <>
+        <Cover
+          onSignIn={onSignIn}
+          onStart={(typed) => {
+            // An address means they are ready; the story is for the people who
+            // are not, so it is skipped rather than sat through.
+            if (typed) {
+              setEmail(typed);
+              setSkippedStory(true);
+              setStep(VERIFY_STEP);
+              return;
+            }
+            setSkippedStory(false);
+            setStep(STORY_START);
+          }}
+        />
+        <RulesSheet visible={showRules} onClose={() => setShowRules(false)} />
+      </>
+    );
+  }
 
   return (
     <View style={[styles.root, { paddingTop: topInset }]}>
@@ -152,21 +184,8 @@ export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
 
         {story && (
           <>
-            {/* Only on the first screen. The illustration is the one moment the
-                app is allowed to be a picture rather than a tool, and repeating
-                it on every slide would turn it into wallpaper. Full-bleed —
-                negative margins undo the screen padding — because a warm image
-                inside a 24pt frame reads as a stock photo in a box. */}
-            {step === 0 && (
-              <Image
-                source={require('../../assets/welcome.jpg')}
-                style={[styles.welcome, { width: screenWidth }]}
-                resizeMode="cover"
-                accessibilityLabel="Watercolour of school staff walking home along a sunlit sidewalk at the end of the day."
-              />
-            )}
             <MonoLabel>{story.kicker}</MonoLabel>
-            <Display size={step === 0 ? 32 : 29} style={{ marginTop: 12 }}>
+            <Display size={29} style={{ marginTop: 12 }}>
               {story.title}
             </Display>
             {story.body && (
@@ -210,6 +229,7 @@ export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
             />
 
             <VerifyForm
+              initialEmail={email}
               blocked={!agreed}
               agreement={
                 <Pressable
@@ -436,18 +456,6 @@ export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
             ) : (
               <View />
             )}
-            {/* Only on the first screen. Once someone is three screens into
-                signing up, offering to take them somewhere else is noise. */}
-            {step === 0 && onSignIn && (
-              <Pressable
-                onPress={onSignIn}
-                accessibilityRole="button"
-                accessibilityLabel="Sign in to an existing account"
-                hitSlop={8}
-              >
-                <Text style={styles.signIn}>I already have an account</Text>
-              </Pressable>
-            )}
           </View>
         </View>
       </ScrollView>
@@ -484,25 +492,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: color.ground,
-  },
-  welcome: {
-    // Undoes SCREEN_PADDING's 24pt inset so the art runs edge to edge.
-    /**
-     * Width comes from the window at render time, not from the stylesheet.
-     * An Image with a `require`d source and no explicit width lays out at the
-     * file's intrinsic width — 1150px — and `alignSelf: 'stretch'` does not
-     * override that. The band then drew as a 1150-wide box clipped by its
-     * parent, so `cover` cropped against 1150 rather than the screen and threw
-     * away everything but the middle.
-     *
-     * One negative margin, not two: the width is already the whole screen, so
-     * it only needs pulling left over the 24pt inset.
-     */
-    marginLeft: -24,
-    marginTop: -6,
-    marginBottom: 26,
-    height: 320,
-    backgroundColor: color.cardSoft,
   },
   signIn: {
     fontSize: 13.5,

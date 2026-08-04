@@ -90,7 +90,10 @@ const PHONE_HEIGHT = 680; // a real phone, where there is no device mock to fit
 // reason the base height is fixed: `svh` would depend on the frame the frame is
 // being sized from. On a phone the device mock is not drawn at all, so 920px
 // only bought a screenful of empty space above the content.
-const html = `<title>Tended</title>
+// The title names the artifact in the browser tab and the gallery, and it is
+// the one string here the export does not supply — the app's own index.html has
+// it, but that file is replaced wholesale by this shell.
+const html = `<title>Here</title>
 <style>
   body { margin: 0; }
   #root { display: flex; height: ${PAGE_HEIGHT}px; overflow: hidden; }
