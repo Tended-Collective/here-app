@@ -125,7 +125,7 @@ npx expo prebuild --platform ios --no-install   # writes ./ios, which is gitigno
 > Reporting and blocking are on every post (the flag icon, top right of a post)
 > and on every comment (the flag icon beside the commenter's name — tap the
 > speech bubble under a post to open them). Account deletion is at the bottom of
-> the Profile tab.
+> the Settings tab, under ACCOUNT.
 >
 > There is no private messaging in this build.
 

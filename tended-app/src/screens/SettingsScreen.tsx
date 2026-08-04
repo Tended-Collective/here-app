@@ -263,6 +263,27 @@ export function SettingsScreen() {
         />
       </Card>
 
+      {/* Guideline 5.1.1(v) wants account deletion reachable from inside the
+          app, and this is where people look for it: signing out and deleting
+          are the same question asked with different force, so they sit
+          together rather than a tab apart.
+
+          Outside the card and in the one red the design has, because the rows
+          above it are reversible and this one is not. */}
+      <MonoLabel style={{ marginTop: 30 }}>ACCOUNT</MonoLabel>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Delete your account"
+        onPress={() => open('delete')}
+        style={styles.deleteRow}
+      >
+        <View>
+          <Text style={styles.deleteLabel}>Delete my account</Text>
+          <Text style={styles.deleteHint}>Erases your check-ins and your list from this phone</Text>
+        </View>
+        <Text style={styles.deleteArrow}>→</Text>
+      </Pressable>
+
       {blocked.length > 0 && (
         <>
           <MonoLabel style={{ marginTop: 30 }}>BLOCKED ACCOUNTS</MonoLabel>
@@ -319,6 +340,33 @@ function LinkRow({
 }
 
 const styles = StyleSheet.create({
+  deleteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 14,
+    marginTop: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 17,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: 'rgba(180,103,98,0.4)',
+  },
+  deleteLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#a4574f',
+  },
+  deleteHint: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: color.muted,
+    marginTop: 3,
+  },
+  deleteArrow: {
+    fontSize: 15,
+    color: '#a4574f',
+  },
   linksCard: {
     marginTop: 12,
     paddingHorizontal: 16,
