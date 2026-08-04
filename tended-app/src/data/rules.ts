@@ -50,7 +50,7 @@ export const COMMUNITY_RULES: Rule[] = [
   },
   {
     title: 'No harassment, hate or abuse',
-    body: 'Nothing targeting anyone for their race, religion, disability, gender, sexuality or anything else about who they are. This applies in messages as much as in posts — a private thread is not a lesser space.',
+    body: 'Nothing targeting anyone for their race, religion, disability, gender, sexuality or anything else about who they are. This applies in comments as much as in posts — a reply under someone else’s post is not a lesser space.',
   },
   {
     title: 'Do not sell things here',

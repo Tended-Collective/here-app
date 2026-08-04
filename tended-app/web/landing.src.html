@@ -164,14 +164,6 @@
     border-radius: 4px;
   }
 
-  /* ── Masthead ───────────────────────────────────────────────────────────── */
-  .masthead {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-block: 1.75rem 0;
-  }
   .mark {
     font-family: var(--display);
     font-weight: 400;
@@ -705,6 +697,58 @@
     cursor: pointer;
     text-align: center;
   }
+  /* The tick that gates the button. A deliberate act rather than "by
+     continuing you agree", because this is the record that it happened and a
+     tick is better evidence than an inference. Same gate as the app's. */
+  .agree {
+    display: grid;
+    grid-template-columns: 1.35rem 1fr;
+    gap: 0.7rem;
+    align-items: start;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--body);
+    cursor: pointer;
+  }
+  .agree input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .agree .box {
+    width: 1.35rem;
+    height: 1.35rem;
+    border: 1px solid var(--outline);
+    border-radius: 6px;
+    background: var(--card);
+    display: grid;
+    place-items: center;
+    font-size: 0.85rem;
+    line-height: 1;
+    color: transparent;
+  }
+  .agree input:checked + .box {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .agree input:focus-visible + .box { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* A <button> so it is reachable by keyboard and announced as an action, but
+     it sits mid-sentence, so every scrap of default button chrome has to go or
+     it reads as a box dropped into the paragraph. */
+  .agree .link {
+    appearance: none;
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .agree .box { margin-top: 0.1rem; }
+
+  .rule { margin-top: 1.5rem; }
+  .rule h3 { font-size: 1.05rem; }
+  .rule p { margin-top: 0.3rem; font-size: 0.92rem; color: var(--muted); }
+
   .problem { margin-top: 1rem; font-size: 0.9rem; line-height: 1.5; color: var(--warn); }
   .note {
     margin-top: 1.4rem;
@@ -1006,12 +1050,70 @@
                placeholder="you@yourschool.edu" />
         <span class="field-hint">Your school’s, not a personal address.</span>
       </label>
+      <label class="agree">
+        <input type="checkbox" name="agree" />
+        <span class="box" aria-hidden="true">✓</span>
+        <span>
+          I agree to the
+          <button type="button" class="link" data-goto="rules">community rules</button>
+          and the terms of service. Here has no tolerance for abuse, and never name a student.
+        </span>
+      </label>
       <p class="problem" data-problem hidden></p>
       <button class="step-go" type="submit">Continue</button>
       <button class="step-alt" type="button" data-goto="signin-email">
         I already have an account
       </button>
     </form>
+
+    <!-- The six rules in full, reachable before agreeing rather than behind a
+         link nobody opens after the fact. Same text the app carries. -->
+    <div class="step" data-step="rules" hidden>
+      <h2>What Here is for</h2>
+      <p class="step-sub">
+        Six rules. The first one is the one that matters most, and it has no grey area.
+      </p>
+      <div class="rule">
+        <h3>Never name a student</h3>
+        <p>No names, no initials, no photographs, no detail that would let someone work out which
+          child you mean. This applies even when what you are saying is kind.</p>
+      </div>
+      <div class="rule">
+        <h3>Do not name colleagues or your school</h3>
+        <p>Write about what happened to you, not about who did it. Naming a colleague, a principal
+          or a building turns your post into something that can be used against you, and against
+          them.</p>
+      </div>
+      <div class="rule">
+        <h3>No harassment, hate or abuse</h3>
+        <p>Nothing targeting anyone for their race, religion, disability, gender, sexuality or
+          anything else about who they are. This applies in comments as much as in posts.</p>
+      </div>
+      <div class="rule">
+        <h3>Do not sell things here</h3>
+        <p>No advertising, no recruiting, no affiliate links, no promoting your own paid resources.
+          Anything paid on Here is labelled as a placement.</p>
+      </div>
+      <div class="rule">
+        <h3>Be who you said you were</h3>
+        <p>One account per person, and the job and years you show should be true. You can be as
+          anonymous as you like — a handle and nothing else is fine — but do not claim to work in a
+          school if you do not.</p>
+      </div>
+      <div class="rule">
+        <h3>Take care with a hard day</h3>
+        <p>You can say a day was rough. Do not post graphic detail about self-harm or suicide. If
+          you are in danger, please contact your local emergency services rather than posting —
+          this app has nobody watching in real time.</p>
+      </div>
+      <div class="note">
+        There is no tolerance for objectionable content or abusive behaviour on Here. Reported
+        posts are removed from your feed immediately and reviewed within 24 hours. Accounts that
+        break these rules are removed, and serious breaches are removed without warning. Anything
+        urgent: <a href="mailto:hello@tendedcollective.com">hello@tendedcollective.com</a>.
+      </div>
+      <button class="step-go" type="button" data-goto="email">Back to sign-up</button>
+    </div>
 
     <form class="step code" data-step="code" hidden>
       <h2>Enter your code</h2>
@@ -1066,7 +1168,6 @@
       <label class="field">
         <span class="field-label">School ZIP</span>
         <input type="text" inputmode="numeric" name="zip" maxlength="5" placeholder="20002" />
-        <span class="field-hint">Your school’s, not your home. Shows as your state.</span>
       </label>
       <p class="problem" data-problem hidden></p>
       <button class="step-go" type="submit">Create my account</button>
@@ -1079,7 +1180,6 @@
         Free to test while Here is in pilot. The feed is sample content, so posts do not reach
         anyone yet, and nothing you entered left this browser.
       </div>
-      <button class="step-go" type="button" data-close>Have a look around</button>
     </div>
 
     <!-- ── Sign in ─────────────────────────────────────────────────────── -->
@@ -1155,7 +1255,7 @@
 
     // Which bar of the four is lit. The two sign-in screens borrow the first
     // one rather than claiming their own length.
-    var BARS = { email: 1, code: 2, profile: 3, context: 4, done: 4, 'signin-email': 1, 'signin-none': 1 };
+    var BARS = { email: 1, rules: 1, code: 2, profile: 3, context: 4, done: 4, 'signin-email': 1, 'signin-none': 1 };
 
     var draft = {};
     var current = null;
@@ -1233,15 +1333,12 @@
       e.preventDefault();
       var typed = cover.querySelector('input').value.trim();
       draft.email = typed;
+      // Carried in rather than jumped past: the agreement tick lives on this
+      // step, and an account created without it is the one thing App Review
+      // asks about. So the address arrives filled in and nothing is skipped.
       steps.email.querySelector('[name=email]').value = typed;
       open('email');
-      // A valid address typed on the cover should not have to be typed again.
-      if (typed && !emailProblem(typed)) {
-        steps.code.querySelector('[data-echo-email]').textContent = typed;
-        show('code');
-      } else if (typed) {
-        problem(steps.email, emailProblem(typed));
-      }
+      if (typed) problem(steps.email, emailProblem(typed));
     });
 
     /**
@@ -1272,8 +1369,13 @@
       e.preventDefault();
       var value = this.querySelector('[name=email]').value.trim();
       var bad = emailProblem(value);
-      problem(this, bad);
-      if (bad) return;
+      if (bad) { problem(this, bad); return; }
+      if (!this.querySelector('[name=agree]').checked) {
+        problem(this, 'Tick the box above to continue.');
+        return;
+      }
+      problem(this, null);
+      draft.agreedAt = Date.now();
       draft.email = value;
       steps.code.querySelector('[data-echo-email]').textContent = value;
       show('code');
@@ -1329,6 +1431,9 @@
         role: draft.role,
         level: draft.level,
         zip: draft.zip,
+        // When they ticked the box, not whether — the same evidence the app
+        // keeps as `agreedToRulesAt`.
+        agreedAt: draft.agreedAt || Date.now(),
       });
       greet();
       steps.done.querySelector('[data-done-title]').textContent = 'You’re in, ' + draft.name + '.';
@@ -1359,9 +1464,6 @@
         draft.signingIn = false;
         show(button.dataset.goto);
       });
-    });
-    Array.prototype.forEach.call(sheet.querySelectorAll('[data-close]'), function (button) {
-      button.addEventListener('click', close);
     });
     document.getElementById('sheet-close').addEventListener('click', close);
     document.addEventListener('keydown', function (e) {
