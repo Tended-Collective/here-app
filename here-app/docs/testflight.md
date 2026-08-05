@@ -300,12 +300,43 @@ TestFlight and the App Store. Listed roughly in the order they will bite.
 
 ---
 
+## eas.json takes no comments
+
+It looks like a file that would tolerate `"//"` keys — plenty of JSON configs
+do — and it does not. EAS validates it against a strict schema and refuses
+anything it does not recognise, including comment keys, with:
+
+```
+eas.json is not valid.
+- "build.//development" must be of type object
+- "//" is not allowed
+```
+
+Which reads like the profiles are broken when the profiles are fine. So the
+explanations that were in there live here instead:
+
+| Profile | What it is for |
+|---|---|
+| `simulator` | A build for the iOS Simulator. Needs a Mac with Xcode to run, no paid account and no registered device. The fastest way to see the app as a real native build. |
+| `development` | A dev client for a registered phone, for working on native code. Needed because `expo-image-picker` does not run in Expo Go — the moment a native module is added, Expo Go stops being a faithful preview. |
+| `preview` | A release build signed ad-hoc, installed by link on devices registered with `eas device:create`. For a handful of people before TestFlight, or a tester who cannot wait for Apple's processing. |
+| `production` | The TestFlight and App Store build. `autoIncrement` bumps the iOS build number on EAS rather than in the repo, which is why `appVersionSource` is `remote` — two people building on the same day then cannot collide. |
+
+And on the three values under `submit.production.ios`: `ascAppId` is the
+numeric Apple ID of the app record, **not** the bundle id. None of the three is
+a secret — the team id ships inside every build and the app id is in the app's
+own App Store URL. The real credential is the App Store Connect API key, which
+EAS prompts for and stores against the Expo project, and which must never land
+in this file.
+
+---
+
 ## What was configured, and why
 
 | File | What it does |
 |---|---|
 | `app.config.js` | Was `app.json`. JavaScript so the "must change before X" caveats live next to the fields they apply to. Sets the bundle ids (a separate `.dev` one so both builds can sit on one phone), the photo permission sentence, `ITSAppUsesNonExemptEncryption` (skips the export-compliance questionnaire on every upload), and the privacy manifest. |
-| `eas.json` | Four profiles: `simulator`, `development`, `preview`, `production`. `appVersionSource: remote` with `autoIncrement` so two people building the same day cannot collide on a build number. |
+| `eas.json` | Four profiles: `simulator`, `development`, `preview`, `production`. `appVersionSource: remote` with `autoIncrement` so two people building the same day cannot collide on a build number. **No comments in it** — see below. |
 | `App.tsx` | Holds the native splash until the fonts have loaded. Without it the splash lifts when the JS mounts and the app sits on a blank screen while four font files load. |
 | `src/lib/photo.ts` | Photo picking now works on a device, not only on the web preview. |
 | `src/data/rules.ts` | The six community rules and the no-tolerance statement, in the bundle so they are readable on a phone with no signal and cannot drift from what the app enforces. |

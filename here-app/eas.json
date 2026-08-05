@@ -1,50 +1,25 @@
 {
-  "//": "Build profiles. See docs/testflight.md for what to run and in what order.",
   "cli": {
     "version": ">= 16.0.0",
     "appVersionSource": "remote"
   },
   "build": {
-    "//development": [
-      "A dev client for working on native code. Needed because expo-image-picker",
-      "does not run in Expo Go — the moment a native module is added, `expo start`",
-      "against Expo Go stops being a faithful preview.",
-      "Install on a registered device: eas build -p ios --profile development"
-    ],
     "development": {
       "developmentClient": true,
       "distribution": "internal",
       "env": { "APP_VARIANT": "development" },
       "ios": { "resourceClass": "m-medium" }
     },
-
-    "//simulator": [
-      "Same as development but for the iOS Simulator, which needs no paid",
-      "account and no registered device. The fastest way to see the app running",
-      "as a real native build."
-    ],
     "simulator": {
       "developmentClient": true,
       "distribution": "internal",
       "env": { "APP_VARIANT": "development" },
       "ios": { "simulator": true }
     },
-
-    "//preview": [
-      "A release build, signed ad-hoc, installed by link on devices registered",
-      "with `eas device:create`. Use for a handful of people before TestFlight,",
-      "or when a tester cannot wait for Apple's processing."
-    ],
     "preview": {
       "distribution": "internal",
       "ios": { "resourceClass": "m-medium" }
     },
-
-    "//production": [
-      "The TestFlight and App Store build. autoIncrement bumps the iOS build",
-      "number on EAS rather than in the repo, which is why appVersionSource is",
-      "remote above — two people building on the same day cannot then collide."
-    ],
     "production": {
       "autoIncrement": true,
       "ios": { "resourceClass": "m-medium" }
@@ -52,16 +27,6 @@
   },
   "submit": {
     "production": {
-      "//": [
-        "ascAppId is the numeric Apple ID of the app record, NOT the bundle id.",
-        "None of these three are secrets — the team id ships inside every build",
-        "and the app id is in the app's own App Store URL. The actual credential",
-        "is the App Store Connect API key (.p8), which eas prompts for and stores",
-        "against the Expo project. It never belongs in this file or this repo.",
-        "",
-        "appleId is optional: leave it out and eas asks, or set EXPO_APPLE_ID.",
-        "It is here because it saves a prompt on every submit."
-      ],
       "ios": {
         "appleId": "sharonmichaels@icloud.com",
         "ascAppId": "6798386043",
