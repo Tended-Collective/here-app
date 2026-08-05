@@ -427,29 +427,43 @@
     <li class="step">
       <span class="num" aria-hidden="true">5</span>
       <div class="step-head">
-        <div class="chips"><span class="chip">expo.dev</span><span class="chip">25 min, mostly waiting</span></div>
+        <div class="chips"><span class="chip">Terminal, once</span><span class="chip">30 min, mostly waiting</span></div>
         <h2>Build it</h2>
       </div>
       <div class="step-body">
+        <div class="careful">
+          <strong>The first build has to run from a terminal, and only the first.</strong> Apple’s
+          signing certificate has to be created against your Apple account, and the Expo website
+          can only store a certificate you already have — it cannot make one. Making one by hand
+          means generating a signing request in Keychain Access, which is more work than the
+          command below. Once it exists, Expo keeps it, and every build after this one is the
+          website button in the next paragraph.
+        </div>
         <p>
-          On <a href="https://expo.dev">expo.dev</a>, open the <span class="path">here-app</span>
-          project, then <strong>GitHub</strong> in the sidebar, and connect the repository
-          <span class="path">Tended-Collective/teacherapp</span>. This is once only.
+          Open <strong>Terminal</strong> (⌘-Space, type “Terminal”). Paste these one at a time,
+          pressing enter after each and letting it finish:
+        </p>
+        <div class="type-this">git clone https://github.com/Tended-Collective/teacherapp.git
+cd teacherapp/tended-app
+npm install
+npx eas login
+npx eas build --platform ios --profile production</div>
+        <p>
+          It asks for your Apple ID and a two-factor code, then whether to create a
+          <strong>Distribution Certificate</strong> and a <strong>Provisioning Profile</strong>.
+          Say yes to both. Fifteen to twenty-five minutes in the queue is normal, and you can close
+          the window — it prints a link that shows progress.
+        </p>
+        <p class="note">
+          If Terminal says it doesn’t know <span class="path">npx</span> or
+          <span class="path">git</span>, install Node from
+          <a href="https://nodejs.org">nodejs.org</a> — the big green button — and try again.
         </p>
         <p>
-          Then <strong>Builds</strong> → <strong>Create a build</strong>. Choose platform
-          <strong>iOS</strong>, profile <strong>production</strong>, branch
-          <span class="path">main</span>, and press the button.
-        </p>
-        <p>
-          It will ask whether to create a <strong>Distribution Certificate</strong> and a
-          <strong>Provisioning Profile</strong>. Say yes to both. These are Apple’s way of proving
-          the app came from you; Expo makes them, keeps them, and reuses them, and you never have
-          to think about them again.
-        </p>
-        <p>
-          Fifteen to twenty-five minutes in the queue is normal. You can close the tab; the build
-          page keeps the progress.
+          <strong>Every build after this one:</strong> on <a href="https://expo.dev">expo.dev</a>,
+          open <span class="path">here-app</span> → <strong>Builds</strong> → <strong>Create a
+          build</strong> → iOS, profile <strong>production</strong>, branch
+          <span class="path">main</span>. No terminal.
         </p>
       </div>
     </li>
