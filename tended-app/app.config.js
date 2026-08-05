@@ -42,8 +42,19 @@ module.exports = {
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
     backgroundColor: '#f6f5f2',
-    // Uncomment and set once the Expo project exists; `eas init` writes it.
-    // extra: { eas: { projectId: '…' } },
+
+    /**
+     * The EAS project this builds against, at expo.dev/accounts/labfourseven.
+     *
+     * `owner` has to be here because the project lives under that account
+     * rather than under whoever is logged in — without it a build cannot find
+     * the project and fails with something unhelpful about permissions.
+     *
+     * `slug` above must stay `here-app`: it is what ties this config to that
+     * project, and changing one without the other breaks the link.
+     */
+    owner: 'labfourseven',
+    extra: { eas: { projectId: 'd7b01951-0a38-437d-abe6-27681632bc3a' } },
 
     ios: {
       supportsTablet: false,

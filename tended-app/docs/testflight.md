@@ -135,14 +135,18 @@ runs unattended.
 
 ### 4. Connect the project to Expo
 
-```bash
-cd tended-app
-npx eas login            # a free Expo account, separate from Apple
-npx eas init             # writes extra.eas.projectId into app.config.js
-```
+**Done, by hand rather than by `eas init`.** `app.config.js` now carries:
 
-Then uncomment the `extra: { eas: { projectId: '…' } }` line in
-`app.config.js` if `eas init` has not already done it.
+| Field | Value |
+|---|---|
+| `owner` | `labfourseven` — the Expo account the project belongs to. Required, because it is not necessarily the account running the build. |
+| `extra.eas.projectId` | `d7b01951-0a38-437d-abe6-27681632bc3a` |
+| `slug` | `here-app` — must match the project's slug on expo.dev, or the link breaks. |
+
+A note for whoever reads this next: the Expo dashboard offers a copy-paste
+snippet when you create a project, and it contains `npx create-expo-app <slug>`.
+Do not run it against an existing app. It scaffolds a blank project in a new
+folder; the only useful part of that snippet is the id.
 
 ---
 

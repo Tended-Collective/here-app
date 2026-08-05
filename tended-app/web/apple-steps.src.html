@@ -407,48 +407,49 @@
     <li class="step">
       <span class="num" aria-hidden="true">4</span>
       <div class="step-head">
-        <div class="chips"><span class="chip">Terminal</span><span class="chip">5 min</span></div>
+        <div class="chips"><span class="chip">Done</span></div>
         <h2>Connect the project to the build service</h2>
       </div>
       <div class="step-body">
         <p>
-          Open <strong>Terminal</strong> (search for it in Spotlight on a Mac, or use PowerShell on
-          Windows). Type these one at a time, pressing enter after each and waiting for it to
-          finish:
+          The Expo account is <span class="path">labfourseven</span> and the project is
+          <span class="path">here-app</span>. Its ID is written into the app’s settings, so the two
+          are linked and no terminal was needed.
         </p>
-        <div class="type-this">cd tended-app
-npx eas login
-npx eas init</div>
-        <p>
-          The first line moves into the project folder. The second asks you to make a free Expo
-          account — that’s the build service, and it is separate from your Apple account. The third
-          links this project to it.
-        </p>
-        <p class="note">
-          If Terminal says it doesn’t know what <span class="path">npx</span> is, install Node from
-          <a href="https://nodejs.org">nodejs.org</a> — take the big green button — and try again.
-          It is the only thing you install on your own machine.
-        </p>
+        <div class="careful">
+          <strong>Ignore the copy-paste snippet Expo shows you.</strong> It contains
+          <span class="path">npx create-expo-app here-app</span>, which builds a brand-new empty
+          app in a new folder. Here already exists. The only useful part of that snippet was the ID.
+        </div>
       </div>
     </li>
 
     <li class="step">
       <span class="num" aria-hidden="true">5</span>
       <div class="step-head">
-        <div class="chips"><span class="chip">Terminal</span><span class="chip">25 min, mostly waiting</span></div>
+        <div class="chips"><span class="chip">expo.dev</span><span class="chip">25 min, mostly waiting</span></div>
         <h2>Build it</h2>
       </div>
       <div class="step-body">
-        <div class="type-this">npx eas build --platform ios --profile production</div>
+        <p>
+          On <a href="https://expo.dev">expo.dev</a>, open the <span class="path">here-app</span>
+          project, then <strong>GitHub</strong> in the sidebar, and connect the repository
+          <span class="path">Tended-Collective/teacherapp</span>. This is once only.
+        </p>
+        <p>
+          Then <strong>Builds</strong> → <strong>Create a build</strong>. Choose platform
+          <strong>iOS</strong>, profile <strong>production</strong>, branch
+          <span class="path">main</span>, and press the button.
+        </p>
         <p>
           It will ask whether to create a <strong>Distribution Certificate</strong> and a
           <strong>Provisioning Profile</strong>. Say yes to both. These are Apple’s way of proving
-          the app came from you; the service makes them, keeps them, and reuses them, and you never
-          have to think about them again.
+          the app came from you; Expo makes them, keeps them, and reuses them, and you never have
+          to think about them again.
         </p>
         <p>
-          Then it queues. Fifteen to twenty-five minutes is normal. You can close the window — it
-          gives you a link that shows progress.
+          Fifteen to twenty-five minutes in the queue is normal. You can close the tab; the build
+          page keeps the progress.
         </p>
       </div>
     </li>
@@ -456,14 +457,14 @@ npx eas init</div>
     <li class="step">
       <span class="num" aria-hidden="true">6</span>
       <div class="step-head">
-        <div class="chips"><span class="chip">Terminal</span><span class="chip">10 min, then Apple waits</span></div>
+        <div class="chips"><span class="chip">expo.dev</span><span class="chip">10 min, then Apple waits</span></div>
         <h2>Send it to Apple</h2>
       </div>
       <div class="step-body">
-        <div class="type-this">npx eas submit --platform ios --latest</div>
         <p>
-          This asks for the <span class="path">.p8</span> file from step 3 and the two IDs that came
-          with it. Then it uploads.
+          When the build finishes, its page has a <strong>Submit to App Store</strong> action. It
+          asks for the <span class="path">.p8</span> file from step 3 and the two IDs that came with
+          it — upload them once and Expo keeps them for next time.
         </p>
         <p>
           Afterwards the build sits in <strong>Processing</strong> in App Store Connect for anywhere
