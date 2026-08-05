@@ -110,12 +110,14 @@ build — either route is fine.)
 
 | Value | Where |
 |---|---|
-| **`appleId`** | The Apple ID email you enrolled with. |
-| **`ascAppId`** | App Store Connect → your app → **App Information** → **General Information** → **Apple ID**. A ten-digit number, *not* the bundle id. |
-| **`appleTeamId`** | <https://developer.apple.com/account> → **Membership details** → **Team ID**. Ten characters, letters and digits. |
+| **`appleId`** | `sharonmichaels@icloud.com` — the Apple ID the account is enrolled under. |
+| **`ascAppId`** | `6798386043` — App Store Connect → your app → **App Information** → **General Information** → **Apple ID**. A ten-digit number, *not* the bundle id. |
+| **`appleTeamId`** | `JWDL327D4U` — <https://developer.apple.com/account> → **Membership details** → **Team ID**. |
 
-Put them in `eas.json` under `submit.production.ios`, replacing the three
-`REPLACE_ME`s.
+**Done** — they are in `eas.json` under `submit.production.ios`. None of the
+three is a secret: the team id ships inside every build and the app id is in the
+app's own App Store URL. The credential is the `.p8` in step 3, which never goes
+in this repo.
 
 ### 3. Make an App Store Connect API key
 

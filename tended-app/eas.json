@@ -53,16 +53,19 @@
   "submit": {
     "production": {
       "//": [
-        "Fill these in from App Store Connect before the first `eas submit`.",
-        "ascAppId is the numeric Apple ID of the app record, not the bundle id.",
-        "Prefer an App Store Connect API key over an Apple ID password: eas will",
-        "prompt for one and store it, and it is the only route that works with",
-        "two-factor auth unattended (e.g. from CI)."
+        "ascAppId is the numeric Apple ID of the app record, NOT the bundle id.",
+        "None of these three are secrets — the team id ships inside every build",
+        "and the app id is in the app's own App Store URL. The actual credential",
+        "is the App Store Connect API key (.p8), which eas prompts for and stores",
+        "against the Expo project. It never belongs in this file or this repo.",
+        "",
+        "appleId is optional: leave it out and eas asks, or set EXPO_APPLE_ID.",
+        "It is here because it saves a prompt on every submit."
       ],
       "ios": {
-        "appleId": "REPLACE_ME@tendedcollective.com",
-        "ascAppId": "REPLACE_ME",
-        "appleTeamId": "REPLACE_ME"
+        "appleId": "sharonmichaels@icloud.com",
+        "ascAppId": "6798386043",
+        "appleTeamId": "JWDL327D4U"
       }
     }
   }
