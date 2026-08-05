@@ -93,7 +93,8 @@ Everything below is a browser tab or a terminal command.
 | Field | Value |
 |---|---|
 | Platform | iOS |
-| Name | `Here` — must be unique across the whole App Store. If it is taken, this is where you find out, and the name here is what appears on the listing, not what is on the home screen. |
+| Name | `Here: for school staff` — 22 of 30 characters. Must be unique across the whole App Store, which is why it is not just `Here`; that one is taken. Listing name only: `app.config.js` still sets `Here` as the home-screen name, and that does not have to be unique. |
+| Subtitle | 30 characters, same page. Search indexes the name and the subtitle together, and the name already carries `school` and `staff`, so the subtitle can be the tagline: `A moment for yourself`. |
 | Primary language | English (U.S.) |
 | Bundle ID | `com.tendedcollective.here` |
 | SKU | Anything private and stable, e.g. `here-ios-1` |
