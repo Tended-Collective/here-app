@@ -373,15 +373,23 @@ function migrate(data: Persisted): Persisted {
 }
 
 /**
- * First-run sample data, so a fresh install opens on the record the design shows
- * rather than an empty chart.
+ * First-run sample data: a week of check-ins and six weeks of habit ticks, so a
+ * fresh install opens on the record the design shows rather than an empty chart.
  *
- * This is a demo flag and nothing else. It fabricates a week of check-ins and six
- * weeks of habit ticks that the person holding the phone did not make, and
- * presents both as their own record — which is fine for reviewing the design and
- * indefensible in the hands of a real user. **Set it to false before shipping.**
+ * **Off, and it stays off.** It was a demo flag for reviewing the design. The
+ * moment a real person holds the phone it is fabricating a record they did not
+ * make and presenting it as theirs — which is a strange thing for an app whose
+ * whole promise is an honest picture of your own week.
+ *
+ * The `seed()` function below is kept rather than deleted: it is the fastest way
+ * to get a populated record for a screenshot or a design review. Flip this to
+ * true, look, flip it back.
+ *
+ * Turning it off does **not** empty the feed. Those posts and comments come from
+ * `src/data/mock.ts` and need a backend, not a flag — so a new install still
+ * opens on something to read, and only the personal record starts empty.
  */
-const SEED_FIRST_RUN = true;
+const SEED_FIRST_RUN = false;
 
 function seed(): Persisted {
   const week = weekDates();

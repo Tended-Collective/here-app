@@ -59,6 +59,8 @@ shareable preview. It is a review tool, not a product surface.
   that device and says so.
 - **Nothing leaves the phone.** No account, no sync, no analytics, no crash
   reporter. The whole app is one `AsyncStorage` row.
+- **Your own record starts empty**, and is really yours. The check-ins and the
+  habit ticks are whatever the tester actually enters.
 
 Tell testers this before they install. A tester who thinks the feed is live and
 finds out later stops trusting the rest of it.
@@ -283,12 +285,15 @@ TestFlight and the App Store. Listed roughly in the order they will bite.
 - [ ] **Someone actually reading reports.** The report sheet promises "Reports
       are reviewed within 24 hours." That is a commitment to a human rota. Either
       resource it or change the sentence.
-- [ ] **`SEED_FIRST_RUN`** in `src/store.tsx` is `true`. It fabricates a week of
-      check-ins and six weeks of habit ticks and presents them as the user's own
-      record. Fine for a pilot where testers have been told; indefensible in the
-      App Store. Note that turning it off does **not** empty the feed or the
-      comments — those come from hardcoded constants in `src/data/mock.ts` and
-      need a data layer, not a flag.
+- [x] ~~**`SEED_FIRST_RUN`**~~ Off. A new install now starts with an empty
+      record instead of a week of check-ins it invented. The empty states were
+      already written for it and read as "nothing yet" rather than as broken:
+      *No days logged yet this week. The chart fills in as you check in*, and
+      *Nothing on your list yet. Add one below, or save what another teacher did
+      straight from the feed.* The `seed()` function is kept for screenshots —
+      flip the flag, look, flip it back. Turning it off does **not** empty the
+      feed or the comments; those come from `src/data/mock.ts` and need a data
+      layer, not a flag, so a new install still opens on something to read.
 - [ ] **`ios.privacyManifests.NSPrivacyCollectedDataTypes`** in `app.config.js`
       is an empty array. That is accurate today because nothing leaves the
       device. It becomes false the moment any backend is wired up.
