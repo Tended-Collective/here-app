@@ -447,8 +447,14 @@
         </p>
         <div class="type-this">cd here-app
 npm install
-npx eas login
-npx eas build --platform ios --profile production</div>
+npx eas-cli login
+npx eas-cli build --platform ios --profile production</div>
+        <p class="note">
+          It is <span class="path">eas-cli</span>, not <span class="path">eas</span>. The tool is
+          published under the longer name, and <span class="path">npx eas</span> answers with
+          “could not determine executable to run”, which sounds like something is broken when it is
+          only a wrong name.
+        </p>
         <p>
           It asks for your Apple ID and a two-factor code, then whether to create a
           <strong>Distribution Certificate</strong> and a <strong>Provisioning Profile</strong>.

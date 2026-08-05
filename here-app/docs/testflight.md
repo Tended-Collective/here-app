@@ -156,11 +156,17 @@ folder; the only useful part of that snippet is the id.
 cd here-app
 
 # The TestFlight build. ~15–25 minutes in the queue on a free plan.
-npx eas build --platform ios --profile production
+npx eas-cli build --platform ios --profile production
 
 # Upload it. Reads the three values from eas.json and asks for the API key.
-npx eas submit --platform ios --latest
+npx eas-cli submit --platform ios --latest
 ```
+
+`eas-cli`, not `eas`. The published package is `eas-cli` and the binary inside
+it is `eas`, so `npx eas` only resolves once the package is installed locally —
+which it is not, because it is a tool rather than a dependency. `npx eas` gives
+"could not determine executable to run", which sounds like a broken machine and
+is a wrong package name.
 
 The first build asks whether to generate a Distribution Certificate and a
 Provisioning Profile. Say yes to both; EAS keeps them and reuses them, and
@@ -173,9 +179,9 @@ build.
 **Optional, if you have a Mac with Xcode:**
 
 ```bash
-npx eas build --platform ios --profile simulator   # runs in the iOS Simulator
-npx eas device:create                              # register a phone, once
-npx eas build --platform ios --profile development # dev client on that phone
+npx eas-cli build --platform ios --profile simulator   # runs in the iOS Simulator
+npx eas-cli device:create                              # register a phone, once
+npx eas-cli build --platform ios --profile development # dev client on that phone
 ```
 
 `expo-image-picker` is a native module, so **Expo Go is not a faithful
