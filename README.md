@@ -1,25 +1,22 @@
-# CODING AGENTS: READ THIS FIRST
+# Here
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+An iOS app for school staff: a daily check-in, a feed of what other people
+actually did to look after themselves, and a private record of what stuck.
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+The app is in **`here-app/`**. Start with
+[`here-app/README.md`](here-app/README.md) for what it is and how it is built,
+and [`here-app/docs/testflight.md`](here-app/docs/testflight.md) for how it
+gets onto a phone.
 
-## What you should do — IMPORTANT
+## What else is in here
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+| Path | What it is |
+|---|---|
+| `here-app/` | The app. Expo / React Native, iPhone only. |
+| `project/` | The original Claude Design handoff — HTML prototypes of the screens, and the file the app was first built from. Kept for reference; the app has moved well past it. |
+| `chats/` | The design conversation behind that handoff. |
 
-**Read `project/Tended App v3.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
-
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
-
-## About the design files
-
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
-
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
-
-## Bundle contents
-
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `Teacher wellness app design` project files (HTML prototypes, assets, components)
+The name was Tended before it was Here, and the company is still Tended
+Collective — so `tendedcollective.com` and `com.tendedcollective.here` are
+correct rather than leftovers. `here-app/docs/testflight.md` explains which
+old names stayed and why.

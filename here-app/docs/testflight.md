@@ -153,7 +153,7 @@ folder; the only useful part of that snippet is the id.
 ## Building
 
 ```bash
-cd tended-app
+cd here-app
 
 # The TestFlight build. ~15–25 minutes in the queue on a free plan.
 npx eas build --platform ios --profile production

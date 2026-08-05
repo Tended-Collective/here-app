@@ -1,7 +1,7 @@
 """
 Build the landing page: one self-contained HTML file.
 
-    python3 web/build-landing.py            # writes dist/tended-landing.html
+    python3 web/build-landing.py            # writes dist/here-landing.html and dist/apple-steps.html
 
 The page is hosted somewhere that blocks every external origin, so the fonts and
 the illustration have to travel inside the file. That makes the built page about
@@ -49,10 +49,12 @@ def build(source: str, target: str, extra: dict | None = None) -> None:
     print(f'{out.relative_to(APP)}  {len(text.encode("utf-8")) // 1024} KB')
 
 
-# `tended-landing.html` keeps the old filename on purpose: the published
-# artifact's URL is bound to that path, and renaming the file mints a new link
-# while orphaning the one people already hold. The page itself says Here.
-build('landing.src.html', 'tended-landing.html',
+# Renamed from tended-landing.html once every other name had become Here. That
+# does mint a new preview URL — an artifact's link is bound to its file path —
+# but the old one was a marketing page nobody outside this repo was holding,
+# and a file called `tended-` in a project called Here is the kind of loose end
+# that outlives the reason for it.
+build('landing.src.html', 'here-landing.html',
       {'__HERO_ART__': 'data:image/jpeg;base64,' + b64(WEB / 'hero.jpg')})
 
 # The plain-language walkthrough for shipping to TestFlight. Shares the fonts
