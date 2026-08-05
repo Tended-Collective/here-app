@@ -32,20 +32,29 @@ def b64(path: pathlib.Path) -> str:
     return base64.b64encode(path.read_bytes()).decode('ascii')
 
 
-src = (WEB / 'landing.src.html').read_text(encoding='utf-8')
+fonts = {key: b64(APP / 'node_modules' / rel) for key, rel in FONTS.items()}
 
-subs = {key: b64(APP / 'node_modules' / rel) for key, rel in FONTS.items()}
-subs['__HERO_ART__'] = 'data:image/jpeg;base64,' + b64(WEB / 'hero.jpg')
 
-for key, value in subs.items():
-    if key not in src:
-        sys.exit(f'placeholder {key} is missing from landing.src.html')
-    src = src.replace(key, value)
+def build(source: str, target: str, extra: dict | None = None) -> None:
+    """Substitute the inlined assets into one page and write it out."""
+    text = (WEB / source).read_text(encoding='utf-8')
+    subs = {**fonts, **(extra or {})}
+    for key, value in subs.items():
+        if key not in text:
+            sys.exit(f'placeholder {key} is missing from {source}')
+        text = text.replace(key, value)
+    out = APP / 'dist' / target
+    out.parent.mkdir(exist_ok=True)
+    out.write_text(text, encoding='utf-8')
+    print(f'{out.relative_to(APP)}  {len(text.encode("utf-8")) // 1024} KB')
 
-# Still the old filename on purpose. The published artifact's URL is bound to
-# this path — renaming the file mints a new link and orphans the one people
-# already have. The page itself says Here everywhere.
-out = APP / 'dist' / 'tended-landing.html'
-out.parent.mkdir(exist_ok=True)
-out.write_text(src, encoding='utf-8')
-print(f'{out.relative_to(APP)}  {len(src.encode("utf-8")) // 1024} KB')
+
+# `tended-landing.html` keeps the old filename on purpose: the published
+# artifact's URL is bound to that path, and renaming the file mints a new link
+# while orphaning the one people already hold. The page itself says Here.
+build('landing.src.html', 'tended-landing.html',
+      {'__HERO_ART__': 'data:image/jpeg;base64,' + b64(WEB / 'hero.jpg')})
+
+# The plain-language walkthrough for shipping to TestFlight. Shares the fonts
+# and the app's tokens so it reads as part of Here rather than as a handout.
+build('apple-steps.src.html', 'apple-steps.html')

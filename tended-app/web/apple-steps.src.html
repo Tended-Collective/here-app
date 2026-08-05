@@ -1,0 +1,535 @@
+<title>Getting Here onto phones</title>
+
+<style>
+  @font-face {
+    font-family: 'Newsreader';
+    font-weight: 300;
+    font-display: block;
+    src: url(data:font/ttf;base64,__NEWSREADER_300__) format('truetype');
+  }
+  @font-face {
+    font-family: 'Newsreader';
+    font-weight: 400;
+    font-display: block;
+    src: url(data:font/ttf;base64,__NEWSREADER_400__) format('truetype');
+  }
+  @font-face {
+    font-family: 'Plex Mono';
+    font-weight: 500;
+    font-display: block;
+    src: url(data:font/ttf;base64,__PLEXMONO_500__) format('truetype');
+  }
+
+  /* The app's own tokens, so this reads as part of Here rather than as a
+     generic instruction sheet. */
+  :root {
+    --ground: #f6f5f2;
+    --card: #ffffff;
+    --ink: #191817;
+    --body: #4a463f;
+    --muted: #6f6b64;
+    --faint: #a9a49a;
+    --rule: rgba(0, 0, 0, 0.09);
+    --outline: rgba(0, 0, 0, 0.12);
+    --accent: #17606b;
+    --accent-soft: rgba(23, 96, 107, 0.10);
+    --accent-line: rgba(23, 96, 107, 0.35);
+    --warn: #a4524d;
+    --warn-soft: rgba(164, 82, 77, 0.08);
+    --warn-line: rgba(164, 82, 77, 0.32);
+
+    --display: 'Newsreader', Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --mono: 'Plex Mono', ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #16161a;
+      --card: #1e1e23;
+      --ink: #efeeea;
+      --body: #c8c4bb;
+      --muted: #9d9890;
+      --faint: #6f6b64;
+      --rule: rgba(255, 255, 255, 0.10);
+      --outline: rgba(255, 255, 255, 0.16);
+      --accent: #5aa8b3;
+      --accent-soft: rgba(90, 168, 179, 0.14);
+      --accent-line: rgba(90, 168, 179, 0.42);
+      --warn: #e0928b;
+      --warn-soft: rgba(224, 146, 139, 0.10);
+      --warn-line: rgba(224, 146, 139, 0.34);
+    }
+  }
+  :root[data-theme='dark'] {
+    --ground: #16161a;
+    --card: #1e1e23;
+    --ink: #efeeea;
+    --body: #c8c4bb;
+    --muted: #9d9890;
+    --faint: #6f6b64;
+    --rule: rgba(255, 255, 255, 0.10);
+    --outline: rgba(255, 255, 255, 0.16);
+    --accent: #5aa8b3;
+    --accent-soft: rgba(90, 168, 179, 0.14);
+    --accent-line: rgba(90, 168, 179, 0.42);
+    --warn: #e0928b;
+    --warn-soft: rgba(224, 146, 139, 0.10);
+    --warn-line: rgba(224, 146, 139, 0.34);
+  }
+  :root[data-theme='light'] {
+    --ground: #f6f5f2;
+    --card: #ffffff;
+    --ink: #191817;
+    --body: #4a463f;
+    --muted: #6f6b64;
+    --faint: #a9a49a;
+    --rule: rgba(0, 0, 0, 0.09);
+    --outline: rgba(0, 0, 0, 0.12);
+    --accent: #17606b;
+    --accent-soft: rgba(23, 96, 107, 0.10);
+    --accent-line: rgba(23, 96, 107, 0.35);
+    --warn: #a4524d;
+    --warn-soft: rgba(164, 82, 77, 0.08);
+    --warn-line: rgba(164, 82, 77, 0.32);
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--body);
+    font-family: var(--sans);
+    font-size: 16.5px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 38rem;
+    margin-inline: auto;
+    padding: clamp(2.5rem, 8vw, 4rem) clamp(1.25rem, 5vw, 2rem) 5rem;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--display);
+    font-weight: 300;
+    color: var(--ink);
+    text-wrap: balance;
+    letter-spacing: -0.012em;
+    margin: 0;
+  }
+  h1 { font-size: clamp(2.2rem, 8vw, 3rem); line-height: 1.06; }
+  h2 { font-size: 1.5rem; line-height: 1.2; font-weight: 400; }
+  h3 { font-size: 1.05rem; line-height: 1.35; font-weight: 400; }
+  p { margin: 0; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 0.7rem;
+  }
+  .lede {
+    font-size: 1.12rem;
+    line-height: 1.58;
+    color: var(--muted);
+    margin-top: 1rem;
+  }
+  strong { color: var(--ink); font-weight: 600; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+  /* ── The one thing to know up front ─────────────────────────────────────── */
+  .headline-box {
+    margin-top: 2.2rem;
+    padding: 1.3rem 1.4rem;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px 14px 14px 4px;
+  }
+  .headline-box p + p { margin-top: 0.6rem; }
+
+  /* ── The steps ──────────────────────────────────────────────────────────── */
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 2.6rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    gap: 0 1rem;
+    align-items: start;
+  }
+  /* The number is a real sequence marker: these steps only work in this order,
+     because each one produces something the next one needs. */
+  .num {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--accent);
+    width: 2.4rem;
+    height: 2.4rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--accent-line);
+    border-radius: 50%;
+    background: var(--accent-soft);
+  }
+  /* `min-width: 0` on both cells, and `minmax(0, 1fr)` rather than a bare
+     `1fr` in the narrow rule below. A bare `1fr` is `minmax(auto, 1fr)`, so it
+     refuses to shrink past its widest child — and one child is a command line
+     set in `white-space: pre`, which pushed the whole page sideways on a
+     phone even though the block itself scrolls. */
+  .step-head { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--outline);
+    border-radius: 99px;
+    padding: 0.2rem 0.55rem;
+  }
+  .step-body {
+    grid-column: 2;
+    min-width: 0;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  @media (max-width: 30rem) {
+    .step { grid-template-columns: minmax(0, 1fr); gap: 0.9rem; }
+    .step-body { grid-column: 1; }
+  }
+
+  /* What you type, and what you click. Different things, so they look it. */
+  .type-this {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    line-height: 1.75;
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 0.8rem 0.95rem;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .path {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    color: var(--ink);
+    background: var(--accent-soft);
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+  }
+
+  ul.plain { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  ul.plain li::marker { color: var(--faint); }
+
+  /* ── Copy-down table ────────────────────────────────────────────────────── */
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.94rem; }
+  th, td { text-align: left; padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 500;
+  }
+  td:first-child { color: var(--ink); white-space: nowrap; }
+
+  /* ── Callouts ───────────────────────────────────────────────────────────── */
+  .careful, .note {
+    border-radius: 12px;
+    padding: 0.95rem 1.1rem;
+    font-size: 0.94rem;
+    line-height: 1.55;
+  }
+  .careful { background: var(--warn-soft); border: 1px solid var(--warn-line); color: var(--body); }
+  .careful strong { color: var(--warn); }
+  .note { background: var(--card); border: 1px solid var(--rule); color: var(--muted); }
+
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 3.2rem 0; }
+
+  /* ── The two-option choice ──────────────────────────────────────────────── */
+  .options { display: grid; gap: 1rem; margin-top: 1.6rem; }
+  @media (min-width: 34rem) { .options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .option {
+    min-width: 0;
+    padding: 1.2rem 1.25rem;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .option.pick { border-color: var(--accent-line); box-shadow: 0 0 0 1px var(--accent-line); }
+  .option .tag {
+    font-family: var(--mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .option ul { margin: 0; padding-left: 1.05rem; font-size: 0.92rem; display: flex; flex-direction: column; gap: 0.35rem; }
+
+  footer { margin-top: 3.5rem; color: var(--faint); font-size: 0.88rem; }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Here · after joining the Apple Developer Program</p>
+  <h1>Getting Here onto phones</h1>
+  <p class="lede">
+    Seven steps. Most of them are filling in forms on Apple’s website; two are commands you paste
+    into a black window. Set aside an afternoon for the first run, and about ten minutes for every
+    build after that.
+  </p>
+
+  <div class="headline-box">
+    <p><strong>You do not need to download anything, and you do not need a Mac.</strong></p>
+    <p>
+      Apps for iPhone normally have to be built on a Mac. This one is built by a service called
+      EAS, on Apple computers in a data centre, and it handles the security certificates on its
+      own. Your laptop only sends the instruction.
+    </p>
+  </div>
+
+  <ol class="steps">
+    <li class="step">
+      <span class="num" aria-hidden="true">1</span>
+      <div class="step-head">
+        <div class="chips"><span class="chip">Apple’s website</span><span class="chip">15 min</span></div>
+        <h2>Claim the name</h2>
+      </div>
+      <div class="step-body">
+        <p>
+          Go to <a href="https://appstoreconnect.apple.com">appstoreconnect.apple.com</a>, choose
+          <strong>Apps</strong>, then the <strong>+</strong> button, then <strong>New App</strong>.
+        </p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Box</th><th>What to put</th></tr></thead>
+            <tbody>
+              <tr><td>Platform</td><td>iOS</td></tr>
+              <tr><td>Name</td><td><strong>Here</strong> — this has to be unique across the entire App Store, so this is the moment you find out whether a one-word name is available. Have a second choice ready.</td></tr>
+              <tr><td>Primary language</td><td>English (U.S.)</td></tr>
+              <tr><td>Bundle ID</td><td><span class="path">com.tendedcollective.here</span></td></tr>
+              <tr><td>SKU</td><td>Anything, and nobody sees it. <span class="path">here-ios-1</span> is fine.</td></tr>
+              <tr><td>User access</td><td>Full Access</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">
+          If <span class="path">com.tendedcollective.here</span> isn’t in the Bundle ID dropdown,
+          it needs registering first: go to
+          <a href="https://developer.apple.com/account/resources/identifiers">developer.apple.com → Identifiers</a>,
+          press <strong>+</strong>, choose <strong>App IDs</strong>, then <strong>App</strong>, and
+          paste it in. Leave every tickbox on that page alone — Here doesn’t use any of them.
+        </p>
+      </div>
+    </li>
+
+    <li class="step">
+      <span class="num" aria-hidden="true">2</span>
+      <div class="step-head">
+        <div class="chips"><span class="chip">Apple’s website</span><span class="chip">10 min</span></div>
+        <h2>Copy down three things</h2>
+      </div>
+      <div class="step-body">
+        <p>Send these to me and I’ll put them in the right file, or paste them in yourself.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>What</th><th>Where to find it</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Your Apple&nbsp;ID</td>
+                <td>The email address you signed up with.</td>
+              </tr>
+              <tr>
+                <td>App&nbsp;ID number</td>
+                <td>In App Store Connect, open the app you just made → <strong>App Information</strong> → <strong>General Information</strong> → <strong>Apple ID</strong>. It is ten digits. It is <em>not</em> the <span class="path">com.tendedcollective.here</span> line, which is the mistake that costs an afternoon.</td>
+              </tr>
+              <tr>
+                <td>Team&nbsp;ID</td>
+                <td><a href="https://developer.apple.com/account">developer.apple.com/account</a> → <strong>Membership details</strong> → <strong>Team ID</strong>. Ten characters, letters and numbers mixed.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </li>
+
+    <li class="step">
+      <span class="num" aria-hidden="true">3</span>
+      <div class="step-head">
+        <div class="chips"><span class="chip">Apple’s website</span><span class="chip">5 min</span></div>
+        <h2>Make a key, and save the file</h2>
+      </div>
+      <div class="step-body">
+        <p>
+          This is the password that lets the build service hand your app to Apple without you
+          being there. In App Store Connect: <strong>Users and Access</strong> →
+          <strong>Integrations</strong> → <strong>Team Keys</strong> → <strong>+</strong>. Call it
+          <span class="path">eas-submit</span> and give it the <strong>App Manager</strong> role.
+        </p>
+        <div class="careful">
+          <strong>Download the file the moment it appears.</strong> Apple shows it exactly once and
+          will not show it again — if you close the tab, you delete that key and make another one.
+          It ends in <span class="path">.p8</span>. Keep it somewhere private, like a password
+          manager. Note down the <strong>Key ID</strong> and <strong>Issuer ID</strong> from the
+          same page. Don’t email it or put it in the project folder.
+        </div>
+      </div>
+    </li>
+
+    <li class="step">
+      <span class="num" aria-hidden="true">4</span>
+      <div class="step-head">
+        <div class="chips"><span class="chip">Terminal</span><span class="chip">5 min</span></div>
+        <h2>Connect the project to the build service</h2>
+      </div>
+      <div class="step-body">
+        <p>
+          Open <strong>Terminal</strong> (search for it in Spotlight on a Mac, or use PowerShell on
+          Windows). Type these one at a time, pressing enter after each and waiting for it to
+          finish:
+        </p>
+        <div class="type-this">cd tended-app
+npx eas login
+npx eas init</div>
+        <p>
+          The first line moves into the project folder. The second asks you to make a free Expo
+          account — that’s the build service, and it is separate from your Apple account. The third
+          links this project to it.
+        </p>
+        <p class="note">
+          If Terminal says it doesn’t know what <span class="path">npx</span> is, install Node from
+          <a href="https://nodejs.org">nodejs.org</a> — take the big green button — and try again.
+          It is the only thing you install on your own machine.
+        </p>
+      </div>
+    </li>
+
+    <li class="step">
+      <span class="num" aria-hidden="true">5</span>
+      <div class="step-head">
+        <div class="chips"><span class="chip">Terminal</span><span class="chip">25 min, mostly waiting</span></div>
+        <h2>Build it</h2>
+      </div>
+      <div class="step-body">
+        <div class="type-this">npx eas build --platform ios --profile production</div>
+        <p>
+          It will ask whether to create a <strong>Distribution Certificate</strong> and a
+          <strong>Provisioning Profile</strong>. Say yes to both. These are Apple’s way of proving
+          the app came from you; the service makes them, keeps them, and reuses them, and you never
+          have to think about them again.
+        </p>
+        <p>
+          Then it queues. Fifteen to twenty-five minutes is normal. You can close the window — it
+          gives you a link that shows progress.
+        </p>
+      </div>
+    </li>
+
+    <li class="step">
+      <span class="num" aria-hidden="true">6</span>
+      <div class="step-head">
+        <div class="chips"><span class="chip">Terminal</span><span class="chip">10 min, then Apple waits</span></div>
+        <h2>Send it to Apple</h2>
+      </div>
+      <div class="step-body">
+        <div class="type-this">npx eas submit --platform ios --latest</div>
+        <p>
+          This asks for the <span class="path">.p8</span> file from step 3 and the two IDs that came
+          with it. Then it uploads.
+        </p>
+        <p>
+          Afterwards the build sits in <strong>Processing</strong> in App Store Connect for anywhere
+          between five and thirty minutes before TestFlight will show it. Nothing is wrong. That is
+          Apple scanning it, and there is nothing to do but wait.
+        </p>
+      </div>
+    </li>
+
+    <li class="step">
+      <span class="num" aria-hidden="true">7</span>
+      <div class="step-head">
+        <div class="chips"><span class="chip">Apple’s website</span><span class="chip">20 min</span></div>
+        <h2>Invite your teachers</h2>
+      </div>
+      <div class="step-body">
+        <p>
+          TestFlight is Apple’s app for trying apps before they’re public. Your testers install
+          TestFlight from the App Store, and Here appears inside it.
+        </p>
+        <p>There are two ways to invite people, and the difference decides how much work is left.</p>
+      </div>
+    </li>
+  </ol>
+
+  <div class="options">
+    <div class="option pick">
+      <span class="tag">Recommended for the pilot</span>
+      <h3>Add them one by one</h3>
+      <ul>
+        <li>Up to 100 people</li>
+        <li><strong>No review by Apple</strong> — live within minutes</li>
+        <li>Each teacher gets added to your Apple account as a user, under <strong>Users and Access</strong>. Give them the <strong>Customer Support</strong> role, which is the smallest one that still lets them test.</li>
+        <li>Twenty invitations to send by hand, and no waiting</li>
+      </ul>
+    </div>
+    <div class="option">
+      <span class="tag">Later</span>
+      <h3>Share a public link</h3>
+      <ul>
+        <li>Up to 10,000 people</li>
+        <li>Apple reviews it first — usually a day or two</li>
+        <li>Needs a privacy policy page on your website, which doesn’t exist yet</li>
+        <li>Worth it once the pilot outgrows people you can add by hand</li>
+      </ul>
+    </div>
+  </div>
+
+  <p style="margin-top: 1.4rem" class="note">
+    Either way, fill in the <strong>Test Information</strong> box in TestFlight and tell testers
+    what this build is: the feed is made-up sample posts, nothing they write reaches anyone else,
+    and nothing leaves their phone. A tester who assumes the feed is live and finds out later stops
+    trusting everything else you tell them.
+  </p>
+
+  <hr />
+
+  <h2>Two things to sort before you invite anyone</h2>
+  <ul class="plain" style="margin-top: 1.2rem">
+    <li>
+      <strong>hello@tendedcollective.com has to reach a real person.</strong> It’s printed inside
+      the app in two places, so the first tester with a problem will use it.
+    </li>
+    <li>
+      <strong>The app currently invents a fake history.</strong> On first open it fills in a week of
+      check-ins and six weeks of habit ticks so the screens don’t look empty. It’s a switch I can
+      turn off in a minute. Fine to leave on if you tell testers; confusing if you don’t.
+    </li>
+  </ul>
+
+  <p style="margin-top: 1.6rem">
+    Neither stops you building. Say the word on the second one and I’ll turn it off.
+  </p>
+
+  <footer>
+    The developer version of this, with the exact field names and file paths, is in the project at
+    <span class="path">docs/testflight.md</span>.
+  </footer>
+</div>
