@@ -132,6 +132,14 @@ Ten tables. If they are there, the database is done.
 
 ## Step 6. Change what the code email says
 
+> **Do Step 8 before this one.** Supabase keeps the email templates read-only
+> while a project is still sending through their shared service — the boxes
+> below are greyed out until custom SMTP is configured. Set up Resend first,
+> save the SMTP settings, then come back here and the fields will open.
+>
+> The order in this file is left as-is because it is the order the pieces make
+> sense in, not the order the dashboard allows.
+
 This matters more than it sounds. The one thing this design cannot hide is that
 a district's mail server sees a message arrive. So the message must give nothing
 away about what the app is for.
@@ -156,8 +164,9 @@ away about what the app is for.
 6. Click **Save changes**.
 
 `{{ .Token }}` is the bit that turns this into a six-digit code instead of a
-clickable link. The app's screens are built for a code, so this is required, not
-decoration.
+clickable link. **This step is not optional.** Left alone, Supabase sends a
+magic link, the app's screen asks for six digits, and sign-up cannot complete —
+codes will appear to arrive and then not work.
 
 **Never put the words wellness, burnout, mental health, therapy or check-in in
 that subject line.** Not to deceive an employer — the teacher is the person
