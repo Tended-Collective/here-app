@@ -2,228 +2,427 @@
 
 Right now Here has no server. Every phone is an island: a tester's posts are
 written to their own device and stay there, and the feed everyone scrolls is the
-same six sample posts written into `src/data/mock.ts`. Nobody can see anybody.
+same six sample posts. Nobody can see anybody.
 
-This page turns that into a real shared feed. It is written for someone who has
-never used a database. Nothing below needs a Mac, a terminal, or code.
+This page turns that into a real shared feed.
 
-**Roughly 40 minutes**, most of it waiting for things to save.
+It is written for someone who has never used a database and does not want to
+learn. Every step is a thing to click or a thing to paste. Where you have to
+type a command, the exact command is here — you never have to write one.
+
+**About 90 minutes.** Roughly half of it is waiting.
+
+You will need: a web browser, and the `.p8` file Apple gave you (for the last
+step only). No Mac required. No Terminal on your own computer required.
 
 ---
 
 ## What will and will not leave the phone
 
-Worth reading before you start, because it is the decision everything else was
-built around.
+Worth reading once before you start, because it is the decision everything else
+was built around.
 
 **Goes to the server:** what a teacher publishes. Posts, the photo on a post,
 comments, who they follow, who they blocked, what they reported, and the byline
-under their name — display name, username, role, level, state, years.
+under their name.
 
 **Stays on the phone, always:** the daily check-ins and the self-care list.
 There is no table that could hold them. That is what makes the line on the
-sign-up screen true — *"Your check-ins on Here are 100% private"* — and it is
-why the schema is shaped the way it is.
+sign-up screen true — *"Your check-ins on Here are 100% private."*
 
 **Unavoidable:** the work email address. It is what a code gets sent to and what
-signing in again is matched against; any email sign-in needs it. It sits in
-Supabase's own private `auth.users` table and is never copied anywhere the feed
-can reach.
+signing in again is matched against. Every email sign-in on earth needs it.
 
 ---
 
-## 1. Make the project
+# Part 1 — Make the database
 
-1. Go to **supabase.com** and sign up. Use `hello@tendedcollective.com`, not a
-   personal address — this is a company asset and somebody else may need it one
-   day.
-2. **New project.**
+## Step 1. Create the Supabase account
+
+1. Go to **https://supabase.com**
+2. Click **Start your project** (top right).
+3. Sign up with **`hello@tendedcollective.com`** — not a personal address. This
+   is a company asset and one day somebody else may need to get into it.
+4. Confirm the email it sends you.
+
+## Step 2. Create the project
+
+1. You will land on a dashboard. Click **New project**.
+2. If it asks for an organization first, name it **`Tended Collective`** and
+   pick the **Free** plan for now.
+3. Fill in:
    - **Name:** `here-production`
-   - **Database password:** press Generate, then save it in your password
-     manager. You will almost never need it, and there is no way to recover it.
-   - **Region:** `East US (North Virginia)` if your teachers are mostly on the
-     east coast. Pick the one closest to most of them; it is the difference
-     between the feed feeling instant and feeling sluggish.
-   - **Plan:** Free is genuinely fine to start. It pauses a project after a week
-     with no activity, which is a problem for a pilot with real users, so move
-     to Pro ($25/month) before you invite anyone who matters.
-3. Wait. It takes about two minutes to build.
+   - **Database Password:** click **Generate a password**, then copy it into
+     your password manager immediately. There is no way to recover this later.
+     You will probably never need it, but if you do, you really do.
+   - **Region:** **East US (North Virginia)** unless most of your teachers are
+     out west, in which case **West US (Oregon)**. This is just about speed.
+4. Click **Create new project**.
+5. **Wait about two minutes.** The page will say it is setting up. Do not close
+   the tab.
 
-## 2. Create the tables
+## Step 3. Get the database file onto your clipboard
 
-1. Left sidebar → **SQL Editor** → **New query**.
-2. Open `supabase/schema.sql` from this repository. Copy **all** of it.
-3. Paste it into the editor and press **Run**.
+This is the file that creates all the tables. You do not need to understand it —
+you need to copy it exactly, all 640 lines.
 
-You should see *Success. No rows returned.* That is right — it built tables
-rather than reading any.
+1. Open this link in a new tab:
 
-It is safe to run again later if the file changes; everything in it is written
-to be re-runnable.
+   **https://raw.githubusercontent.com/Tended-Collective/here-app/main/here-app/supabase/schema.sql**
 
-### What you just created
+   You will see a wall of plain text starting with `-- Here — database schema.`
+   That is correct. It is meant to look like that.
 
-Ten tables and a set of access rules called Row Level Security. The rules are
-the important part and they run inside the database, not in the app — so they
-hold even against someone who pulls the app apart and talks to the database
-directly, which is a thing that will happen eventually.
+2. Click anywhere on that text.
+3. Press **Cmd + A** (Mac) or **Ctrl + A** (Windows) to select all of it. The
+   whole page should highlight.
+4. Press **Cmd + C** (Mac) or **Ctrl + C** (Windows) to copy.
 
-Two of them are deliberately stricter than you might expect:
+That is it — the whole file is now on your clipboard. Do not copy anything else
+before the next step.
 
-- **Nobody can see who liked a post.** The number under the heart is a counter;
-  the list of who is behind it is readable only by the person who tapped. In an
-  app where posts are "here is how I coped this week", a colleague being able to
-  read who quietly agreed is a real harm.
-- **Nobody can see who follows them.** Same reasoning, and the app has never
-  shown a follower count.
+> **If that link gives you a 404:** you are probably signed into GitHub with an
+> account that cannot see the repository. Sign in as the account that owns
+> `Tended-Collective`, then reload.
 
-## 3. Make the code email look right
+## Step 4. Run it
+
+1. Go back to your Supabase tab.
+2. In the left sidebar, click the **SQL Editor** icon (it looks like a database
+   cylinder with `SQL` on it). If the sidebar is collapsed to icons only, hover
+   to see the names.
+3. Click **New query** (top left of that panel).
+4. Click into the big empty text area.
+5. Press **Cmd + V** / **Ctrl + V** to paste.
+6. Click the green **Run** button (bottom right of the editor). You can also
+   press **Cmd + Enter** / **Ctrl + Enter**.
+
+**What you should see:** a green bar saying **Success. No rows returned.**
+
+That is exactly right. It built tables rather than reading any, so there are no
+rows to return.
+
+> **If you see a red error instead:** do not try to fix it. Click the error to
+> select it, copy the whole message, and send it to Claude. This file has never
+> been run against a real Supabase project, so an error here is expected to be
+> my problem, not yours.
+
+## Step 5. Check it worked
+
+1. In the left sidebar, click **Table Editor**.
+2. You should see a list of tables down the left: `blocked_domains`, `blocks`,
+   `comments`, `follows`, `likes`, `posts`, `profiles`, `reports`,
+   `reserved_usernames`, `reposts`.
+
+Ten tables. If they are there, the database is done.
+
+---
+
+# Part 2 — Make the emails work
+
+## Step 6. Change what the code email says
 
 This matters more than it sounds. The one thing this design cannot hide is that
 a district's mail server sees a message arrive. So the message must give nothing
-away.
+away about what the app is for.
 
-1. **Authentication** → **Emails** → **Magic Link** template.
-2. Replace the whole body with:
+1. Left sidebar → **Authentication**.
+2. In the sub-menu, click **Emails**.
+3. You will see a list of templates. Click **Magic Link**.
+4. There is a **Subject heading** box. Delete what is in it and paste exactly:
+
+   ```
+   Your Here code is {{ .Token }}
+   ```
+
+5. Below that is a **Message body** box with HTML in it. Delete **all** of it
+   and paste exactly:
 
    ```html
    <p>Your Here code is <strong>{{ .Token }}</strong></p>
    <p>It expires in 10 minutes. If you did not ask for it, ignore this email.</p>
    ```
 
-   `{{ .Token }}` is what makes it a six-digit code instead of a link. The app's
-   screens are built for a code, so this substitution is required, not cosmetic.
-3. Set the **subject** to exactly:
+6. Click **Save changes**.
 
-   ```
-   Your Here code is {{ .Token }}
-   ```
+`{{ .Token }}` is the bit that turns this into a six-digit code instead of a
+clickable link. The app's screens are built for a code, so this is required, not
+decoration.
 
-**No mention of wellness, burnout, mental health, therapy or check-ins** — in
-the subject, the body, or the sender name. Not to deceive an employer: the
-subject line is the part of this a district actually reads, and the teacher is
-the person being protected.
+**Never put the words wellness, burnout, mental health, therapy or check-in in
+that subject line.** Not to deceive an employer — the teacher is the person
+being protected, and the subject line is the part a district reads.
 
-4. **Authentication** → **Sign In / Providers** → **Email**: confirm **Email
-   OTP** is on and set the expiry to **600** seconds.
+## Step 7. Turn on code sign-in
 
-## 4. Send mail from your own domain
+1. Still under **Authentication**, click **Sign In / Providers**.
+2. Find **Email** in the list and click it.
+3. Make sure **Enable Email provider** is on.
+4. Make sure **Confirm email** is on.
+5. Find **Email OTP Expiration** and set it to **600** (that is 10 minutes, to
+   match what the email says).
+6. Click **Save**.
 
-Supabase's built-in mail is capped at a handful of messages an hour and sends
-from a shared address that school spam filters distrust. Skip this and your
-testers will not receive codes.
+## Step 8. Send mail from your own domain
 
-1. Sign up at **resend.com** (free to 3,000/month) and verify
-   `tendedcollective.com` by adding the DNS records it gives you.
-2. In Supabase: **Project Settings** → **Authentication** → **SMTP Settings** →
-   enable, and paste Resend's host, port, username and password.
-3. **Sender email:** `here@tendedcollective.com`. **Sender name:** `Here`.
+Supabase's built-in email is capped at a few messages an hour and comes from a
+shared address that school spam filters distrust. **Skip this and your testers
+will not get their codes.**
 
-Then send yourself a code from a real phone and check it does not land in junk.
-
-## 5. Give the app the keys
-
-1. **Project Settings** → **API**. You need two values:
-   - **Project URL** — looks like `https://abcdefgh.supabase.co`
-   - **anon public** key — a long string starting `eyJ`
-
-   Take the **anon** key. The one labelled `service_role` bypasses every access
-   rule in step 2; it must never go in the app, in this repository, or in an
-   email. It stays in the dashboard.
-
-2. Tell the build about them. In a terminal, in the `here-app` folder:
-
-   ```
-   npx eas-cli secret:create --scope project --name EXPO_PUBLIC_SUPABASE_URL --value https://YOURPROJECT.supabase.co
-   npx eas-cli secret:create --scope project --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value eyJ...
-   ```
-
-3. Build and submit as usual:
-
-   ```
-   npx eas-cli build --platform ios --profile production
-   npx eas-cli submit --platform ios --profile production
-   ```
-
-That is the switch. `src/lib/backend.ts` looks for exactly those two variables:
-both set, the app uses the server; either missing, it behaves exactly as it does
-today. There is no half-on state.
-
-The App Store privacy declaration follows the same two variables — see
-`app.config.js`. A build with a server automatically declares that it collects
-an email address, user content and a user id. You do not have to remember to
-change it, which is the point.
-
-> **If you ever build on your own laptop:** after setting those variables you
-> must pass `--clear` the first time (`npx expo export --platform web --clear`).
-> The bundler caches translated files and will otherwise happily produce a build
-> that ignores them. EAS builds start from an empty container, so this only
-> bites locally. It bit during development, which is why it is written down.
+1. Go to **https://resend.com** and sign up (free up to 3,000 emails a month).
+2. Click **Domains** → **Add Domain** → type `tendedcollective.com` → **Add**.
+3. Resend shows you three or four DNS records. You need to add these wherever
+   `tendedcollective.com` is registered — GoDaddy, Squarespace, Cloudflare,
+   wherever you bought it. Look for a page called **DNS** or **DNS Records**.
+   For each row Resend shows you, add a record with the same Type, Name and
+   Value.
+4. Back in Resend, click **Verify**. It can take anywhere from five minutes to
+   an hour. Go and do something else; come back and press it again.
+5. Once it says Verified, go to **API Keys** → **Create API Key** → name it
+   `here-supabase` → copy the key it gives you.
+6. Back in Supabase: **Project Settings** (the gear, bottom left) →
+   **Authentication** → scroll to **SMTP Settings** → toggle **Enable Custom
+   SMTP**.
+7. Fill in:
+   - **Sender email:** `here@tendedcollective.com`
+   - **Sender name:** `Here`
+   - **Host:** `smtp.resend.com`
+   - **Port:** `465`
+   - **Username:** `resend`
+   - **Password:** the API key you just copied
+8. Click **Save**.
 
 ---
 
-## Moderating
+# Part 3 — Tell the app where the database is
 
-Apple's guideline 1.2 requires objectionable content to be removed within 24
-hours of a report. Reports arrive in the database, not in your inbox, so this
-has to be a habit.
+## Step 9. Copy the two keys
 
-**SQL Editor**, once a day:
+1. In Supabase: **Project Settings** (gear, bottom left) → **API**.
+2. You need two things off this page. Paste each into a scratch note as you go:
+   - **Project URL** — looks like `https://abcdefgh.supabase.co`
+   - Under **Project API keys**, the one labelled **`anon` `public`** — a very
+     long string starting `eyJ`
+
+> **Do not touch the key labelled `service_role`.** It bypasses every security
+> rule you just installed. It must never go in the app, in the repository, in an
+> email, or in a chat message. It stays on this page.
+
+## Step 10. Open a place to type commands
+
+The last few steps need a command line. You do not need one on your own
+computer — GitHub gives you one in the browser.
+
+1. Go to **https://github.com/Tended-Collective/here-app**
+2. Click the green **Code** button.
+3. Click the **Codespaces** tab.
+4. Click **Create codespace on main**.
+5. Wait one to two minutes. A code editor opens in your browser.
+6. At the bottom of that editor there is a panel with a tab called **TERMINAL**.
+   Click it. If you do not see it, press **Ctrl + `** (the backtick key, above
+   Tab), or use the menu: **☰** → **Terminal** → **New Terminal**.
+
+Everything below gets typed — or pasted — into that black panel, one line at a
+time, pressing **Enter** after each.
+
+7. First, move into the app folder. Paste this and press Enter:
+
+   ```
+   cd here-app
+   ```
+
+## Step 11. Sign in to Expo
+
+1. Go to **https://expo.dev** in another tab, sign in, click your avatar (top
+   right) → **Access Tokens**.
+2. **Delete the existing token** — it was visible in a screenshot months ago and
+   should not be trusted.
+3. Click **Create token**, name it `codespace`, and copy the value.
+4. Back in the Codespace terminal, paste this — replacing `PASTE_TOKEN_HERE`
+   with what you just copied — and press Enter:
+
+   ```
+   export EXPO_TOKEN=PASTE_TOKEN_HERE
+   ```
+
+   Nothing will appear to happen. That is correct.
+
+## Step 12. Hand over the two Supabase keys
+
+Paste each of these in turn, replacing the bracketed part with the value from
+Step 9. Press Enter after each.
+
+```
+npx eas-cli secret:create --scope project --name EXPO_PUBLIC_SUPABASE_URL --value https://YOURPROJECT.supabase.co
+```
+
+```
+npx eas-cli secret:create --scope project --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value eyJ...
+```
+
+The first time you run `npx eas-cli` it will ask to install something — answer
+**y** and press Enter.
+
+Each command should print a line confirming the secret was created. You can
+check them any time with:
+
+```
+npx eas-cli secret:list
+```
+
+## Step 13. Build it
+
+```
+npx eas-cli build --platform ios --profile production
+```
+
+It will ask a few questions. Press Enter to accept the defaults unless it asks
+something you recognise. Then it uploads and builds on Apple's machines — **this
+takes 15 to 25 minutes.** You can close the browser tab; the build carries on.
+The terminal prints a link where you can watch it.
+
+## Step 14. Send it to TestFlight
+
+You need the `.p8` file from Apple for this — the one you were told to save
+because it can only be downloaded once.
+
+1. In the Codespace, find the file list on the **left-hand side** of the editor.
+   If you cannot see it, click the top icon in the far-left strip (it looks like
+   two sheets of paper).
+2. **Drag the `.p8` file from your computer** onto that file list, dropping it
+   inside the `here-app` folder. It will upload. It is already excluded from the
+   repository, so it cannot be committed by accident.
+3. In the terminal, paste these three lines one at a time, replacing
+   `YOUR_FILE.p8` with the file's actual name:
+
+   ```
+   export EXPO_ASC_API_KEY_PATH=/workspaces/here-app/here-app/YOUR_FILE.p8
+   ```
+   ```
+   export EXPO_ASC_KEY_ID=Q7268QMN7R
+   ```
+   ```
+   export EXPO_ASC_ISSUER_ID=a1ca6f53-0aca-46a5-802b-35c9ca071633
+   ```
+
+4. Then:
+
+   ```
+   npx eas-cli submit --platform ios --profile production
+   ```
+
+5. Wait 10–30 minutes, then look in App Store Connect → **TestFlight**. The
+   build appears there when Apple has finished processing it.
+
+---
+
+# Part 4 — Check it actually worked
+
+Do this yourself before you tell any tester anything.
+
+1. Install the new TestFlight build on your phone.
+2. Sign up with a real school email address.
+3. **Does a code arrive?** If not, the problem is Step 6, 7 or 8. Check your
+   junk folder first.
+4. Post something.
+5. Get **one** person you trust to install it and sign up.
+6. **Can they see your post? Can you see theirs?**
+
+If yes: it is done. That is the whole thing working.
+
+Only then invite everyone else.
+
+## One more thing before real testers
+
+Supabase's free plan switches your database off after a week of no activity —
+which will happen the first quiet weekend, and your testers will open the app to
+an error.
+
+**Project Settings → Subscription → upgrade to Pro, $25/month.** Do this before
+you invite anyone whose opinion you care about.
+
+---
+
+# Moderating, once you are live
+
+Apple requires reported content to come down within 24 hours of a report.
+Reports arrive in the database, not your inbox, so this has to be a habit.
+
+Once a day: Supabase → **SQL Editor** → **New query** → paste and Run:
 
 ```sql
 select * from moderation_queue;
 ```
 
-Anything waiting shows the reported text, who wrote it and why it was flagged.
-Then either:
+Empty result = nothing waiting. Most days.
+
+If something is waiting, you will see the text, who wrote it, and why it was
+flagged. Copy the `post_id` from the row, then run one of these:
 
 ```sql
-select hide_post('<the post_id>', 'names a student');
-select hide_comment('<the comment_id>', 'harassment');
-select dismiss_report('<the report_id>');   -- nothing wrong with it
+select hide_post('paste-the-post_id-here', 'names a student');
+```
+```sql
+select hide_comment('paste-the-comment_id-here', 'harassment');
+```
+```sql
+select dismiss_report('paste-the-report_id-here');
 ```
 
-Hiding removes it for everybody, immediately. Dismissing leaves it up and closes
+Hiding removes it for everyone immediately. Dismissing leaves it up and closes
 the report.
 
-The person who reported something stops seeing it the moment they report it,
-without waiting for you — so nobody is stuck looking at the thing they just
-objected to.
+The person who reported it stopped seeing it the moment they reported it, so
+nobody is stuck staring at the thing they objected to while they wait for you.
 
 ---
 
-## What is wired up, and what is not
+# What is wired up, and what is not
 
 Honest status, because the difference matters.
 
-**Working against the server** once configured:
+**Working against the server** once the steps above are done:
 
-- Sending a real six-digit code, and checking it
-- Refusing personal email domains — enforced by the database, not just the app
-- Checking whether a username is free, against the real directory
-- **The feed itself.** Posts come from the database, not from `mock.ts`, and one
-  tester's post appears on another tester's phone. This is the thing the whole
-  exercise was for.
-- Posting, editing and deleting; likes and reposts; following; blocking;
-  reporting; photo upload; profile edits; account deletion
+- Real six-digit codes, sent and checked
+- Personal email addresses refused — enforced by the database, so it cannot be
+  bypassed by anyone poking at the app
+- Usernames checked against the real directory
+- **The feed.** One tester's post appears on another tester's phone. This is the
+  thing the whole exercise was for.
+- Posting, editing, deleting; likes and reposts; following; blocking; reporting;
+  photos; profile edits; account deletion
 
 **Still local, and staying that way:** the daily check-ins and the self-care
-list, exactly as promised.
+list.
 
-**Not yet wired:** comment threads. Posting a comment reaches the database, but
-the sheet still lists the sample replies from `mock.ts` rather than loading the
-real ones. Everything else on a post is live.
+**Not finished yet:**
 
-Also not built: paging. The feed loads the most recent 30 posts and the "See
-earlier today" button is hidden when there is a server, because there is nothing
-behind it yet. That is fine for a pilot and needs doing before the feed is busy.
+- **Comment threads.** Writing a comment reaches the database, but the sheet
+  still lists sample replies instead of loading the real ones.
+- **Paging.** The feed loads the 30 most recent posts. The "See earlier today"
+  button is hidden when there is a server, because there is nothing behind it
+  yet. Fine for a pilot; needs doing before the feed gets busy.
 
 ---
 
-## What it will cost
+# What it costs
 
-- **Supabase Pro** — $25/month. The free tier pauses after a week of inactivity,
-  which you cannot have with real testers.
-- **Resend** — free to 3,000 emails a month. One code per sign-in.
+| | |
+|---|---|
+| Supabase Pro | $25/month |
+| Resend | Free to 3,000 emails/month |
+| Apple Developer | $99/year, already paid |
 
-Roughly $25/month until you are into thousands of users.
+About **$25/month** until you are into thousands of users.
+
+---
+
+# If something goes wrong
+
+Send Claude the exact error text — copy and paste it, do not retype or
+summarise. Say which step number you were on. Almost everything here fails in a
+way that names its own cause, and the message is the fastest route to a fix.
+
+The one thing not to do is guess at the SQL in Step 4. It is 640 lines of
+security rules, and a well-meant edit is how a database ends up letting one
+teacher read another's private data.
