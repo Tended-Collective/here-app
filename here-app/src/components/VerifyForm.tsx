@@ -89,7 +89,9 @@ export function VerifyForm({
         ? 'That is a personal email provider. Use your work address.'
         : result.reason === 'invalid-email'
           ? 'That address is not formatted correctly.'
-          : 'Could not send a code. Try again.',
+          : // The server's own words when it had better ones — the per-address
+            // cooldown says how long to wait, and "try again" would be wrong.
+            (result.message ?? 'Could not send a code. Try again.'),
     );
   };
 

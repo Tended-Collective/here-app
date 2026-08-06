@@ -37,6 +37,22 @@ const OFFLINE = { ok: false as const, error: 'offline', offline: true as const }
 /** Supabase's errors are for developers. These are for teachers. */
 function readable(error: { message?: string; code?: string } | null): string {
   const message = error?.message ?? '';
+  /**
+   * Supabase allows one auth email per address per minute and reports the
+   * remaining wait. Worth its own sentence: the generic "try again" is the
+   * exact wrong instruction here, and someone who follows it just keeps
+   * failing until they conclude the app is broken.
+   */
+  const cooling = message.match(/only request this after (\d+) second/i);
+  if (cooling) {
+    const seconds = Number(cooling[1]);
+    return seconds > 1
+      ? `A code was just sent. Wait ${seconds} seconds before asking for another.`
+      : 'A code was just sent. Wait a moment before asking for another.';
+  }
+  if (/rate limit|too many requests/i.test(message)) {
+    return 'Too many tries just now. Wait a minute and ask for a new code.';
+  }
   if (/duplicate key|already exists/i.test(message)) return 'That is already taken.';
   if (/reserved/i.test(message)) return 'That username is reserved.';
   if (/personal one|school gave you/i.test(message)) {

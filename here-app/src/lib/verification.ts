@@ -141,7 +141,17 @@ export function looksLikeEducatorDomain(email: string): boolean {
 
 export type RequestResult =
   | { ok: true; sent: boolean }
-  | { ok: false; reason: 'invalid-email' | 'consumer-domain' | 'failed' };
+  | {
+      ok: false;
+      reason: 'invalid-email' | 'consumer-domain' | 'failed';
+      /**
+       * A sentence the server produced that is better than anything this side
+       * could infer — the "wait 42 seconds" cooldown being the one that matters,
+       * because the generic fallback tells people to do the thing that will not
+       * work. Shown verbatim when present.
+       */
+      message?: string;
+    };
 
 export async function requestCode(email: string): Promise<RequestResult> {
   if (!isPlausibleEmail(email)) return { ok: false, reason: 'invalid-email' };
@@ -152,6 +162,11 @@ export async function requestCode(email: string): Promise<RequestResult> {
 
   const result = await sendCode(email);
   if (result.ok) return { ok: true, sent: true };
+  // Anything about waiting is the per-address cooldown, and its own wording is
+  // more use than "could not send".
+  if (/wait|just sent|too many/i.test(result.error)) {
+    return { ok: false, reason: 'failed', message: result.error };
+  }
   // The database trigger refuses consumer domains too. It should be unreachable
   // — the check above already ran — but if the two lists ever drift, the server
   // is the one that is right, and the teacher gets the specific message rather
@@ -159,7 +174,7 @@ export async function requestCode(email: string): Promise<RequestResult> {
   if (/school gave you|personal one/i.test(result.error)) {
     return { ok: false, reason: 'consumer-domain' };
   }
-  return { ok: false, reason: 'failed' };
+  return { ok: false, reason: 'failed', message: result.error };
 }
 
 export type SubmitResult = { ok: true } | { ok: false; reason: 'bad-code' | 'failed' };
