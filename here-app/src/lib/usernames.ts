@@ -23,15 +23,20 @@
  * they type, so the failure at submit is rare rather than routine.
  */
 
+import { BACKEND_CONFIGURED } from './backend';
+import { usernameAvailable } from './api';
+
 export const USERNAME_MIN = 3;
 export const USERNAME_MAX = 20;
 
 /**
- * False until a backend can answer "is this taken?". While it is false the
- * check runs against the sample directory only, which is enough to demonstrate
- * the flow but proves nothing about the real namespace.
+ * True when a backend can answer "is this taken?".
+ *
+ * Derived from whether Supabase is configured rather than declared by hand.
+ * While it is false the check runs against the sample directory only, which
+ * demonstrates the flow but proves nothing about the real namespace.
  */
-export const PROVIDER_CONFIGURED = false;
+export const PROVIDER_CONFIGURED = BACKEND_CONFIGURED;
 
 /**
  * Names that cannot be claimed. Two groups: ones that would let an account
@@ -125,10 +130,15 @@ export async function checkUsername(raw: string, taken: Iterable<string>): Promi
     return claimed.has(name) ? 'taken' : 'available';
   }
 
-  // Connect here: ask the server, which holds the UNIQUE index that actually
-  // decides. This answer is advisory even then — the claim at submit is what
-  // settles it, and it can still lose a race.
-  return 'available';
+  // The server holds the UNIQUE index that actually decides. This answer is
+  // advisory even so: two people can be told yes in the same second, and the
+  // write at submit is what settles it.
+  const answer = await usernameAvailable(name);
+  // A failed lookup reports available rather than taken. Being told "that one
+  // is gone" about a name that is free, because the wifi dropped, sends people
+  // off to invent a worse one; the insert will refuse it honestly if it really
+  // is taken.
+  return answer.ok && !answer.data ? 'taken' : 'available';
 }
 
 /** Three near misses when the one they wanted is gone. */

@@ -27,9 +27,18 @@
  *
  * ─── What is wired now ───────────────────────────────────────────────────────
  *
- * `PROVIDER_CONFIGURED` is false: no mail is sent and any well-formed code is
- * accepted. The domain check below is real and runs on device.
+ * Whichever the build has. `PROVIDER_CONFIGURED` is no longer a constant to
+ * flip by hand — it is true exactly when Supabase is configured, so a build
+ * with a server sends real codes and a build without one accepts any six
+ * digits. There is no third state where somebody forgot.
+ *
+ * The domain check below is real either way and runs on device. It is also
+ * enforced in the database, by a trigger on auth.users, because a check on a
+ * phone is a check an attacker skips.
  */
+
+import { BACKEND_CONFIGURED } from './backend';
+import { sendCode, verifyCode } from './api';
 
 /**
  * ─── What the email must look like ───────────────────────────────────────────
@@ -48,8 +57,13 @@
  * protected — but because a subject line is the part of this a district reads.
  */
 
-/** Flip once a real code-sending backend is behind `requestCode`. */
-export const PROVIDER_CONFIGURED = false;
+/**
+ * True when this build has a server that can actually send mail.
+ *
+ * Derived rather than declared. It used to be a hand-flipped `false`, which is
+ * the kind of constant that stays false for a month after the backend lands.
+ */
+export const PROVIDER_CONFIGURED = BACKEND_CONFIGURED;
 
 export const CODE_LENGTH = 6;
 
@@ -136,19 +150,33 @@ export async function requestCode(email: string): Promise<RequestResult> {
 
   if (!PROVIDER_CONFIGURED) return { ok: true, sent: false };
 
-  // Connect here: post the address to an endpoint that mails a code and holds
-  // it only until it is used or expires. The address must not be written to the
-  // app's own storage on the way past.
+  const result = await sendCode(email);
+  if (result.ok) return { ok: true, sent: true };
+  // The database trigger refuses consumer domains too. It should be unreachable
+  // — the check above already ran — but if the two lists ever drift, the server
+  // is the one that is right, and the teacher gets the specific message rather
+  // than "could not send".
+  if (/school gave you|personal one/i.test(result.error)) {
+    return { ok: false, reason: 'consumer-domain' };
+  }
   return { ok: false, reason: 'failed' };
 }
 
 export type SubmitResult = { ok: true } | { ok: false; reason: 'bad-code' | 'failed' };
 
-export async function submitCode(code: string): Promise<SubmitResult> {
+/**
+ * `email` is required once there is a server: Supabase verifies the code
+ * against the address it was sent to, so the pair has to travel together. It is
+ * optional in the signature only so the local build, which has nothing to check
+ * against, can keep calling this with the code alone.
+ */
+export async function submitCode(code: string, email?: string): Promise<SubmitResult> {
   const digits = code.replace(/\D/g, '');
   if (digits.length !== CODE_LENGTH) return { ok: false, reason: 'bad-code' };
 
   if (!PROVIDER_CONFIGURED) return { ok: true };
+  if (!email) return { ok: false, reason: 'failed' };
 
-  return { ok: false, reason: 'failed' };
+  const result = await verifyCode(email, digits);
+  return result.ok ? { ok: true } : { ok: false, reason: 'bad-code' };
 }

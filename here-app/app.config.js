@@ -29,6 +29,20 @@
 
 const IS_PRODUCTION = process.env.APP_VARIANT !== 'development';
 
+/**
+ * Whether this build has a server behind it. The same two variables
+ * `src/lib/backend.ts` reads, checked the same way.
+ *
+ * It is read here so the privacy declaration below cannot drift from what the
+ * app actually does. A build with no backend collects nothing and says so; a
+ * build with one collects an email address and user content, and says that. The
+ * alternative — a comment reminding somebody to edit an array before the next
+ * submission — is the kind of thing that gets discovered by Apple.
+ */
+const HAS_BACKEND = Boolean(
+  process.env.EXPO_PUBLIC_SUPABASE_URL && process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+);
+
 module.exports = {
   expo: {
     name: IS_PRODUCTION ? 'Here' : 'Here (dev)',
@@ -85,15 +99,54 @@ module.exports = {
         NSPrivacyTracking: false,
         NSPrivacyTrackingDomains: [],
         /**
-         * Empty because it is true today — see the warning at the top of this
-         * file. When the backend lands this will need, at minimum:
+         * Derived from whether this build has a server, so it cannot drift.
          *
-         *   Email address        — verification. Not linked, not tracking.
-         *   User content         — posts, photos, messages.
-         *   Other data           — the check-in record, IF it is ever synced.
-         *   Identifiers          — whatever a session token counts as.
+         * With no backend the app collects nothing: no account, no sync, no
+         * analytics, no crash reporter, one AsyncStorage row that never leaves
+         * the phone.
+         *
+         * With one, three things go to Supabase and all three are declared:
+         * the work email a code is sent to, the posts and photos a teacher
+         * publishes, and the user id those are filed under. Every one is linked
+         * to the user, and none of them is used for tracking — there is no ad
+         * network here and no data sold to one.
+         *
+         * What is NOT in this list, in either build, is the check-in record and
+         * the self-care list. They stay on the device. That is the decision the
+         * whole schema is built around, and the day it changes this array grows
+         * an NSPrivacyCollectedDataTypeHealthFitness entry and the promise on
+         * the sign-up screen has to be rewritten.
          */
-        NSPrivacyCollectedDataTypes: [],
+        NSPrivacyCollectedDataTypes: HAS_BACKEND
+          ? [
+              {
+                NSPrivacyCollectedDataType: 'NSPrivacyCollectedDataTypeEmailAddress',
+                NSPrivacyCollectedDataTypeLinked: true,
+                NSPrivacyCollectedDataTypeTracking: false,
+                NSPrivacyCollectedDataTypePurposes: [
+                  'NSPrivacyCollectedDataTypePurposeAppFunctionality',
+                ],
+              },
+              {
+                // Posts, comments and the photo attached to a post.
+                NSPrivacyCollectedDataType: 'NSPrivacyCollectedDataTypeOtherUserContent',
+                NSPrivacyCollectedDataTypeLinked: true,
+                NSPrivacyCollectedDataTypeTracking: false,
+                NSPrivacyCollectedDataTypePurposes: [
+                  'NSPrivacyCollectedDataTypePurposeAppFunctionality',
+                ],
+              },
+              {
+                // The account's user id, which every row above is filed under.
+                NSPrivacyCollectedDataType: 'NSPrivacyCollectedDataTypeUserID',
+                NSPrivacyCollectedDataTypeLinked: true,
+                NSPrivacyCollectedDataTypeTracking: false,
+                NSPrivacyCollectedDataTypePurposes: [
+                  'NSPrivacyCollectedDataTypePurposeAppFunctionality',
+                ],
+              },
+            ]
+          : [],
         NSPrivacyAccessedAPITypes: [
           {
             /**

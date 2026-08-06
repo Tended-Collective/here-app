@@ -39,3 +39,8 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+dist-backend/
+
+# Bare .env too — .env*.local above does not cover it, and it is exactly the
+# file someone drops real Supabase keys into.
+.env

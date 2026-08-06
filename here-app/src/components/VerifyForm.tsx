@@ -96,7 +96,9 @@ export function VerifyForm({
   const confirm = async () => {
     setBusy(true);
     setProblem(null);
-    const result = await submitCode(code);
+    // The address travels with the code: a server verifies the pair, not the
+    // digits on their own.
+    const result = await submitCode(code, email);
     setBusy(false);
     if (result.ok) {
       onVerified(email);
