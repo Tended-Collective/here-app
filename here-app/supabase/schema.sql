@@ -584,8 +584,18 @@ grant execute on function public.delete_my_account() to authenticated;
 -- saved query so it is one word to type at eight in the morning, which is the
 -- difference between a 24-hour turnaround and a 72-hour one.
 --
--- No policy is attached, so RLS denies it to the app entirely; the SQL editor
--- runs as the service role and sees everything.
+-- ─── Two things had to be said explicitly here, and were not ────────────────
+--
+-- A view does NOT inherit the row-level security of the tables underneath it.
+-- Left alone it runs with its owner's privileges, which means it reads straight
+-- past every policy in this file — so the app's own anon key could have pulled
+-- the entire report queue: the reported text, who wrote it, why. Exactly the
+-- leak RLS is here to prevent, through the one object that had none.
+-- `security_invoker = on` makes it run as whoever is asking. An app user then
+-- hits the `reports` policies, which grant no SELECT at all, and gets nothing.
+--
+-- The REVOKE is belt and braces on top of that: nothing in the app has any
+-- business reading this, invoker rights or not.
 
 create or replace view public.moderation_queue as
   select
@@ -605,9 +615,19 @@ create or replace view public.moderation_queue as
   where r.resolved_at is null
   order by r.created_at;
 
+alter view public.moderation_queue set (security_invoker = on);
+revoke all on public.moderation_queue from anon, authenticated;
+
 -- Take something down, and close every report against it, in one call:
 --
 --   select public.hide_post('<post id>', 'names a student');
+--
+-- The three moderator functions below are `security definer`, which means they
+-- run with full privileges whoever calls them. Postgres grants EXECUTE on a new
+-- function to PUBLIC by default — so without the REVOKE at the end of this
+-- file, any signed-in teacher could call hide_post on anybody's post and empty
+-- the feed. They are revoked from everyone; the SQL editor and the service key
+-- are unaffected, because they are not bound by grants.
 
 create or replace function public.hide_post(target uuid, why text)
 returns void
@@ -638,3 +658,17 @@ set search_path = public
 as $$
   update public.reports set resolved_at = now() where id = target;
 $$;
+
+-- ─── Nobody but a moderator may call these ───────────────────────────────────
+--
+-- Postgres hands EXECUTE on a new function to PUBLIC unless told otherwise, and
+-- all three of these are `security definer`. Revoking is what makes them
+-- moderator-only rather than a vandalism button behind the app's public key.
+--
+-- `username_available` and `delete_my_account` are deliberately left granted:
+-- the first returns one boolean, and the second can only ever delete the caller
+-- (see the auth.uid() guard inside it).
+
+revoke all on function public.hide_post(uuid, text) from public, anon, authenticated;
+revoke all on function public.hide_comment(uuid, text) from public, anon, authenticated;
+revoke all on function public.dismiss_report(uuid) from public, anon, authenticated;
