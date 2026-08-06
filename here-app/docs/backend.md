@@ -66,24 +66,34 @@ signing in again is matched against. Every email sign-in on earth needs it.
 This is the file that creates all the tables. You do not need to understand it —
 you need to copy it exactly, all 640 lines.
 
-1. Open this link in a new tab:
+1. Open a **brand new browser tab** (Cmd+T / Ctrl+T).
+2. Type this into the **address bar at the very top of the browser** — the one
+   with the padlock, not any box inside a web page:
 
-   **https://raw.githubusercontent.com/Tended-Collective/here-app/main/here-app/supabase/schema.sql**
+   **github.com/Tended-Collective/here-app/blob/main/here-app/supabase/schema.sql**
 
-   You will see a wall of plain text starting with `-- Here — database schema.`
-   That is correct. It is meant to look like that.
+3. You will see the file with line numbers down the left side, starting
+   `-- Here — database schema.` That is correct. It is meant to look like that.
+4. At the **top right of the file box** there is a row of small icons. Click the
+   one that looks like **two overlapping squares**. Hovering over it says
+   **Copy raw file**.
 
-2. Click anywhere on that text.
-3. Press **Cmd + A** (Mac) or **Ctrl + A** (Windows) to select all of it. The
-   whole page should highlight.
-4. Press **Cmd + C** (Mac) or **Ctrl + C** (Windows) to copy.
+That is the whole file on your clipboard, in one click. Do not copy anything
+else before the next step.
 
-That is it — the whole file is now on your clipboard. Do not copy anything else
-before the next step.
-
-> **If that link gives you a 404:** you are probably signed into GitHub with an
-> account that cannot see the repository. Sign in as the account that owns
-> `Tended-Collective`, then reload.
+> **If you get "404 - page not found"** and the message mentions a *path* that
+> starts with `github.com` or `raw.githubusercontent.com`, the address went into
+> a box **inside** GitHub rather than the browser's address bar. GitHub has a
+> file-search box that looks like somewhere you would paste a link; anything
+> pasted there is treated as a filename to hunt for. Open a fresh tab and put
+> the address in the bar at the very top of the window.
+>
+> **If the error names `teacherapp`,** you are in the old repository. It was
+> archived when everything moved to **here-app**. Check the name at the top of
+> the page.
+>
+> The repository is public, so this needs no sign-in at all — if you are stuck,
+> try it in a private browsing window to rule out your GitHub session.
 
 ## Step 4. Run it
 
