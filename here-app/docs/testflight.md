@@ -95,7 +95,7 @@ Everything below is a browser tab or a terminal command.
 | Field | Value |
 |---|---|
 | Platform | iOS |
-| Name | `Here: for school staff` — 22 of 30 characters. Must be unique across the whole App Store, which is why it is not just `Here`; that one is taken. Listing name only: `app.config.js` still sets `Here` as the home-screen name, and that does not have to be unique. |
+| Name | `Here: for K-12 school staff` — 27 of the 30 characters Apple allows. Must be unique across the whole App Store, which is why it is not just `Here`; that one is taken. Listing name only: `app.config.js` still sets `Here` as the home-screen name, and that does not have to be unique. |
 | Subtitle | 30 characters, same page. Search indexes the name and the subtitle together, and the name already carries `school` and `staff`, so the subtitle can be the tagline: `A moment for yourself`. |
 | Primary language | English (U.S.) |
 | Bundle ID | `com.tendedcollective.here` |
@@ -232,9 +232,9 @@ any six digits so nobody is stuck at the door.
 
 ## App Review notes — copy this into the submission
 
-> Here is for school staff. Accounts are verified by emailing a code to a work
-> address, so a reviewer cannot sign up with a personal email — the app refuses
-> consumer domains such as icloud.com and gmail.com by design.
+> Here is for K-12 school staff. Accounts are verified by emailing a code to a
+> work address, so a reviewer cannot sign up with a personal email — the app
+> refuses consumer domains such as icloud.com and gmail.com by design.
 >
 > **To get in, use:**
 >

@@ -1,7 +1,11 @@
 # Here
 
-An iOS app for school staff: a daily check-in, a feed of what other people
+An iOS app for K-12 school staff: a daily check-in, a feed of what other people
 actually did to look after themselves, and a private record of what stuck.
+
+On the App Store it is listed as **Here: for K-12 school staff** — `Here` alone
+is taken, and a listing name has to be unique. The name under the icon on a
+phone is just **Here**, which does not.
 
 The app is in **`here-app/`**. Start with
 [`here-app/README.md`](here-app/README.md) for what it is and how it is built,
