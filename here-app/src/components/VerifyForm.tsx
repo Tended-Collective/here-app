@@ -30,8 +30,20 @@ export function VerifyForm({
   blocked = false,
   agreement,
   initialEmail = '',
+  translucent = false,
 }: {
   onVerified: (email: string) => void;
+  /**
+   * Softens the field from solid white to a wash the ground shows through.
+   *
+   * Sign-in asks for it. That screen is a photograph with the words set
+   * underneath it, and a hard white panel in the middle of it reads as a piece
+   * of a different app dropped on top — the one bright rectangle on a page
+   * whose whole palette is warm off-white. Sign-up keeps the solid field: it
+   * sits on the plain ground with no picture, where a translucent box has
+   * nothing to be translucent over and only loses the edge of the input.
+   */
+  translucent?: boolean;
   /**
    * Prefilled from the cover, where sign-up now starts. Typing an address on
    * the first screen and being handed an empty field on the next one is the
@@ -107,7 +119,7 @@ export function VerifyForm({
             }}
             placeholder="you@yourschool.edu"
             placeholderTextColor={color.faint}
-            style={styles.input}
+            style={[styles.input, translucent && styles.inputSoft]}
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
@@ -139,7 +151,7 @@ export function VerifyForm({
             }}
             placeholder={`${CODE_LENGTH}-digit code`}
             placeholderTextColor={color.faint}
-            style={styles.input}
+            style={[styles.input, translucent && styles.inputSoft]}
             keyboardType="number-pad"
             maxLength={CODE_LENGTH}
             accessibilityLabel={`The ${CODE_LENGTH} digit code sent to your school address`}
@@ -192,6 +204,16 @@ const styles = StyleSheet.create({
     outlineColor: color.accent,
     outlineWidth: 2,
     outlineOffset: 1,
+  },
+  /**
+   * The soft variant. `cardSoft` is the same 60% white the unselected mood
+   * rows use, so a translucent field here is not a one-off value — and the
+   * border goes with it, because a full-strength hairline round a washed-out
+   * box is the box you were trying not to draw.
+   */
+  inputSoft: {
+    backgroundColor: color.cardSoft,
+    borderColor: 'rgba(0,0,0,0.07)',
   },
   codeInput: {
     fontFamily: font.mono,

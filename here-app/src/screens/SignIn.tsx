@@ -102,6 +102,7 @@ export function SignIn({ onCreateAccount }: { onCreateAccount: () => void }) {
           ) : (
             <>
               <VerifyForm
+                translucent
                 onVerified={(address) => {
                   if (signIn(address)) return;
                   setProblem(
