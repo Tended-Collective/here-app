@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useChrome } from './components/PhoneFrame';
 import { DeleteAccountSheet } from './components/DeleteAccountSheet';
@@ -30,17 +30,39 @@ export function AppShell() {
    */
   const [door, setDoor] = useState<'signup' | 'signin'>('signup');
 
+  /**
+   * Every sign-out is a fresh arrival at the front door, whichever side of it
+   * they were last on.
+   *
+   * Without this the choice is sticky: sign in once through the Log in chip and
+   * `door` stays on `signin` for the rest of the process, so the *next* sign-out
+   * drops onto the lock screen again and the cover is never seen. Keyed on the
+   * timestamp, so moving between the two doors inside one signed-out session
+   * still works — it only resets when a new sign-out happens.
+   */
+  useEffect(() => {
+    if (signedOutAt !== null) setDoor('signup');
+  }, [signedOutAt]);
+
   // Nothing until storage has been read, or onboarding flashes over a returning
   // teacher's app for a frame.
   if (!hydrated) return <View style={styles.root} />;
 
-  // Signed out on purpose: the account is still here, so offer the lock rather
-  // than the whole sign-up story again.
-  if (onboardedAt !== null && signedOutAt !== null) {
-    return <SignIn onCreateAccount={() => setDoor('signup')} />;
-  }
-
-  if (onboardedAt === null) {
+  /**
+   * No session — either never signed up, or signed out on purpose. Both land on
+   * the front door, and the front door is the cover.
+   *
+   * Signing out used to drop straight onto the sign-in form. It was the shorter
+   * route and it was the wrong one: the button says *sign out*, and what should
+   * follow is the way out of the app, not a lock screen demanding you come
+   * straight back. Someone signing out at the end of term should get the front
+   * of the app the way anyone else sees it.
+   *
+   * Nothing is lost by the extra step. The cover carries a Log in chip, and
+   * typing the address this phone already holds signs you back in from there
+   * without going near sign-up (see Onboarding's `onStart`).
+   */
+  if (onboardedAt === null || signedOutAt !== null) {
     return door === 'signin' ? (
       <SignIn onCreateAccount={() => setDoor('signup')} />
     ) : (

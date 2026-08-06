@@ -82,7 +82,7 @@ const CONTEXT_STEP = IDENTITY_STEP + 1;
 const STEPS = CONTEXT_STEP + 1;
 
 export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
-  const { completeOnboarding } = useStore();
+  const { completeOnboarding, signIn } = useStore();
   const { topInset } = useChrome();
   const [step, setStep] = useState(0);
   // Guideline 1.2: users must agree to terms stating there is no tolerance for
@@ -156,6 +156,19 @@ export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
         <Cover
           onSignIn={onSignIn}
           onStart={(typed) => {
+            /**
+             * The address this phone is already signed up with is not the start
+             * of anything — it is someone coming back. Signing out returns here
+             * now, so this is the likeliest thing a returning teacher types,
+             * and walking them into sign-up to choose a username they already
+             * own would be the exact trap the sign-in screen was built to
+             * avoid.
+             *
+             * Returns false on a fresh phone and on any other address, and the
+             * normal path continues underneath.
+             */
+            if (typed && signIn(typed)) return;
+
             // An address means they are ready; the story is for the people who
             // are not, so it is skipped rather than sat through.
             if (typed) {

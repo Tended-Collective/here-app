@@ -36,7 +36,7 @@ export const SITE = {
    * here, so the part that describes behaviour is readable without a network.
    * These two are the legal documents, which have to be hosted to be versioned.
    */
-  terms: 'https://www.tendedcollective.com/terms-of-use/',
+  terms: 'https://www.tendedcollective.com/terms-of-use',
   privacy: 'https://www.tendedcollective.com/privacy-policy/',
 } as const;
 
@@ -519,11 +519,17 @@ export const BOUNDARY_SUGGESTIONS = [
   'Decline meetings without an agenda',
 ];
 
-/** What the paywall says you get. */
+/**
+ * What the paywall says you get.
+ *
+ * Every line here has to be a thing the app actually does. "Export your full
+ * record as a file" was on this list and was never built — a promise on a
+ * payment screen for a button that does not exist, which is a refund request
+ * at best and a 3.1.1 rejection at worst. It comes back when it is real.
+ */
 export const PLUS_BENEFITS = [
   'A self-care list as long as you want, not three items',
   'Every check-in you have ever made, not just this week',
   'Six weeks of every item on your list, week by week',
   'Month and semester views, and this year against last',
-  'Export your full record as a file',
 ];

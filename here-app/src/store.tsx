@@ -775,6 +775,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         update((prev) => ({
           ...prev,
           onboardedAt: Date.now(),
+          /**
+           * Finishing sign-up is a session, whatever came before it.
+           *
+           * This used to be left alone, which was harmless while a signed-out
+           * phone went straight to the lock screen and could not reach sign-up
+           * at all. Sign-out returns to the cover now, so somebody signing up
+           * on a phone that holds a signed-out account is a reachable path —
+           * and without this they would complete the whole flow and be handed
+           * the sign-in screen for the account they just replaced.
+           */
+          signedOutAt: null,
           educator: { verified: true, verifiedAt: Date.now() },
           // Recorded from what they actually did. Onboarding will not let anyone
           // reach this point without ticking the box, but the flag is passed
