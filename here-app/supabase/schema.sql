@@ -355,6 +355,70 @@ create trigger posts_stamp_edit
   before update on public.posts
   for each row execute function public.stamp_edit();
 
+-- ─── Asking questions the asker is not allowed to see the answer to ──────────
+--
+-- A policy's subquery is itself subject to row-level security. That sounds
+-- obvious written down and it silently broke two rules here.
+--
+-- `blocks` is readable only by the blocker. So when Carol read the feed, the
+-- posts policy asked "is there a block between Carol and this author?" — and
+-- the row saying *Alice blocked Carol* was invisible to Carol, so the answer
+-- came back no and Alice's posts stayed on Carol's screen. The block worked in
+-- the direction that matters least and failed in the one that protects someone.
+--
+-- `reports` is readable by nobody at all, so "did I report this?" was always no,
+-- and a reported post never disappeared for the person who reported it.
+--
+-- These three run as their owner, above RLS, so they see the rows the policies
+-- need. Each answers only about the caller — they take one other id and use
+-- auth.uid() for the other side — so none of them can be used to enumerate who
+-- blocked or reported whom.
+
+create or replace function public.blocked_with(other uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.blocks
+    where (blocker = auth.uid() and blocked = other)
+       or (blocker = other and blocked = auth.uid())
+  );
+$$;
+
+create or replace function public.i_reported_post(target uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.reports where reporter = auth.uid() and post_id = target
+  );
+$$;
+
+create or replace function public.i_reported_comment(target uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.reports where reporter = auth.uid() and comment_id = target
+  );
+$$;
+
+revoke all on function public.blocked_with(uuid) from public, anon;
+revoke all on function public.i_reported_post(uuid) from public, anon;
+revoke all on function public.i_reported_comment(uuid) from public, anon;
+grant execute on function public.blocked_with(uuid) to authenticated;
+grant execute on function public.i_reported_post(uuid) to authenticated;
+grant execute on function public.i_reported_comment(uuid) to authenticated;
+
 -- ─── Row Level Security ──────────────────────────────────────────────────────
 
 alter table public.profiles          enable row level security;
@@ -403,15 +467,8 @@ drop policy if exists posts_delete on public.posts;
 create policy posts_read on public.posts
   for select to authenticated using (
     not hidden
-    and not exists (
-      select 1 from public.blocks b
-      where (b.blocker = auth.uid() and b.blocked = posts.author)
-         or (b.blocker = posts.author and b.blocked = auth.uid())
-    )
-    and not exists (
-      select 1 from public.reports r
-      where r.reporter = auth.uid() and r.post_id = posts.id
-    )
+    and not public.blocked_with(posts.author)
+    and not public.i_reported_post(posts.id)
   );
 
 create policy posts_insert on public.posts
@@ -430,16 +487,11 @@ drop policy if exists comments_delete on public.comments;
 create policy comments_read on public.comments
   for select to authenticated using (
     not hidden
+    -- The post still has to be one you may read: its own policy applies to this
+    -- subquery, which here is the behaviour we want rather than the trap above.
     and exists (select 1 from public.posts p where p.id = comments.post_id)
-    and not exists (
-      select 1 from public.blocks b
-      where (b.blocker = auth.uid() and b.blocked = comments.author)
-         or (b.blocker = comments.author and b.blocked = auth.uid())
-    )
-    and not exists (
-      select 1 from public.reports r
-      where r.reporter = auth.uid() and r.comment_id = comments.id
-    )
+    and not public.blocked_with(comments.author)
+    and not public.i_reported_comment(comments.id)
   );
 
 create policy comments_insert on public.comments
