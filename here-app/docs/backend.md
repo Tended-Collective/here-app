@@ -241,6 +241,20 @@ will not get their codes.**
    - **Password:** the API key you just copied
 8. Click **Save**.
 
+### Raise the sending limit
+
+Supabase caps how many auth emails a project may send per hour, and the default
+is set for their shared service — small enough that the third person to sign up
+in an afternoon is simply refused.
+
+**Authentication** → **Rate Limits** → find the per-hour email limit and set it
+to at least **100**. You are paying Resend for the capacity; there is no reason
+to keep Supabase's training wheels on.
+
+Separately there is a fixed **one email per address per minute** cooldown. That
+one cannot be changed and does not need to be — the app names the remaining wait
+rather than telling people to try again, which is what it used to do.
+
 ### Prove the mail works before building anything
 
 A 25-minute build is a slow way to discover that email is broken.
