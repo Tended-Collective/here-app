@@ -144,9 +144,15 @@ This matters more than it sounds. The one thing this design cannot hide is that
 a district's mail server sees a message arrive. So the message must give nothing
 away about what the app is for.
 
+**Two templates, not one.** Supabase picks by who is asking: a brand-new address
+gets **Confirm signup**, an address that has signed in before gets **Magic
+Link**. Change only one and half your users receive a clickable link instead of
+a code — and the half that breaks is new sign-ups, which at the start of a pilot
+is everybody.
+
 1. Left sidebar → **Authentication**.
 2. In the sub-menu, click **Emails**.
-3. You will see a list of templates. Click **Magic Link**.
+3. Do everything below for **Confirm signup**, then repeat it for **Magic Link**.
 4. There is a **Subject heading** box. Delete what is in it and paste exactly:
 
    ```
@@ -161,7 +167,7 @@ away about what the app is for.
    <p>It expires in 10 minutes. If you did not ask for it, ignore this email.</p>
    ```
 
-6. Click **Save changes**.
+6. Click **Save changes** — then go back and do the other template.
 
 `{{ .Token }}` is the bit that turns this into a six-digit code instead of a
 clickable link. **This step is not optional.** Left alone, Supabase sends a
@@ -234,6 +240,19 @@ will not get their codes.**
    - **Username:** `resend`
    - **Password:** the API key you just copied
 8. Click **Save**.
+
+### Prove the mail works before building anything
+
+A 25-minute build is a slow way to discover that email is broken.
+
+1. Supabase → **Authentication** → **Users** → **Add user** → **Send
+   invitation**, to your own address.
+2. Check it arrives. Check junk too.
+3. Open Resend → **Emails**. Every message it attempted is listed with a status.
+   **Delivered** is what you want. **Bounced**, or no row at all, means the SMTP
+   settings are wrong — and Resend usually says which part.
+
+That page stays the first place to look for anything email-related.
 
 ---
 
