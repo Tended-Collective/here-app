@@ -241,15 +241,21 @@ will not get their codes.**
 
 ## Step 9. Copy the two keys
 
-1. In Supabase: **Project Settings** (gear, bottom left) → **API**.
-2. You need two things off this page. Paste each into a scratch note as you go:
-   - **Project URL** — looks like `https://abcdefgh.supabase.co`
-   - Under **Project API keys**, the one labelled **`anon` `public`** — a very
-     long string starting `eyJ`
+1. In Supabase: **Project Settings** (gear, bottom left) → **API Keys**.
+2. You need two things. Paste each into a scratch note as you go:
+   - **Project URL** — looks like `https://abcdefgh.supabase.co`. If it is not
+     on this page it is on the neighbouring **Data API** one.
+   - the **publishable key** — starts `sb_publishable_`
 
-> **Do not touch the key labelled `service_role`.** It bypasses every security
-> rule you just installed. It must never go in the app, in the repository, in an
-> email, or in a chat message. It stays on this page.
+> **Take the publishable key, not the secret key.** The secret one bypasses
+> every security rule you just installed. It must never go in the app, in the
+> repository, in an email, or in a chat message. It stays on this page.
+
+> **On the names.** Supabase renamed these. Anywhere you read *anon key*, that
+> is now the **publishable key**; *service_role* is now the **secret key**. The
+> old anon key was a long JWT starting `eyJ`, the new one starts
+> `sb_publishable_`. Either format works — `src/lib/backend.ts` accepts both,
+> and the client library recognises the new prefixes.
 
 ## Step 10. Open a place to type commands
 
@@ -300,7 +306,7 @@ npx eas-cli secret:create --scope project --name EXPO_PUBLIC_SUPABASE_URL --valu
 ```
 
 ```
-npx eas-cli secret:create --scope project --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value eyJ...
+npx eas-cli secret:create --scope project --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value sb_publishable_...
 ```
 
 The first time you run `npx eas-cli` it will ask to install something — answer
