@@ -40,7 +40,13 @@ const IS_PRODUCTION = process.env.APP_VARIANT !== 'development';
  * submission — is the kind of thing that gets discovered by Apple.
  */
 const HAS_BACKEND = Boolean(
-  process.env.EXPO_PUBLIC_SUPABASE_URL && process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+  process.env.EXPO_PUBLIC_SUPABASE_URL &&
+    // Either name, matching src/lib/backend.ts. Supabase renamed the `anon` key
+    // to the publishable key; both go in the same slot. If these two files ever
+    // disagree about which variable counts, the app talks to a server while the
+    // privacy declaration says it collects nothing — so they are kept in step.
+    (process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY),
 );
 
 module.exports = {

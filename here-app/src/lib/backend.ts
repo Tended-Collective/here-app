@@ -35,7 +35,28 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+
+/**
+ * The key that identifies this project to Supabase.
+ *
+ * Two names because Supabase renamed the thing. The dashboard used to offer an
+ * `anon` key — a JWT — and now offers a **publishable key** starting
+ * `sb_publishable_`. They go in the same slot and the client accepts either;
+ * only the label changed.
+ *
+ * Both variable names are read so that a build does not silently lose its
+ * backend the day somebody updates the name to match the dashboard. That
+ * failure would be quiet in the worst way: the app would fall back to
+ * device-only, and `app.config.js` would file an App Store privacy declaration
+ * saying it collects nothing — while the previous build, still installed on
+ * people's phones, was collecting.
+ *
+ * `EXPO_PUBLIC_SUPABASE_ANON_KEY` is the one docs/backend.md tells you to set.
+ */
+const ANON_KEY =
+  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
+  '';
 
 /**
  * True when this build has a server behind it.
