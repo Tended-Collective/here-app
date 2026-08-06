@@ -9,9 +9,8 @@ dist/
 web-build/
 expo-env.d.ts
 
-# The browser version, built by web/build-try.py. Not committed: the build is
-# where the Supabase key gets injected, so a checked-in copy would be the one
-# without it — downloaded, hosted, and silently collecting nothing.
+# The browser demo, built by web/build-try.py. Not committed: it is 2.4MB of
+# generated output that would be rewritten whole on every change to any screen.
 try/
 
 # Native

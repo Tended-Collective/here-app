@@ -1,21 +1,22 @@
 """
-Build the public browser version: the app plus the pilot survey, two files.
+Build the browser demo: the app as one file, with no server behind it.
 
-    python3 web/build-try.py                      # writes try/
-    python3 web/build-try.py --key=sb_publish...  # …with the form connected
+    python3 web/build-try.py                  # writes try/index.html
+    python3 web/build-try.py --skip-export    # reuse the last export
 
-Why this exists at all: testers were failing to get through TestFlight. Apple's
-invite flow asks a teacher to install a second app, accept an invitation from an
-email that often lands in junk, and trust a build labelled as unreleased. A link
-is one tap, so this makes one.
+Why this exists: testers were failing to get through TestFlight. Apple's invite
+flow asks a teacher to install a second app, accept an invitation from an email
+that often lands in junk, and trust a build labelled as unreleased. Some never
+arrived, and a tester who cannot open the app has no opinion to give us. So
+there is a link.
 
-The output is a folder of two ordinary files with no server behind them:
+The output is one file, `try/index.html`, around 2.4MB — the app, its bundle,
+its fonts and its illustrations, all inside it. It is named index.html so the
+host serves it at the bare address rather than at `/app.html`. Drop the folder
+on any static host and the URL is the demo.
 
-    try/index.html   the page — intro, the app in a phone frame, the survey
-    try/app.html     the app itself, self-contained, ~2.4MB
-
-They are relative to each other and to nothing else, so the folder can be
-dropped on any static host and it works.
+The page it sits inside — the intro, the survey — is built in Squarespace, not
+here. See docs/try.md, which has the copy and the code block to paste.
 
 ─── The part worth being careful about ─────────────────────────────────────────
 
@@ -23,16 +24,15 @@ The demo must not touch the real backend. If it did, a stranger poking at a
 public page would need a real emailed code to get past the door, and anything
 they wrote would land in the same database as the pilot's actual posts.
 
-So the export below runs with the Supabase variables stripped from the
-environment. `BACKEND_CONFIGURED` then comes out false and the app falls back to
-what it did before the server existed: any six digits opens it, posts stay in
-the browser, the feed is the sample one. There is a check after the export that
-refuses to write anything if a project URL made it into the bundle regardless —
-a build that silently kept the backend is the one failure here that would matter,
-so it is a hard stop rather than a warning.
+So the export runs with the Supabase variables stripped from the environment.
+`BACKEND_CONFIGURED` then comes out false and the app falls back to what it did
+before the server existed: any six digits opens it, posts stay in the browser,
+the feed is the sample one. There is a check afterwards that refuses to write
+anything if a project URL or a key made it into the bundle regardless — a build
+that silently kept the backend is the one failure here that would matter, so it
+is a hard stop rather than a warning.
 """
 
-import base64
 import os
 import pathlib
 import re
@@ -44,12 +44,6 @@ WEB = pathlib.Path(__file__).resolve().parent
 APP = WEB.parent
 OUT = APP / 'try'
 
-FONTS = {
-    '__NEWSREADER_300__': '@expo-google-fonts/newsreader/300Light/Newsreader_300Light.ttf',
-    '__NEWSREADER_400__': '@expo-google-fonts/newsreader/400Regular/Newsreader_400Regular.ttf',
-    '__PLEXMONO_500__': '@expo-google-fonts/ibm-plex-mono/500Medium/IBMPlexMono_500Medium.ttf',
-}
-
 # Everything that switches the app on to a server. Cleared for the export, and
 # checked for afterwards.
 BACKEND_VARS = (
@@ -58,42 +52,45 @@ BACKEND_VARS = (
     'EXPO_PUBLIC_SUPABASE_ANON_KEY',
 )
 
-
-def publishable_key() -> str:
-    """
-    The key the survey posts with, from the command line, the environment or
-    `.env` — in that order, first one wins.
-
-    It is safe in a public page. A publishable key names the project and grants
-    nothing by itself; what keeps the answers private is the database, where the
-    feedback table allows an insert from anyone and a read from nobody. The one
-    that must never appear here is the secret key, so anything shaped like one
-    is refused rather than pasted into a file the whole internet can read.
-    """
-    found = ''
-    for arg in sys.argv[1:]:
-        if arg.startswith('--key='):
-            found = arg[len('--key=') :].strip()
-    if not found:
-        found = (os.environ.get('EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY') or '').strip()
-    if not found:
-        env = APP / '.env'
-        if env.exists():
-            for line in env.read_text(encoding='utf-8').splitlines():
-                name, _, value = line.partition('=')
-                if name.strip() == 'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY':
-                    found = value.strip().strip('"').strip("'")
-
-    if found.startswith('sb_secret_') or found.startswith('service_role'):
-        sys.exit('that is the secret key — it must never go in a public page')
-    return found
-
-
-def b64(rel: str) -> str:
-    path = APP / 'node_modules' / rel
-    if not path.exists():
-        sys.exit(f'missing {path} — run npm install first')
-    return base64.b64encode(path.read_bytes()).decode('ascii')
+# ─────────────────────────────────────────────────────────────────────────────
+# Two things the demo needs that the app does not, injected here rather than
+# added to the source. Neither should ever ship to a phone.
+#
+# `?reset` — the page framing this lives on another domain, so its "start
+# again" button cannot reach in and clear storage; that is a security rule, not
+# a bug. What it can do is point the frame at a new address, so the demo reads
+# one.
+#
+# The storage fallback — Safari refuses storage to a frame from another domain
+# under settings a lot of people have on, and iPhone teachers are most of this
+# audience. Without this the app throws on boot and they get a white rectangle.
+# With it they get a demo that forgets on refresh, which is a demo.
+# ─────────────────────────────────────────────────────────────────────────────
+DEMO_SHIM = """<script>
+(function () {
+  try {
+    window.localStorage.setItem('__probe__', '1');
+    window.localStorage.removeItem('__probe__');
+  } catch (e) {
+    var mem = {};
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: function (k) { return k in mem ? mem[k] : null; },
+        setItem: function (k, v) { mem[k] = String(v); },
+        removeItem: function (k) { delete mem[k]; },
+        clear: function () { mem = {}; },
+        key: function (i) { var ks = Object.keys(mem); return i < ks.length ? ks[i] : null; },
+        get length() { return Object.keys(mem).length; }
+      }
+    });
+  }
+  if (/[?&]reset\\b/.test(window.location.search)) {
+    try { window.localStorage.clear(); } catch (e) {}
+  }
+})();
+</script>
+"""
 
 
 def run(command: list[str], env: dict) -> None:
@@ -106,8 +103,8 @@ def run(command: list[str], env: dict) -> None:
 
 env = {k: v for k, v in os.environ.items() if k not in BACKEND_VARS}
 if '--skip-export' in sys.argv:
-    # For editing the page around the app, which is most of the editing. The
-    # check below still runs, so this cannot be the way a backend sneaks in.
+    # For iterating on the shim, which is the only thing here worth iterating
+    # on. The check below still runs, so this cannot be how a backend sneaks in.
     print('skipping the export — reusing dist/here-app.html')
 else:
     # Metro caches transformed modules, and the cache is keyed on the file
@@ -122,10 +119,12 @@ if not built.exists():
     sys.exit(f'{built} is not there — run without --skip-export')
 app = built.read_text(encoding='utf-8')
 
+# ─── 2. Prove there is no backend in it ──────────────────────────────────────
+
 # Patterns for a *value*, not a mention. The Supabase library itself contains
 # the string `supabase.co` in its wildcard list and both key prefixes in a
-# comparison, so a plain substring search fails every build. What must not be
-# here is a project host or a key that somebody could actually use.
+# comparison, so a plain substring search fails every build — and a check that
+# fails every build is a check somebody deletes.
 LEAKS = {
     'a project URL': r'https://[a-z0-9]{16,}\.supabase\.(?:co|in)',
     'a publishable key': r'sb_publishable_[A-Za-z0-9_-]{12,}',
@@ -140,44 +139,28 @@ if leaked:
     )
 print('checked: no project URL and no key in the demo build')
 
-# ─── 2. The page around it ───────────────────────────────────────────────────
+# ─── 3. Add the shim and write it out ────────────────────────────────────────
 
-page = (WEB / 'try.src.html').read_text(encoding='utf-8')
-for placeholder, rel in FONTS.items():
-    if placeholder not in page:
-        sys.exit(f'placeholder {placeholder} is missing from try.src.html')
-    page = page.replace(placeholder, b64(rel))
+# Before everything else in the head, so it is in place by the time the bundle
+# reads storage. `<head>` is the export's own, not something this file writes.
+if '<head>' not in app:
+    sys.exit('no <head> in the export — has the layout changed?')
+app = app.replace('<head>', '<head>\n' + DEMO_SHIM, 1)
 
-key = publishable_key()
-if key:
-    page = page.replace('PASTE_YOUR_PUBLISHABLE_KEY_HERE', key)
-    print('the survey is connected — answers will reach Supabase')
-else:
-    print('no publishable key found — the survey will say it is not connected')
-
-# The sources here are fragments, the way the preview pages are. A file served
-# off a real host needs the document around it — and it needs the viewport tag,
-# or a phone lays the page out at desktop width and then shrinks the lot.
-title, _, rest = page.partition('\n')
-if not title.startswith('<title>'):
-    sys.exit('try.src.html should start with its <title>')
-page = (
-    '<!doctype html>\n<html lang="en">\n<head>\n'
-    '<meta charset="utf-8" />\n'
-    '<meta name="viewport" content="width=device-width, initial-scale=1" />\n'
-    # Not a page to be found by searching. It is for people holding the link.
-    '<meta name="robots" content="noindex" />\n'
-    f'{title}\n</head>\n<body>\n'
-    + rest.strip()
-    + '\n</body>\n</html>\n'
-)
-
-# ─── 3. Write the folder ─────────────────────────────────────────────────────
+# A demo is not a page to be found by searching. It is for people holding the
+# link, and an indexed copy of a fake feed is not what should come up for Here.
+app = app.replace('<head>', '<head>\n<meta name="robots" content="noindex" />', 1)
 
 OUT.mkdir(exist_ok=True)
-(OUT / 'index.html').write_text(page, encoding='utf-8')
-shutil.copyfile(APP / 'dist' / 'here-app.html', OUT / 'app.html')
+(OUT / 'index.html').write_text(app, encoding='utf-8')
 
-for name in ('index.html', 'app.html'):
-    size = (OUT / name).stat().st_size
-    print(f'try/{name}  {size // 1024} KB')
+# There was a second file here once: a standalone page with the intro and the
+# survey on it, posting to a Supabase table. The survey moved to a Squarespace
+# form, which the site owner can edit without a build, so the page went with it.
+# Clear the old one out rather than leaving a stale copy to be uploaded.
+stale = OUT / 'app.html'
+if stale.exists():
+    stale.unlink()
+
+print(f'try/index.html  {(OUT / "index.html").stat().st_size // 1024} KB')
+print('upload the try/ folder — see docs/try.md')
