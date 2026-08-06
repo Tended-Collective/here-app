@@ -29,13 +29,16 @@
  * hell, and comes back has not failed at anything. An app that shows them a
  * snapped chain is telling them they have.
  *
- * So an item is not finished, it is *sticking*: kept in at least four of the last
- * six weeks. A bad week cannot erase it and there is nothing to break. Beside it
- * sits the only other honest number — how many times in total, and since when.
+ * So an item is never finished and never broken. What it has instead is a count:
+ * how many days in total, since when, and — on Here+ — how many days in each of
+ * the last six weeks, printed on the strip rather than summarised as a verdict.
  *
- * The verdict is free; the record behind it is Here+. Free shows this week, the
- * lifetime count and whether it is sticking. Here+ adds the six-week strip and
- * the week-by-week reading, which is the same line the check-in record draws.
+ * There used to be a verdict. An item kept in four of six weeks earned a
+ * STICKING badge. It has been taken out: the badge was the app telling a teacher
+ * whether their own week counted, which is not its call to make, and the numbers
+ * underneath it were already the honest version.
+ *
+ * Free shows this week and the lifetime count. Here+ adds the six-week strip.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -60,9 +63,8 @@ import { RecordScreen } from './RecordScreen';
 
 const DAY_COL = 22;
 
-/** Weeks in the strip, and how many of them an item has to survive to stick. */
+/** Weeks in the strip. */
 const STRIP_WEEKS = 6;
-const STICKING_WEEKS = 4;
 
 /**
  * One item's history, reduced to the three things worth saying about it.
@@ -71,6 +73,11 @@ const STICKING_WEEKS = 4;
  * a week with nothing in it is the most informative bar on the strip, so the
  * series is built from the last six Mondays rather than from whichever dates
  * happen to have ticks.
+ *
+ * There was a fourth thing here: a STICKING verdict, true once an item survived
+ * four of the six weeks. It is gone. The word was doing the work of a judgement
+ * the app has no business making — the counts below are what happened, and the
+ * teacher can read them.
  */
 function history(done: ISODate[], today: ISODate) {
   const ticked = new Set(done);
@@ -79,10 +86,17 @@ function history(done: ISODate[], today: ISODate) {
     days: weekDates(new Date(`${start}T12:00:00`)).filter((d) => ticked.has(d)).length,
   }));
   const active = weeks.filter((w) => w.days > 0).length;
-  return { weeks, active, total: done.length, sticking: active >= STICKING_WEEKS };
+  return { weeks, active, total: done.length };
 }
 
-export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void }) {
+export function ProfileScreen({
+  onEditProfile,
+  onOpenPosts,
+}: {
+  onEditProfile?: () => void;
+  /** Opens this teacher's own page — everything they have posted, in one list. */
+  onOpenPosts?: () => void;
+}) {
   const {
     practices,
     practiceDays,
@@ -162,18 +176,32 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
         <Stat value={String(keptThisWeek)} label="DONE THIS WEEK" />
       </View>
 
-      {/* One button, not the pair Threads shows. There is nowhere to share a
-          profile to yet, and a button that does nothing is worse than a gap. */}
-      {onEditProfile && (
-        <Pressable
-          onPress={onEditProfile}
-          accessibilityRole="button"
-          accessibilityLabel="Edit your profile in Settings"
-          style={styles.edit}
-        >
-          <Text style={styles.editLabel}>Edit profile</Text>
-        </Pressable>
-      )}
+      {/* Two buttons: change how you appear, or read back what you have
+          actually said. Sharing a profile is still not one of them — there is
+          nowhere to share it to, and a button that does nothing is worse than
+          a gap. */}
+      <View style={styles.editRow}>
+        {onEditProfile && (
+          <Pressable
+            onPress={onEditProfile}
+            accessibilityRole="button"
+            accessibilityLabel="Edit your profile in Settings"
+            style={styles.edit}
+          >
+            <Text style={styles.editLabel}>Edit profile</Text>
+          </Pressable>
+        )}
+        {onOpenPosts && (
+          <Pressable
+            onPress={onOpenPosts}
+            accessibilityRole="button"
+            accessibilityLabel="See everything you have posted"
+            style={styles.edit}
+          >
+            <Text style={styles.editLabel}>My posts</Text>
+          </Pressable>
+        )}
+      </View>
 
       {/* The week chart, the insight and the Here+ lock. */}
       <View style={{ marginTop: 26 }}>
@@ -301,7 +329,7 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
                 })}
               </View>
 
-              {/* The two honest numbers, and the verdict. No target, no streak —
+              {/* The two honest numbers. No verdict, no target, no streak —
                   see the note at the top of the file. */}
               <View style={styles.metaRow}>
                 <MonoLabel size={9} em={0.08} tone={color.faint}>
@@ -313,19 +341,17 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
                     .filter(Boolean)
                     .join(' · ')}
                 </MonoLabel>
-                {past.sticking && (
-                  <View style={styles.sticking}>
-                    <MonoLabel size={8.5} em={0.08} tone={color.accent}>
-                      STICKING
-                    </MonoLabel>
-                  </View>
-                )}
               </View>
 
               {/* Six weeks, oldest on the left. Dimmed rather than removed on the
                   free plan, the same way the check-in record shows its locked
                   chart: the shape of what is behind the wall is the honest thing
-                  to show, and an empty space says nothing. */}
+                  to show, and an empty space says nothing.
+
+                  Each track carries its own day count. A part-filled track two
+                  sevenths along and one three sevenths along are four pixels
+                  apart on a phone, and the sentence that used to explain the
+                  strip underneath it has been replaced by the numbers on it. */}
               <View
                 style={[styles.strip, !plusActive && styles.stripLocked]}
                 accessibilityLabel={
@@ -342,16 +368,26 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
                     accessibilityLabel={`Week of ${shortDateLabel(w.start)}, ${w.days} ${
                       w.days === 1 ? 'day' : 'days'
                     }`}
-                    style={styles.stripTrack}
+                    style={styles.stripCol}
                   >
-                    {w.days > 0 && (
-                      <View
-                        style={[
-                          styles.stripFill,
-                          { width: `${(w.days / 7) * 100}%`, backgroundColor: p.border },
-                        ]}
-                      />
-                    )}
+                    <View style={styles.stripTrack}>
+                      {w.days > 0 && (
+                        <View
+                          style={[
+                            styles.stripFill,
+                            { width: `${(w.days / 7) * 100}%`, backgroundColor: p.border },
+                          ]}
+                        />
+                      )}
+                    </View>
+                    <MonoLabel
+                      size={8.5}
+                      em={0.04}
+                      tone={w.days > 0 ? color.faint : color.fainter}
+                      style={styles.stripCount}
+                    >
+                      {w.days}
+                    </MonoLabel>
                   </View>
                 ))}
               </View>
@@ -369,13 +405,6 @@ export function ProfileScreen({ onEditProfile }: { onEditProfile?: () => void })
           >
             <Text style={styles.stripCtaLabel}>See the last six weeks with Here+ →</Text>
           </Pressable>
-        )}
-
-        {practices.length > 0 && plusActive && (
-          <Body size={12} tone={color.faint} style={{ marginTop: 12 }}>
-            Each strip is the last six weeks, oldest on the left. Four of six is what counts as
-            sticking — a bad week does not undo the rest.
-          </Body>
         )}
 
         {/* The free plan's cap. Stated as what it is, with the price of lifting
@@ -460,18 +489,18 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 10,
   },
-  sticking: {
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: color.accentBorderSoft,
-  },
   strip: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 5,
     marginTop: 9,
+  },
+  stripCol: {
+    flex: 1,
+    gap: 3,
+  },
+  stripCount: {
+    textAlign: 'center',
   },
   stripLocked: {
     opacity: 0.28,
@@ -484,7 +513,7 @@ const styles = StyleSheet.create({
    * which is the comparison the strip is for.
    */
   stripTrack: {
-    flex: 1,
+    width: '100%',
     height: 7,
     borderRadius: 99,
     backgroundColor: color.track,
@@ -535,9 +564,14 @@ const styles = StyleSheet.create({
   headText: {
     flex: 1,
   },
-  edit: {
-    height: 42,
+  editRow: {
+    flexDirection: 'row',
+    gap: 8,
     marginTop: 18,
+  },
+  edit: {
+    flex: 1,
+    height: 42,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: color.outline,

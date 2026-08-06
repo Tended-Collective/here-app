@@ -21,7 +21,6 @@ import {
   normalizeUsername,
   problemMessage,
   suggestUsernames,
-  USERNAME_MIN,
   validateUsername,
 } from '../lib/usernames';
 import { color, radius } from '../theme';
@@ -118,23 +117,27 @@ export function UsernameField({
         {state === 'available' && <Text style={styles.tick}>✓</Text>}
       </View>
 
-      <Text
-        style={[
-          styles.note,
-          state === 'available' && styles.noteGood,
-          (state === 'taken' || state === 'invalid') && styles.noteBad,
-        ]}
-      >
-        {state === 'empty'
-          ? `One per person, ${USERNAME_MIN}+ characters. This is how people follow you.`
-          : state === 'invalid'
+      {/* Nothing before they type. The line that used to sit under an empty box
+          explained what a username is for; every state below is a verdict on
+          what is actually in the box. A taken name is not left as a dead end —
+          the free alternatives underneath are the way out of it. */}
+      {state !== 'empty' && (
+        <Text
+          style={[
+            styles.note,
+            state === 'available' && styles.noteGood,
+            (state === 'taken' || state === 'invalid') && styles.noteBad,
+          ]}
+        >
+          {state === 'invalid'
             ? problemMessage((validity as { ok: false; reason: never }).reason)
             : state === 'checking'
               ? 'Checking…'
               : state === 'taken'
-                ? `@${normalized} is taken.`
+                ? `@${normalized} is taken. Pick another, or take one of these:`
                 : `@${normalized} is yours.`}
-      </Text>
+        </Text>
+      )}
 
       {suggestions.length > 0 && (
         <View style={styles.suggestions}>

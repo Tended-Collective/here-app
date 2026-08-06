@@ -113,6 +113,13 @@ export type Update = {
    * metadata, which an anonymous feed cannot pass on.
    */
   photo?: string;
+  /**
+   * When the text was last rewritten, if it ever was. Present so the post can
+   * say EDITED: a sentence that changed after people replied to it should say
+   * so, and a feed where posts can be silently rewritten is a feed where a
+   * comment can be made to answer something nobody said.
+   */
+  editedAt?: number;
 };
 
 type Persisted = {
@@ -450,6 +457,8 @@ function seed(): Persisted {
 
 type StoreValue = Persisted & {
   hydrated: boolean;
+  /** Re-read the device's copy of the store. What pull-to-refresh calls. */
+  refresh: () => Promise<void>;
   /** True while the trial has days left on it. */
   plusActive: boolean;
   /**
@@ -472,6 +481,11 @@ type StoreValue = Persisted & {
   renamePractice: (practiceId: string, label: string) => void;
   setContributing: (on: boolean) => void;
   postUpdate: (text: string, photo?: string | null) => void;
+  /**
+   * Rewrite one of your own posts, keeping its id — so the comments already
+   * under it, and any like or repost pointing at it, survive the edit.
+   */
+  editUpdate: (id: string, text: string) => void;
   removeUpdate: (id: string) => void;
   toggleLike: (postId: string) => void;
   /** Pass someone else's post on to your own followers. */
@@ -563,6 +577,21 @@ export const COMMENT_MAX_LENGTH = 280;
 
 const StoreContext = createContext<StoreValue | null>(null);
 
+/**
+ * Read the whole store off the device. Shared by the first hydration and by
+ * pull-to-refresh, so a refresh cannot drift from what a cold start would show.
+ */
+async function readPersisted(): Promise<Persisted> {
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    if (raw) return migrate({ ...EMPTY, ...(JSON.parse(raw) as Partial<Persisted>) });
+  } catch {
+    // A corrupt or unreadable payload falls back to the default state rather
+    // than blocking the check-in.
+  }
+  return SEED_FIRST_RUN ? seed() : EMPTY;
+}
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<Persisted>(EMPTY);
   const [hydrated, setHydrated] = useState(false);
@@ -570,14 +599,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      let next = SEED_FIRST_RUN ? seed() : EMPTY;
-      try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (raw) next = migrate({ ...EMPTY, ...(JSON.parse(raw) as Partial<Persisted>) });
-      } catch {
-        // A corrupt or unreadable payload falls back to the default state rather
-        // than blocking the check-in.
-      }
+      const next = await readPersisted();
       if (!cancelled) {
         setData(next);
         setHydrated(true);
@@ -586,6 +608,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  /**
+   * What the pull-down gesture actually does.
+   *
+   * There is no server to poll, so this does the one real thing available: it
+   * re-reads the row this app is stored in. That is not theatre — the store is
+   * a single AsyncStorage key, and a second window on the web preview, or the
+   * app coming back after iOS reclaimed it, can both leave this copy of it
+   * stale. What refresh must never be is a spinner that resolves to nothing;
+   * when the feed is real, the fetch goes here and the gesture stays the same.
+   */
+  const refresh = useCallback(async () => {
+    setData(await readPersisted());
   }, []);
 
   const update = useCallback((fn: (prev: Persisted) => Persisted) => {
@@ -602,6 +638,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ...data,
       hydrated,
+      refresh,
       plusActive: daysLeft > 0,
       trialDaysLeft: daysLeft,
       listLimit: daysLeft > 0 ? Infinity : FREE_LIST_LIMIT,
@@ -672,6 +709,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ...(photo ? { photo } : {}),
           };
           return { ...prev, updates: [entry, ...prev.updates] };
+        }),
+      editUpdate: (id, text) =>
+        update((prev) => {
+          const trimmed = text.trim().slice(0, UPDATE_MAX_LENGTH);
+          if (!trimmed) return prev;
+          return {
+            ...prev,
+            // `at` is not touched. An edit is not a repost — moving the post
+            // back to the top of the day would be a way to bump yourself, and
+            // the timestamp is when the thing happened, not when it was typed.
+            updates: prev.updates.map((u) =>
+              u.id === id ? { ...u, text: trimmed, editedAt: Date.now() } : u,
+            ),
+          };
         }),
       removeUpdate: (id) =>
         update((prev) => ({ ...prev, updates: prev.updates.filter((u) => u.id !== id) })),
@@ -903,7 +954,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         setData(EMPTY);
       },
     }),
-    [data, hydrated, daysLeft, update],
+    [data, hydrated, daysLeft, update, refresh],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

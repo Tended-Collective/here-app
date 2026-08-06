@@ -42,8 +42,19 @@ const QUALITY = 0.72;
 export const PICKER_CONFIGURED = true;
 
 /**
- * Opens the picker and returns a data URI, or null if the teacher cancelled, or
- * declined access, or the image could not be read.
+ * Whether the camera is reachable, and so whether the composer offers a second
+ * button beside the library one.
+ *
+ * iOS only. On the web `launchCameraAsync` falls back to the same file dialog
+ * as the library path, so two buttons there would be two names for one thing;
+ * the simulator has no camera either, but it declines gracefully rather than
+ * crashing, which is the same outcome as a teacher tapping Cancel.
+ */
+export const CAMERA_AVAILABLE = Platform.OS !== 'web';
+
+/**
+ * Opens the library and returns a data URI, or null if the teacher cancelled,
+ * or declined access, or the image could not be read.
  */
 export async function pickPhoto(): Promise<string | null> {
   if (Platform.OS === 'web') {
@@ -53,12 +64,6 @@ export async function pickPhoto(): Promise<string | null> {
     return downscaleOnWeb(file);
   }
 
-  return pickOnDevice();
-}
-
-// ─── Native ──────────────────────────────────────────────────────────────────
-
-async function pickOnDevice(): Promise<string | null> {
   /**
    * Ask only when iOS has not already answered. `requestMediaLibraryPermissions`
    * is safe to call repeatedly — after a denial it returns the denial without
@@ -74,21 +79,61 @@ async function pickOnDevice(): Promise<string | null> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) return null;
 
-  const picked = await ImagePicker.launchImageLibraryAsync({
-    // 'images' only — no video, no live photos. A live photo would smuggle in a
-    // paired video, and the feed shows one still image per post.
-    mediaTypes: ['images'],
-    allowsMultipleSelection: false,
-    // Not asked for, so the asset comes back without a metadata dictionary. The
-    // real guarantee is the re-encode below; this just avoids reading it.
-    exif: false,
-    // No base64 from the picker: it would be the *original* file's bytes, which
-    // is exactly what must not be stored. The manipulator produces ours.
-    base64: false,
-    // No crop UI. One tap fewer, and cropping is not what a post is about.
-    allowsEditing: false,
-  });
+  return normalize(
+    await ImagePicker.launchImageLibraryAsync({
+      // 'images' only — no video, no live photos. A live photo would smuggle in
+      // a paired video, and the feed shows one still image per post.
+      mediaTypes: ['images'],
+      allowsMultipleSelection: false,
+      // Not asked for, so the asset comes back without a metadata dictionary.
+      // The real guarantee is the re-encode below; this just avoids reading it.
+      exif: false,
+      // No base64 from the picker: it would be the *original* file's bytes,
+      // which is exactly what must not be stored. The manipulator produces ours.
+      base64: false,
+      // No crop UI. One tap fewer, and cropping is not what a post is about.
+      allowsEditing: false,
+    }),
+  );
+}
 
+/**
+ * Takes a photo now, rather than choosing one already taken.
+ *
+ * Worth having as its own button because the two are different acts. Choosing
+ * from the library means going and finding something; the composer asks what
+ * you did for yourself *today*, and the answer is often sitting in front of the
+ * person — the lunch away from the desk, the walk, the empty classroom at 4.
+ *
+ * It goes through exactly the same downscale-and-re-encode as the library path,
+ * so a camera shot is stripped of its GPS and its capture time the same way. A
+ * photo taken in a classroom is the one most likely to carry both.
+ */
+export async function takePhoto(): Promise<string | null> {
+  // On the web this resolves to the same file dialog, so use the one path that
+  // is actually tested there.
+  if (Platform.OS === 'web') return pickPhoto();
+
+  const permission = await ImagePicker.requestCameraPermissionsAsync();
+  if (!permission.granted) return null;
+
+  return normalize(
+    await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      exif: false,
+      base64: false,
+      allowsEditing: false,
+    }),
+  );
+}
+
+// ─── Native ──────────────────────────────────────────────────────────────────
+
+/**
+ * The shared tail of both native paths: whatever the picker or the camera
+ * handed back, downscaled and re-encoded into bytes we made.
+ */
+async function normalize(picked: ImagePicker.ImagePickerResult): Promise<string | null> {
   if (picked.canceled) return null;
 
   const asset = picked.assets?.[0];

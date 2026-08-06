@@ -82,6 +82,19 @@ export function RecordScreen() {
             const dim = !entry && date > today;
             return (
               <View key={date} style={[styles.column, { opacity: dim ? 0.4 : 1 }]}>
+                {/* The number the bar is drawing. A height is a comparison and
+                    nothing more — two bars a few pixels apart are the same bar
+                    to the eye, and the score is the thing that was actually
+                    recorded. Above the bar rather than inside it, because the
+                    shortest bar has no room inside it at all. */}
+                <MonoLabel
+                  size={10}
+                  em={0.02}
+                  bold={isToday}
+                  tone={entry ? color.body : 'transparent'}
+                >
+                  {entry ? String(entry.score) : '0'}
+                </MonoLabel>
                 {entry ? (
                   <View
                     style={[
@@ -173,6 +186,12 @@ export function RecordScreen() {
         <View style={[styles.sixChart, !plusActive && styles.blurred]}>
           {sixWeeks.map((wk) => (
             <View key={wk.start} style={styles.sixCol}>
+              {/* The week's average, to one decimal. Six bars across a phone
+                  card differ by a couple of pixels between a 3.2 week and a
+                  3.4 one; the number is the only way to read that. */}
+              <MonoLabel size={9} em={0.02} tone={wk.days > 0 ? color.body : 'transparent'}>
+                {wk.days > 0 ? wk.average.toFixed(1) : '0'}
+              </MonoLabel>
               <View style={styles.sixBarSlot}>
                 {wk.days > 0 ? (
                   <View
@@ -195,12 +214,16 @@ export function RecordScreen() {
           ))}
         </View>
 
+        {/* The line that used to sit here — "N of 6 weeks logged. Taller means
+            a harder week." — is gone. The averages are now printed over the
+            bars, which says the same thing without a sentence explaining the
+            chart to the person whose weeks they are. */}
         {plusActive ? (
-          <Body size={12.5} tone={color.muted} style={{ marginTop: 12 }}>
-            {logged.length === 0 && sixWeeks.every((w) => w.days === 0)
-              ? 'Nothing logged yet. Each bar fills in as a week goes by.'
-              : `${sixWeeks.filter((w) => w.days > 0).length} of 6 weeks logged. Taller means a harder week.`}
-          </Body>
+          sixWeeks.every((w) => w.days === 0) ? (
+            <Body size={12.5} tone={color.muted} style={{ marginTop: 12 }}>
+              Nothing logged yet.
+            </Body>
+          ) : null
         ) : (
           <Pressable
             accessibilityRole="button"
@@ -227,7 +250,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 7,
     alignItems: 'flex-end',
-    height: CHART_HEIGHT,
+    // The bars are CHART_HEIGHT at most; the rest is the score above each one
+    // and the weekday under it, both of which live inside the column.
+    height: CHART_HEIGHT + 20,
   },
   column: {
     flex: 1,

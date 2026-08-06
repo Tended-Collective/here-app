@@ -47,6 +47,9 @@ export function SettingsScreen() {
         Your account
       </Display>
 
+      {/* One badge, not two. The second read "SCHOOL ZIP 20002" and looked like
+          a button that would take you somewhere; it went nowhere, and the ZIP it
+          repeated is already in the field further down this page. */}
       <View style={styles.badges}>
         <Pressable
           accessibilityRole={educator.verified ? undefined : 'button'}
@@ -57,11 +60,6 @@ export function SettingsScreen() {
             {educator.verified ? 'VERIFIED · SCHOOL EMAIL' : 'NOT VERIFIED · TAP TO VERIFY'}
           </MonoLabel>
         </Pressable>
-        <View style={styles.badge}>
-          <MonoLabel size={9} em={0.1} tone={color.muted}>
-            {shown?.zip ? `SCHOOL ZIP ${shown.zip}` : 'NO SCHOOL ZIP'}
-          </MonoLabel>
-        </View>
       </View>
 
       {/* How you appear, editable at any time. The verified half — the real
@@ -212,15 +210,19 @@ export function SettingsScreen() {
             label="Show my state"
           />
         </View>
-        <Text style={styles.zipNote}>
-          {shown?.zip
-            ? (stateName(stateForZip(shown.zip)) ?? 'We do not recognize that ZIP.')
-            : 'Your school’s ZIP. Shows as your state, and finds people near you.'}
-        </Text>
+        {/* What the ZIP resolved to, and nothing when there is nothing to
+            resolve. The line that used to sit here when the field was empty
+            explained what a ZIP is for; the field is labelled and the toggle
+            beside it says "Show my state", which is the same sentence. */}
+        {!!shown?.zip && (
+          <Text style={styles.zipNote}>
+            {stateName(stateForZip(shown.zip)) ?? 'We do not recognize that ZIP.'}
+          </Text>
+        )}
 
         <View style={styles.verifiedBlock}>
           <MonoLabel size={9} em={0.1} tone={color.faint}>
-            NEVER SHOWN · HELD ONLY TO CONFIRM YOU WORK IN EDUCATION
+            NEVER SHOWN · USED ONLY TO CONFIRM YOU WORK IN EDUCATION
           </MonoLabel>
           <Text style={styles.verifiedLine}>{account?.name || '—'}</Text>
           <Text style={styles.verifiedLine}>
@@ -240,7 +242,7 @@ export function SettingsScreen() {
           hint={
             agreedToRulesAt
               ? `Agreed ${shortDateLabel(toISO(new Date(agreedToRulesAt)))}`
-              : 'The six rules of the feed'
+              : undefined
           }
           onPress={() => open('rules')}
         />
@@ -256,11 +258,7 @@ export function SettingsScreen() {
 
       <MonoLabel style={{ marginTop: 30 }}>THIS DEVICE</MonoLabel>
       <Card style={styles.linksCard}>
-        <LinkRow
-          label="Sign out"
-          hint="Keeps your record on this phone"
-          onPress={signOut}
-        />
+        <LinkRow label="Sign out" onPress={signOut} />
       </Card>
 
       {/* Guideline 5.1.1(v) wants account deletion reachable from inside the

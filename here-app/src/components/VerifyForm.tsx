@@ -22,13 +22,7 @@
 
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import {
-  CODE_LENGTH,
-  isPlausibleEmail,
-  looksLikeEducatorDomain,
-  requestCode,
-  submitCode,
-} from '../lib/verification';
+import { CODE_LENGTH, isPlausibleEmail, requestCode, submitCode } from '../lib/verification';
 import { color, font, radius } from '../theme';
 
 export function VerifyForm({
@@ -128,12 +122,12 @@ export function VerifyForm({
           {blocked && isPlausibleEmail(email) && (
             <Text style={styles.hint}>Tick the box above to continue.</Text>
           )}
-          {isPlausibleEmail(email) && !looksLikeEducatorDomain(email) && !problem && (
-            <Text style={styles.hint}>
-              We do not recognize that domain as a school, but districts use all sorts — lausd.net,
-              houstonisd.org, k12.dc.gov. Send the code and see if it arrives.
-            </Text>
-          )}
+          {/* A paragraph used to appear here whenever the domain was not an
+              obvious school one, listing district domains and telling people to
+              try anyway. It fired on almost every real address and said nothing
+              the send button does not already say. The gate itself is unchanged
+              — every domain that is not a consumer provider still goes through
+              (lib/verification.ts) — it just no longer narrates itself. */}
         </>
       ) : (
         <>

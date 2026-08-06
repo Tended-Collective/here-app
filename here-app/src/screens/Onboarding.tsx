@@ -387,14 +387,16 @@ export function Onboarding({ onSignIn }: { onSignIn?: () => void }) {
               maxLength={5}
               accessibilityLabel="Your school's ZIP code"
             />
-            {/* The ZIP is never shown on a post. It resolves to the state, and
-                it is what "near my school" is matched on. */}
-            <Text style={styles.hint}>
-              {!zip
-                ? 'Your school’s, not your home. Shows as your state, and finds teachers near you.'
-                : (stateName(stateForZip(zip)) ??
-                  (isCompleteZip(zip) ? 'We do not recognize that ZIP.' : 'Five digits.'))}
-            </Text>
+            {/* What the ZIP resolved to, once there is something to resolve.
+                Nothing before that: the field is labelled SCHOOL ZIP CODE and
+                the toggle beside it says "Show my state", so the sentence that
+                used to sit here was saying it a third time. */}
+            {!!zip && (
+              <Text style={styles.hint}>
+                {stateName(stateForZip(zip)) ??
+                  (isCompleteZip(zip) ? 'We do not recognize that ZIP.' : 'Five digits.')}
+              </Text>
+            )}
 
             <MonoLabel style={{ marginTop: 26 }}>PREVIEW</MonoLabel>
             <View style={styles.preview}>

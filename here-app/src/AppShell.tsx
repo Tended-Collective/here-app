@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useChrome } from './components/PhoneFrame';
 import { DeleteAccountSheet } from './components/DeleteAccountSheet';
 import { PlusSheet } from './components/PlusSheet';
@@ -11,6 +11,7 @@ import { VerifySheet } from './components/VerifySheet';
 import { NavAction, TabBar, TabKey } from './components/TabBar';
 import { FeedScreen } from './screens/FeedScreen';
 import { Onboarding } from './screens/Onboarding';
+import { PersonScreen } from './screens/PersonScreen';
 import { SignIn } from './screens/SignIn';
 import { ProfileScreen } from './screens/ProfileScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
@@ -62,6 +63,15 @@ function Shell() {
   // Which post's comments are open, if any. Held here because the sheet is
   // mounted at the shell — see components/Sheet.tsx for why.
   const [commentsOn, setCommentsOn] = useState<string | null>(null);
+  /**
+   * Whose page is open over the tabs, if any: an author id, `null` for the
+   * teacher's own, and `undefined` for nobody. A layer rather than a fourth tab
+   * — you arrive from a post and Back returns you to it, and the tab bar keeps
+   * working underneath, which is how every other feed behaves.
+   */
+  const [person, setPerson] = useState<string | null | undefined>(undefined);
+  const [refreshing, setRefreshing] = useState(false);
+  const { refresh } = useStore();
   const { topInset, tabBarHeight } = useChrome();
   const scroller = useRef<ScrollView>(null);
 
@@ -75,8 +85,33 @@ function Shell() {
       setTab(next);
     }
     setCommentsOn(null);
+    // A tab press leaves the person layer. Otherwise tapping Feed from
+    // somebody's page appears to do nothing.
+    setPerson(undefined);
     scroller.current?.scrollTo({ y: 0, animated: false });
   };
+
+  const openPerson = (authorId: string | null) => {
+    setPerson(authorId);
+    setCommentsOn(null);
+    scroller.current?.scrollTo({ y: 0, animated: false });
+  };
+
+  /**
+   * Pull down to refresh. One gesture at the shell, so it works on every tab
+   * rather than only on the feed — the record and the list are just as capable
+   * of being stale, and a gesture that works on one screen and silently does
+   * nothing on the next is worse than not having it.
+   *
+   * The minimum spin is deliberate. Re-reading one AsyncStorage row takes a few
+   * milliseconds and the spinner would vanish before it had finished appearing,
+   * which reads as "the gesture did not register" and makes people pull again.
+   */
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([refresh(), new Promise((r) => setTimeout(r, 450))]);
+    setRefreshing(false);
+  }, [refresh]);
 
   return (
     <View style={styles.root}>
@@ -87,12 +122,39 @@ function Shell() {
         // above a band — but the last card still has to clear the pill.
         contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + 16 }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={color.faint}
+            colors={[color.accent]}
+          />
+        }
       >
-        {tab === 'feed' && (
-          <FeedScreen composeAt={composeAt} onComments={(postId) => setCommentsOn(postId)} />
+        {person !== undefined ? (
+          <PersonScreen
+            authorId={person}
+            onBack={() => setPerson(undefined)}
+            onComments={(postId) => setCommentsOn(postId)}
+          />
+        ) : (
+          <>
+            {tab === 'feed' && (
+              <FeedScreen
+                composeAt={composeAt}
+                onComments={(postId) => setCommentsOn(postId)}
+                onOpenAuthor={openPerson}
+              />
+            )}
+            {tab === 'profile' && (
+              <ProfileScreen
+                onEditProfile={() => select('settings')}
+                onOpenPosts={() => openPerson(null)}
+              />
+            )}
+            {tab === 'settings' && <SettingsScreen />}
+          </>
         )}
-        {tab === 'profile' && <ProfileScreen onEditProfile={() => select('settings')} />}
-        {tab === 'settings' && <SettingsScreen />}
       </ScrollView>
 
       <TabBar active={tab} onSelect={select} />

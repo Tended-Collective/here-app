@@ -136,10 +136,18 @@ module.exports = {
            */
           photosPermission:
             'Here uses your photos only when you choose one to attach to a post. Nothing is uploaded until you tap Post.',
-          // No camera and no microphone: the composer attaches an existing
-          // photo and never records. Set to false so the strings are not added
-          // and iOS never asks for permissions the app cannot use.
-          cameraPermission: false,
+          /**
+           * The composer has two buttons now — take one, or choose one — so the
+           * camera string is real. It says the same thing the photos one does,
+           * because the guarantee is the same: the shot is downscaled and
+           * re-encoded on the device (lib/photo.ts), which is what drops the
+           * GPS coordinates a classroom photo would otherwise carry.
+           */
+          cameraPermission:
+            'Here uses the camera only when you take a photo for a post. Nothing is uploaded until you tap Post.',
+          // Still no microphone: the composer attaches a still image and never
+          // records. False so the string is not added and iOS never asks for a
+          // permission the app cannot use.
           microphonePermission: false,
         },
       ],

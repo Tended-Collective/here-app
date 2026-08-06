@@ -38,26 +38,22 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Avatar } from '../components/Avatar';
-import { Icon } from '../components/Icon';
 import { PlacementCard, withPlacements } from '../components/Placements';
+import { FeedCard, OwnPost } from '../components/PostCard';
 import { useSheets } from '../components/Sheet';
 import { Card, Display, MonoLabel } from '../components/ui';
 import {
   AUTHORS,
-  authorLine,
-  FeedUpdate,
   LAST_HOUR_UPDATES,
   NEARBY_UPDATES,
-  POST_ACTIONS,
   SAMPLE_COMMENTS,
   yearsLabel,
 } from '../data/mock';
-import { longDateLabel, timeAgoLabel } from '../lib/dates';
+import { longDateLabel } from '../lib/dates';
 import { useToday } from '../lib/useToday';
 import { isNearby } from '../lib/zip';
-import { PICKER_CONFIGURED, pickPhoto } from '../lib/photo';
-import { Update, UPDATE_MAX_LENGTH, useStore } from '../store';
+import { CAMERA_AVAILABLE, PICKER_CONFIGURED, pickPhoto, takePhoto } from '../lib/photo';
+import { UPDATE_MAX_LENGTH, useStore } from '../store';
 import { color, MOODS, radius } from '../theme';
 
 /**
@@ -80,16 +76,20 @@ const SCOPES: { key: Scope; label: string }[] = [
 export function FeedScreen({
   composeAt = 0,
   onComments,
+  onOpenAuthor,
 }: {
   composeAt?: number;
   /** Open the comments for a post. The sheet is mounted by the shell. */
   onComments?: (postId: string) => void;
+  /** Open one person's page. `null` means your own. */
+  onOpenAuthor?: (authorId: string | null) => void;
 }) {
   const {
     entries,
     saveCheckIn,
     updates,
     postUpdate,
+    editUpdate,
     removeUpdate,
     likes,
     toggleLike,
@@ -133,12 +133,19 @@ export function FeedScreen({
   // What is already on the list, so a row can say so instead of saving twice.
   const onList = new Set(practices.map((p) => p.label));
 
-  const attach = async () => {
+  /**
+   * Two ways in, one result. `take` opens the camera and `attach` opens the
+   * library; both come back as a downscaled, EXIF-stripped data URI, so the
+   * composer does not care which one produced it.
+   */
+  const usePicker = async (pick: () => Promise<string | null>) => {
     setPicking(true);
-    const picked = await pickPhoto();
+    const picked = await pick();
     setPicking(false);
     if (picked) setPhoto(picked);
   };
+  const attach = () => usePicker(pickPhoto);
+  const take = () => usePicker(takePhoto);
 
   const submit = () => {
     if (!draft.trim()) return;
@@ -230,20 +237,44 @@ export function FeedScreen({
           )}
 
           <View style={styles.composerFoot}>
+            {/* Take one or choose one, as two buttons rather than one button
+                that opens a menu asking which. The composer asks about today,
+                and the answer is often in front of the person right now — the
+                camera should not be a tap deeper than the library. Both go
+                through the same downscale and EXIF strip (lib/photo.ts). */}
             {PICKER_CONFIGURED ? (
-              <Pressable
-                onPress={attach}
-                disabled={picking}
-                accessibilityRole="button"
-                accessibilityLabel="Add a photo"
-                style={styles.attach}
-              >
+              <View style={styles.attachRow}>
                 {picking ? (
-                  <ActivityIndicator size="small" color={color.muted} />
+                  <View style={styles.attach}>
+                    <ActivityIndicator size="small" color={color.muted} />
+                  </View>
                 ) : (
-                  <Text style={styles.attachLabel}>{photo ? 'Replace photo' : '+ Photo'}</Text>
+                  <>
+                    {CAMERA_AVAILABLE && (
+                      <Pressable
+                        onPress={take}
+                        accessibilityRole="button"
+                        accessibilityLabel="Take a photo"
+                        style={styles.attach}
+                      >
+                        <Text style={styles.attachLabel}>Take photo</Text>
+                      </Pressable>
+                    )}
+                    <Pressable
+                      onPress={attach}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        CAMERA_AVAILABLE ? 'Choose a photo from your library' : 'Add a photo'
+                      }
+                      style={styles.attach}
+                    >
+                      <Text style={styles.attachLabel}>
+                        {CAMERA_AVAILABLE ? 'Choose' : photo ? 'Replace photo' : '+ Photo'}
+                      </Text>
+                    </Pressable>
+                  </>
                 )}
-              </Pressable>
+              </View>
             ) : (
               <View />
             )}
@@ -316,7 +347,13 @@ export function FeedScreen({
             ]
               .filter(Boolean)
               .join(' · ')}
+            likeCount={likes.includes(u.id) ? 1 : 0}
+            repostCount={reposts.includes(u.id) ? 1 : 0}
+            commentCount={(comments[u.id] ?? []).length}
+            onComments={() => onComments?.(u.id)}
+            onEdit={(text) => editUpdate(u.id, text)}
             onRemove={() => removeUpdate(u.id)}
+            onOpenAuthor={() => onOpenAuthor?.(null)}
           />
         ))}
 
@@ -385,6 +422,7 @@ export function FeedScreen({
                 ? unfollow(row.post.authorId)
                 : follow(row.post.authorId)
             }
+            onOpenAuthor={(id) => onOpenAuthor?.(id)}
           />
         ) : (
           <PlacementCard key={`p${i}`} placement={row.placement} />
@@ -397,252 +435,6 @@ export function FeedScreen({
           <Text style={styles.moreLabel}>See earlier today</Text>
         </Pressable>
       )}
-    </View>
-  );
-}
-
-/** This teacher's own post. Nobody else's reactions are simulated onto it. */
-function OwnPost({
-  update,
-  name,
-  username,
-  line,
-  onRemove,
-}: {
-  update: Update;
-  name: string;
-  username: string;
-  line: string;
-  onRemove: () => void;
-}) {
-  return (
-    <View style={styles.row}>
-      <Avatar name={name} seed={username || name} size={38} />
-
-      <View style={styles.rowBody}>
-        <View style={styles.nameRow}>
-          <Text style={styles.whoName} numberOfLines={1}>
-            {name}
-          </Text>
-          <VerifiedMark />
-          <View style={styles.headSpacer} />
-          <Pressable
-            onPress={onRemove}
-            accessibilityRole="button"
-            accessibilityLabel="Delete your post"
-            hitSlop={10}
-          >
-            <Text style={styles.remove}>Delete</Text>
-          </Pressable>
-        </View>
-
-        {/* Your own row carries a Delete button in the name row, so the username
-            goes on the meta line rather than squeezing the name to "Dana …". */}
-        <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 8 }}>
-          {[username && `@${username}`, line, `YOU · ${timeAgoLabel(update.at)}`]
-            .filter(Boolean)
-            .join(' · ')}
-        </MonoLabel>
-
-        <Text style={styles.text}>{update.text}</Text>
-        {update.photo && (
-          <Image source={{ uri: update.photo }} style={styles.photo} resizeMode="cover" />
-        )}
-      </View>
-    </View>
-  );
-}
-
-function FeedCard({
-  update,
-  liked,
-  reposted,
-  commentCount,
-  saved,
-  locked,
-  onSave,
-  onLike,
-  onRepost,
-  onComments,
-  onReport,
-  following,
-  onFollow,
-}: {
-  update: FeedUpdate;
-  liked: boolean;
-  reposted: boolean;
-  commentCount: number;
-  saved: boolean;
-  locked: boolean;
-  onSave: () => void;
-  onLike: () => void;
-  onRepost: () => void;
-  onComments: () => void;
-  onReport: () => void;
-  following: boolean;
-  onFollow: () => void;
-}) {
-  const author = AUTHORS[update.authorId];
-
-  /**
-   * Three actions and a save, in the order every other feed uses. Counts include
-   * the teacher's own tap, so the number moves the moment they press it rather
-   * than waiting for a server that does not exist.
-   */
-  const actions = [
-    {
-      ...POST_ACTIONS[0],
-      count: (update.counts.like ?? 0) + (liked ? 1 : 0),
-      on: liked,
-      press: onLike,
-    },
-    { ...POST_ACTIONS[1], count: commentCount, on: false, press: onComments },
-    {
-      ...POST_ACTIONS[2],
-      count: (update.counts.repost ?? 0) + (reposted ? 1 : 0),
-      on: reposted,
-      press: onRepost,
-    },
-  ];
-
-  return (
-    <View style={styles.row}>
-      <Avatar
-        name={author?.displayName ?? '?'}
-        seed={author?.username ?? update.authorId}
-        size={38}
-      />
-
-      <View style={styles.rowBody}>
-        <View style={styles.nameRow}>
-          <Text style={styles.whoName} numberOfLines={1}>
-            {author?.displayName ?? 'Someone'}
-          </Text>
-          <VerifiedMark />
-          <View style={styles.headSpacer} />
-          <Pressable
-            onPress={onFollow}
-            accessibilityRole="button"
-            accessibilityState={{ selected: following }}
-            accessibilityLabel={
-              following ? `Unfollow @${author?.username}` : `Follow @${author?.username}`
-            }
-            hitSlop={8}
-          >
-            <Text style={[styles.followLabel, following && styles.followLabelOn]}>
-              {following ? 'Following' : 'Follow'}
-            </Text>
-          </Pressable>
-          {/* A flag rather than a "···" menu: the only thing behind it is
-              reporting, and a dots menu makes people open it to find out. Always
-              present, because a report button that has to be hunted for is one
-              people give up on — and Apple requires one on any app carrying posts
-              (guideline 1.2). */}
-          <Pressable
-            onPress={onReport}
-            accessibilityRole="button"
-            accessibilityLabel={`Report this post or block @${author?.username}`}
-            hitSlop={12}
-          >
-            <Icon name="flag" size={17} tone={color.faint} />
-          </Pressable>
-        </View>
-
-        {/* The username sits here rather than beside the name. In the name row it
-            competed with Follow and the flag for about 250px and both the name
-            and the handle ended up truncated to "Marisa Ok… @marisa.ok…"; down
-            here it can wrap instead of being cut. Two people may both be "Ms P",
-            so this is the part that is theirs alone. */}
-        <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 2 }}>
-          {[`@${author?.username}`, authorLine(author)].filter(Boolean).join(' · ')}
-        </MonoLabel>
-        <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 9 }}>
-          {update.meta}
-        </MonoLabel>
-
-        <Text style={styles.text}>{update.text}</Text>
-        {update.photo && (
-          <Image
-            source={{ uri: update.photo }}
-            style={styles.photo}
-            resizeMode="cover"
-            accessibilityLabel="Photo attached to this post"
-          />
-        )}
-
-        <View style={styles.actions}>
-          {actions.map((a) => (
-            <Pressable
-              key={a.id}
-              onPress={a.press}
-              accessibilityRole="button"
-              accessibilityState={a.id === 'comment' ? undefined : { selected: a.on }}
-              accessibilityLabel={
-                a.id === 'comment'
-                  ? `Comments${a.count ? `, ${a.count}` : ', none yet'}`
-                  : `${a.label}${a.on ? ', done' : ''}`
-              }
-              hitSlop={8}
-              style={styles.action}
-            >
-              <Icon
-                name={a.icon}
-                size={20}
-                tone={a.on ? color.accent : color.label}
-                filled={a.on && a.id === 'like'}
-              />
-              {a.count > 0 && (
-                <Text style={[styles.actionCount, a.on && styles.actionCountOn]}>{a.count}</Text>
-              )}
-            </Pressable>
-          ))}
-
-          <View style={styles.headSpacer} />
-
-          {/* The reason the feed exists: you can take the thing, not just read
-              it. A bookmark is the Threads shape for save, but the word stays —
-              "save this onto my own list" is the app's whole argument and an
-              unlabelled icon does not make it. */}
-          <Pressable
-            onPress={onSave}
-            disabled={saved}
-            accessibilityRole="button"
-            accessibilityLabel={
-              saved
-                ? 'Already on your list'
-                : locked
-                  ? 'Your list is full. Here+ for an unlimited list'
-                  : `Save "${update.text}" to your list`
-            }
-            hitSlop={8}
-            style={styles.action}
-          >
-            <Icon
-              name="bookmark"
-              size={19}
-              tone={saved ? color.faint : color.accent}
-              filled={saved}
-            />
-            <Text style={[styles.saveLabel, saved && styles.saveLabelDone]}>
-              {saved ? 'On your list' : locked ? 'List full · Here+' : 'Save'}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-/**
- * One mark, because there is now one check. Everyone in the feed reached a code
- * at a school address; the tick says exactly that and nothing more.
- */
-function VerifiedMark() {
-  return (
-    <View style={styles.verified}>
-      <Text style={styles.verifiedTick} accessibilityLabel="Verified with a school email">
-        ✓
-      </Text>
     </View>
   );
 }
@@ -724,6 +516,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  attachRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   attach: {
     height: 36,
@@ -808,103 +605,6 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: color.muted,
     marginTop: 4,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 11,
-    paddingTop: 16,
-    paddingBottom: 18,
-    borderTopWidth: 1,
-    borderTopColor: color.rule,
-  },
-  rowBody: {
-    flex: 1,
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    marginBottom: 3,
-  },
-  verified: {
-    width: 14,
-    height: 14,
-    borderRadius: 99,
-    backgroundColor: color.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  verifiedTick: {
-    fontSize: 8.5,
-    lineHeight: 11,
-    fontWeight: '700',
-    color: '#fff',
-  },
-  whoName: {
-    fontSize: 14.5,
-    fontWeight: '600',
-    color: color.ink,
-    flexShrink: 1,
-  },
-  whoUser: {
-    fontSize: 12.5,
-    color: color.faint,
-    flexShrink: 1,
-  },
-  followLabel: {
-    fontSize: 12.5,
-    fontWeight: '600',
-    color: color.accent,
-  },
-  followLabelOn: {
-    fontWeight: '400',
-    color: color.faint,
-  },
-  headSpacer: {
-    flex: 1,
-  },
-  remove: {
-    fontSize: 12.5,
-    color: color.label,
-  },
-  text: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: color.ink,
-  },
-  photo: {
-    width: '100%',
-    height: 190,
-    marginTop: 12,
-    borderRadius: radius.row,
-    backgroundColor: color.track,
-  },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 18,
-    marginTop: 14,
-  },
-  action: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  actionCount: {
-    fontSize: 12.5,
-    color: color.label,
-  },
-  actionCountOn: {
-    color: color.accent,
-  },
-  saveLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: color.accent,
-  },
-  saveLabelDone: {
-    fontWeight: '400',
-    color: color.faint,
   },
   seeMore: {
     paddingVertical: 16,
