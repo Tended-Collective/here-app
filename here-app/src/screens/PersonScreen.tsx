@@ -30,19 +30,12 @@ import { Avatar } from '../components/Avatar';
 import { FeedCard, OwnPost } from '../components/PostCard';
 import { useSheets } from '../components/Sheet';
 import { Card, MonoLabel } from '../components/ui';
-import {
-  AUTHORS,
-  authorLine,
-  LAST_HOUR_UPDATES,
-  NEARBY_UPDATES,
-  SAMPLE_COMMENTS,
-  yearsLabel,
-} from '../data/mock';
+import { AUTHORS, authorLine, SAMPLE_COMMENTS, yearsLabel } from '../data/mock';
+import { BACKEND_CONFIGURED } from '../lib/backend';
+import { authorOf } from '../lib/feedSource';
+import { useFeedPosts } from '../lib/useFeedPosts';
 import { useStore } from '../store';
 import { color } from '../theme';
-
-/** Every sample post, newest first, in the order the feed itself deals them. */
-const ALL_POSTS = [...NEARBY_UPDATES, ...LAST_HOUR_UPDATES];
 
 export function PersonScreen({
   authorId,
@@ -76,7 +69,22 @@ export function PersonScreen({
   const { open } = useSheets();
 
   const mine = authorId === null;
-  const author = authorId ? AUTHORS[authorId] : undefined;
+
+  /**
+   * Their posts. `authorId` is null on your own page, and with a server your
+   * posts are just posts by you — so the query is the same one, aimed at your
+   * own id, which the feed already told us via `mine`.
+   *
+   * Hooks cannot sit behind the early return below, so this runs even for a
+   * blocked account. It costs one request that returns nothing, and the
+   * alternative is a conditional hook.
+   */
+  const source = useFeedPosts({ kind: 'person', authorId: authorId ?? '' });
+
+  const author = authorId
+    ? // From the server when its posts carried it, from the samples otherwise.
+      (source.posts.map(authorOf).find((a) => a?.id === authorId) ?? AUTHORS[authorId])
+    : undefined;
 
   // A blocked account's page is not a way around the block, and a page for
   // somebody who does not exist is a bug rather than an empty state.
@@ -109,10 +117,20 @@ export function PersonScreen({
         .join(' · ')
     : authorLine(author);
 
-  const theirs = mine ? [] : ALL_POSTS.filter((u) => u.authorId === author?.id && !reported[u.id]);
+  /**
+   * Offline, your own page draws from the store's `updates` and everyone else's
+   * from the fixtures. Online there is one source: the posts the server returned
+   * for this id, minus anything you reported.
+   */
+  const theirs = source.posts.filter((u) => !reported[u.id]);
+  const remoteMine = BACKEND_CONFIGURED ? theirs.filter((u) => u.mine) : [];
   const isFollowing = !!author && following.includes(author.id);
   const onList = new Set(practices.map((p) => p.label));
-  const count = mine ? updates.length : theirs.length;
+  const count = BACKEND_CONFIGURED
+    ? (mine ? remoteMine.length : theirs.length)
+    : mine
+      ? updates.length
+      : theirs.length;
 
   return (
     <View>
@@ -155,6 +173,7 @@ export function PersonScreen({
       )}
 
       {mine &&
+        !BACKEND_CONFIGURED &&
         updates.map((u) => (
           <OwnPost
             key={u.id}
@@ -172,14 +191,40 @@ export function PersonScreen({
           />
         ))}
 
+      {mine &&
+        BACKEND_CONFIGURED &&
+        remoteMine.map((post) => (
+          <OwnPost
+            key={post.id}
+            update={{
+              id: post.id,
+              text: post.text,
+              at: Date.now(),
+              ...(post.photo ? { photo: post.photo } : {}),
+              ...(post.editedAt ? { editedAt: post.editedAt } : {}),
+            }}
+            name={displayName}
+            username={username}
+            line={post.meta}
+            likeCount={post.counts.like ?? 0}
+            repostCount={post.counts.repost ?? 0}
+            commentCount={source.commentCounts?.[post.id] ?? 0}
+            onComments={() => onComments?.(post.id)}
+            onEdit={(text) => editUpdate(post.id, text)}
+            onRemove={() => removeUpdate(post.id)}
+            onOwnPage
+          />
+        ))}
+
       {!mine &&
         theirs.map((post) => (
           <FeedCard
             key={post.id}
             update={post}
-            liked={likes.includes(post.id)}
-            reposted={reposts.includes(post.id)}
+            liked={(source.liked ?? likes).includes(post.id)}
+            reposted={(source.reposted ?? reposts).includes(post.id)}
             commentCount={
+              source.commentCounts?.[post.id] ??
               (SAMPLE_COMMENTS[post.id] ?? []).length + (comments[post.id] ?? []).length
             }
             saved={onList.has(post.text)}

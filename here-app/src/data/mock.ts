@@ -258,6 +258,23 @@ export type FeedUpdate = {
   photo?: string;
   /** Likes and reposts already on it. The user's own tap adds to these. */
   counts: Partial<Record<PostActionId, number>>;
+  /**
+   * Who wrote it, carried on the post itself.
+   *
+   * Absent on the sample posts above, which are looked up in `AUTHORS` by
+   * `authorId` — that map is the whole directory when there is no server. A post
+   * that came from Supabase has nowhere to be looked up, so it brings its author
+   * with it, and every renderer reads `post.author ?? AUTHORS[post.authorId]`.
+   *
+   * Two shapes rather than one because the sample directory is a fixture and the
+   * server is not; making the fixture carry a copy of each author on every post
+   * would put six duplicates of Marisa Okonjo in this file, drifting apart.
+   */
+  author?: FeedAuthor;
+  /** Set on a post the signed-in teacher wrote. Only ever true when remote. */
+  mine?: boolean;
+  /** When it was last rewritten, if ever. Renders as EDITED. */
+  editedAt?: number;
 };
 
 /**

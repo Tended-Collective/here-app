@@ -18,6 +18,30 @@ import { FREE_LIST_LIMIT, TRIAL_DAYS } from './data/mock';
 import { normalizeUsername } from './lib/usernames';
 import { normalizeZip, stateForZip } from './lib/zip';
 import { ISODate, todayISO, weekDates, weekdayIndex, weekStarts } from './lib/dates';
+import { BACKEND_CONFIGURED } from './lib/backend';
+import * as api from './lib/api';
+import { bumpFeed } from './lib/feedSignal';
+
+/**
+ * Send a write to the server as well as to the device, when there is a server.
+ *
+ * Fire and forget, on purpose. Every one of these is a tap — a heart, a follow,
+ * a delete — and the local write has already happened by the time this runs, so
+ * the tap is instant on a school wifi connection that may take two seconds to
+ * answer. What the caller loses is the failure: if the server refuses, the phone
+ * and the database disagree until the next refresh, which then corrects it.
+ *
+ * That trade is right for reactions and wrong for posting, so `postUpdate` does
+ * not use this — see the note there.
+ */
+function mirror(call: () => Promise<unknown>): void {
+  if (!BACKEND_CONFIGURED) return;
+  void call()
+    .then(() => bumpFeed())
+    .catch(() => {
+      // Nothing to do and nowhere to say it. The next feed load is the repair.
+    });
+}
 
 /**
  * Deliberately still the old name. This is the key a phone's data is filed
@@ -700,20 +724,38 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setContributing: (on) => update((prev) => ({ ...prev, contributing: on })),
       postUpdate: (text, photo) =>
         update((prev) => {
-          const trimmed = text.trim().slice(0, UPDATE_MAX_LENGTH);
+          const trimmed = text.trim();
           if (!trimmed) return prev;
           const entry: Update = {
             id: `u${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
-            text: trimmed,
+            text: trimmed.slice(0, UPDATE_MAX_LENGTH),
             at: Date.now(),
             ...(photo ? { photo } : {}),
           };
+          /**
+           * With a server, the post lives there and nowhere else.
+           *
+           * Keeping a local copy as well was the first attempt and it is wrong
+           * in a way worth recording: the local row has an id this app invented
+           * and the server's has a UUID, so the same post exists under two
+           * names. Edit or delete it and only one of them changes; the feed then
+           * shows the post twice, once stale.
+           *
+           * So the write goes out, the signal fires, and the post comes back in
+           * the reload with `mine: true`. Slower by one round trip, and the only
+           * version that has one identity.
+           */
+          if (BACKEND_CONFIGURED) {
+            mirror(() => api.createPost(entry.text, photo));
+            return prev;
+          }
           return { ...prev, updates: [entry, ...prev.updates] };
         }),
       editUpdate: (id, text) =>
         update((prev) => {
           const trimmed = text.trim().slice(0, UPDATE_MAX_LENGTH);
           if (!trimmed) return prev;
+          mirror(() => api.editPost(id, trimmed));
           return {
             ...prev,
             // `at` is not touched. An edit is not a repost — moving the post
@@ -724,22 +766,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ),
           };
         }),
-      removeUpdate: (id) =>
-        update((prev) => ({ ...prev, updates: prev.updates.filter((u) => u.id !== id) })),
-      toggleLike: (postId) =>
+      removeUpdate: (id) => {
+        mirror(() => api.deletePost(id));
+        update((prev) => ({ ...prev, updates: prev.updates.filter((u) => u.id !== id) }));
+      },
+      toggleLike: (postId) => {
+        mirror(() => api.setLiked(postId, !data.likes.includes(postId)));
         update((prev) => ({
           ...prev,
           likes: prev.likes.includes(postId)
             ? prev.likes.filter((id) => id !== postId)
             : [...prev.likes, postId],
-        })),
-      toggleRepost: (postId) =>
+        }));
+      },
+      toggleRepost: (postId) => {
+        mirror(() => api.setReposted(postId, !data.reposts.includes(postId)));
         update((prev) => ({
           ...prev,
           reposts: prev.reposts.includes(postId)
             ? prev.reposts.filter((id) => id !== postId)
             : [...prev.reposts, postId],
-        })),
+        }));
+      },
       addComment: (postId, text) =>
         update((prev) => {
           const trimmed = text.trim();
@@ -771,7 +819,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             : { ...prev, plus: { trialStartedAt: Date.now() } },
         ),
       endTrial: () => update((prev) => ({ ...prev, plus: { trialStartedAt: null } })),
-      completeOnboarding: ({ name, email, shown, practices: labels, agreedToRules }) =>
+      completeOnboarding: ({ name, email, shown, practices: labels, agreedToRules }) => {
+        /**
+         * The byline goes to the server; the real name and the check-ins do not.
+         *
+         * `name` is two lines above and is deliberately not passed — it is the
+         * verified half, shown to nobody, and there is no column for it. What
+         * travels is exactly what appears under a post.
+         */
+        mirror(() =>
+          api.createProfile({
+            username: normalizeUsername(shown.username),
+            displayName: shown.displayName.trim() || name.trim(),
+            job: shown.job,
+            level: shown.level,
+            zip: normalizeZip(shown.zip),
+            state: stateForZip(shown.zip) ?? '',
+            years: shown.years,
+            showJob: shown.showJob,
+            showLevel: shown.showLevel,
+            showState: shown.showState,
+            showYears: shown.showYears,
+          }),
+        );
         update((prev) => ({
           ...prev,
           onboardedAt: Date.now(),
@@ -819,8 +889,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               }))
             : prev.practices,
           practiceDays: labels.length ? {} : prev.practiceDays,
-        })),
-      signOut: () => update((prev) => ({ ...prev, signedOutAt: Date.now() })),
+        }));
+      },
+      signOut: () => {
+        // Ends the Supabase session too, so the next person to pick the phone up
+        // cannot post as them. The local record is untouched — signing out is
+        // not deleting, and the check-ins were never on the server anyway.
+        mirror(() => api.signOutRemote());
+        update((prev) => ({ ...prev, signedOutAt: Date.now() }));
+      },
       signIn: (email) => {
         const held = data.account?.email?.trim().toLowerCase();
         const given = email.trim().toLowerCase();
@@ -915,7 +992,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             b.id === id ? { ...b, active: !b.active } : b,
           ),
         })),
-      updateShown: (patch) =>
+      updateShown: (patch) => {
+        // Only the fields that were passed, so a one-field edit cannot blank the
+        // rest — and the ZIP and state travel together, derived the same way
+        // they are locally.
+        mirror(() =>
+          api.updateProfile({
+            ...(patch.username !== undefined
+              ? { username: normalizeUsername(patch.username) }
+              : {}),
+            ...(patch.displayName !== undefined ? { displayName: patch.displayName } : {}),
+            ...(patch.job !== undefined ? { job: patch.job } : {}),
+            ...(patch.level !== undefined ? { level: patch.level } : {}),
+            ...(patch.zip !== undefined
+              ? { zip: normalizeZip(patch.zip), state: stateForZip(normalizeZip(patch.zip)) ?? '' }
+              : {}),
+            ...(patch.years !== undefined ? { years: patch.years } : {}),
+            ...(patch.showJob !== undefined ? { showJob: patch.showJob } : {}),
+            ...(patch.showLevel !== undefined ? { showLevel: patch.showLevel } : {}),
+            ...(patch.showState !== undefined ? { showState: patch.showState } : {}),
+            ...(patch.showYears !== undefined ? { showYears: patch.showYears } : {}),
+          }),
+        );
         update((prev) => {
           if (!prev.account) return prev;
           // A username is stored canonically wherever it comes from, so the
@@ -929,34 +1027,51 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             next.state = stateForZip(next.zip) ?? '';
           }
           return { ...prev, account: { ...prev.account, shown: next } };
-        }),
-      follow: (authorId) =>
+        });
+      },
+      follow: (authorId) => {
+        mirror(() => api.setFollowing(authorId, true));
         update((prev) =>
           prev.following.includes(authorId)
             ? prev
             : { ...prev, following: [...prev.following, authorId] },
-        ),
-      unfollow: (authorId) =>
+        );
+      },
+      unfollow: (authorId) => {
+        mirror(() => api.setFollowing(authorId, false));
         update((prev) => ({
           ...prev,
           following: prev.following.filter((id) => id !== authorId),
-        })),
-      reportPost: (updateId, reason) =>
+        }));
+      },
+      reportPost: (updateId, reason) => {
+        mirror(() => api.report({ postId: updateId }, reason));
         update((prev) => ({
           ...prev,
           reported: { ...prev.reported, [updateId]: { reason, at: Date.now() } },
-        })),
-      blockAuthor: (authorId) =>
+        }));
+      },
+      blockAuthor: (authorId) => {
+        // Two writes, because a block that left the follow in place would be a
+        // contradiction the feed has to resolve on every render. The policies in
+        // schema.sql then hide their posts from you and yours from them.
+        mirror(() => api.setBlocked(authorId, true));
+        mirror(() => api.setFollowing(authorId, false));
         update((prev) => ({
           ...prev,
           blocked: prev.blocked.includes(authorId) ? prev.blocked : [...prev.blocked, authorId],
-          // Blocking someone you follow and staying subscribed to them would be
-          // a contradiction the feed would have to resolve every render.
           following: prev.following.filter((id) => id !== authorId),
-        })),
-      unblockAuthor: (authorId) =>
-        update((prev) => ({ ...prev, blocked: prev.blocked.filter((id) => id !== authorId) })),
+        }));
+      },
+      unblockAuthor: (authorId) => {
+        mirror(() => api.setBlocked(authorId, false));
+        update((prev) => ({ ...prev, blocked: prev.blocked.filter((id) => id !== authorId) }));
+      },
       deleteAccount: () => {
+        // The server copy goes first: posts, comments, photos, follows, and the
+        // auth row itself. Guideline 5.1.1(v) wants the account gone, not just
+        // this phone's view of it.
+        mirror(() => api.deleteAccountRemote());
         // Removed rather than overwritten: nothing of the old account should be
         // recoverable from the row, and the next launch should be a first
         // launch. The seed is deliberately not re-applied — a fresh install

@@ -28,7 +28,8 @@ import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { Avatar } from './Avatar';
 import { Icon } from './Icon';
 import { MonoLabel } from './ui';
-import { AUTHORS, authorLine, FeedUpdate, POST_ACTIONS } from '../data/mock';
+import { authorLine, FeedUpdate, POST_ACTIONS } from '../data/mock';
+import { authorOf } from '../lib/feedSource';
 import { timeAgoLabel } from '../lib/dates';
 import { Update, UPDATE_MAX_LENGTH } from '../store';
 import { color, radius } from '../theme';
@@ -246,7 +247,9 @@ export function FeedCard({
   onOpenAuthor?: (authorId: string) => void;
   onOwnPage?: boolean;
 }) {
-  const author = AUTHORS[update.authorId];
+  // Carried on the post when it came from the server, looked up in the sample
+  // directory when it did not. See lib/feedSource.ts.
+  const author = authorOf(update);
   const openAuthor =
     onOwnPage || !onOpenAuthor ? undefined : () => onOpenAuthor(update.authorId);
 
@@ -347,7 +350,7 @@ export function FeedCard({
           </MonoLabel>
         )}
         <MonoLabel size={9} em={0.08} tone={color.faint} style={{ marginBottom: 9 }}>
-          {update.meta}
+          {[update.meta, update.editedAt ? 'EDITED' : ''].filter(Boolean).join(' · ')}
         </MonoLabel>
 
         <Text style={styles.text}>{update.text}</Text>

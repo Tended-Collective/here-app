@@ -42,13 +42,10 @@ import { PlacementCard, withPlacements } from '../components/Placements';
 import { FeedCard, OwnPost } from '../components/PostCard';
 import { useSheets } from '../components/Sheet';
 import { Card, Display, MonoLabel } from '../components/ui';
-import {
-  AUTHORS,
-  LAST_HOUR_UPDATES,
-  NEARBY_UPDATES,
-  SAMPLE_COMMENTS,
-  yearsLabel,
-} from '../data/mock';
+import { AUTHORS, SAMPLE_COMMENTS, yearsLabel } from '../data/mock';
+import { BACKEND_CONFIGURED } from '../lib/backend';
+import { authorOf } from '../lib/feedSource';
+import { useFeedPosts } from '../lib/useFeedPosts';
 import { longDateLabel } from '../lib/dates';
 import { useToday } from '../lib/useToday';
 import { isNearby } from '../lib/zip';
@@ -155,18 +152,41 @@ export function FeedScreen({
   };
 
   const myZip = account?.shown.zip ?? '';
-  const all = (showMore ? [...NEARBY_UPDATES, ...LAST_HOUR_UPDATES] : NEARBY_UPDATES)
+
+  /**
+   * The posts, from the server when there is one and from the samples when
+   * there is not. Both arrive as the same shape — see lib/useFeedPosts.ts.
+   */
+  const source = useFeedPosts({ kind: 'feed', scope, zip: myZip, expanded: showMore });
+
+  const all = source.posts
     // Reported and blocked come out before anything else looks at the list, so
     // there is no path — scope switch, expansion, placement dealing — that can
-    // put one back on screen.
+    // put one back on screen. The server enforces both as well (schema.sql), so
+    // this is the local half of a rule that holds in two places.
     .filter((u) => !reported[u.id] && !blocked.includes(u.authorId));
 
-  const feed =
-    scope === 'following'
+  /**
+   * The scope filters only run locally. With a server the query already did
+   * them — `nearby` is a ZIP-prefix match in Postgres and `following` is a join
+   * — and re-filtering here against the device's own follow list would drop
+   * posts the server correctly included.
+   */
+  const feed = BACKEND_CONFIGURED
+    ? all
+    : scope === 'following'
       ? all.filter((u) => following.includes(u.authorId))
       : scope === 'nearby'
         ? all.filter((u) => isNearby(myZip, AUTHORS[u.authorId]?.zip))
         : all;
+
+  /** Reactions: the server's answer when it gave one, the device's otherwise. */
+  const isLiked = (id: string) => (source.liked ?? likes).includes(id);
+  const isReposted = (id: string) => (source.reposted ?? reposts).includes(id);
+  const commentsOn = (id: string) =>
+    source.commentCounts?.[id] ??
+    (SAMPLE_COMMENTS[id] ?? []).length + (comments[id] ?? []).length;
+
   const left = UPDATE_MAX_LENGTH - draft.length;
 
   return (
@@ -330,9 +350,28 @@ export function FeedScreen({
         })}
       </View>
 
-      {/* Your own posts belong to you, not to a place or a follow list, so they
-          only appear in the unfiltered view. */}
-      {scope === 'everywhere' &&
+      {/* Loading and failure, but only where there is a server to be slow or to
+          fail. Offline the list is a constant and neither can happen. */}
+      {source.loading && feed.length === 0 && (
+        <View style={styles.feedState}>
+          <ActivityIndicator size="small" color={color.faint} />
+        </View>
+      )}
+      {!!source.error && (
+        <Card style={styles.empty}>
+          <Text style={styles.emptyTitle}>The feed did not load</Text>
+          <Text style={styles.emptySub}>{source.error} Pull down to try again.</Text>
+        </Card>
+      )}
+
+      {/* Your own posts, from the device.
+
+          Only when there is no server. With one, your posts come back inside
+          the feed itself carrying `mine`, and are drawn below by the same map as
+          everyone else's — rendering both would show each post twice, once with
+          the id this app invented and once with the id the database gave it. */}
+      {!BACKEND_CONFIGURED &&
+        scope === 'everywhere' &&
         updates.map((u) => (
           <OwnPost
             key={u.id}
@@ -397,16 +436,39 @@ export function FeedScreen({
       {/* Posts with the placement rack dealt in — the Tended Collective shelf
           first, then the sold slots. See components/Placements.tsx. */}
       {withPlacements(feed).map((row, i) =>
-        'post' in row ? (
+        !('post' in row) ? (
+          <PlacementCard key={`p${i}`} placement={row.placement} />
+        ) : row.post.mine ? (
+          // Your own post, arrived from the server. Same row the local branch
+          // above draws, so editing and deleting look identical either way —
+          // but the id is the database's, which is what makes them work.
+          <OwnPost
+            key={row.post.id}
+            update={{
+              id: row.post.id,
+              text: row.post.text,
+              at: Date.now(),
+              ...(row.post.photo ? { photo: row.post.photo } : {}),
+              ...(row.post.editedAt ? { editedAt: row.post.editedAt } : {}),
+            }}
+            name={authorOf(row.post)?.displayName ?? 'You'}
+            username={authorOf(row.post)?.username ?? ''}
+            line={row.post.meta}
+            likeCount={row.post.counts.like ?? 0}
+            repostCount={row.post.counts.repost ?? 0}
+            commentCount={commentsOn(row.post.id)}
+            onComments={() => onComments?.(row.post.id)}
+            onEdit={(text) => editUpdate(row.post.id, text)}
+            onRemove={() => removeUpdate(row.post.id)}
+            onOpenAuthor={() => onOpenAuthor?.(null)}
+          />
+        ) : (
           <FeedCard
             key={row.post.id}
             update={row.post}
-            liked={likes.includes(row.post.id)}
-            reposted={reposts.includes(row.post.id)}
-            commentCount={
-              (SAMPLE_COMMENTS[row.post.id] ?? []).length +
-              (comments[row.post.id] ?? []).length
-            }
+            liked={isLiked(row.post.id)}
+            reposted={isReposted(row.post.id)}
+            commentCount={commentsOn(row.post.id)}
             saved={onList.has(row.post.text)}
             locked={listFull && !onList.has(row.post.text)}
             onSave={() => (listFull ? open('plus') : saveToList(row.post.text))}
@@ -424,13 +486,14 @@ export function FeedScreen({
             }
             onOpenAuthor={(id) => onOpenAuthor?.(id)}
           />
-        ) : (
-          <PlacementCard key={`p${i}`} placement={row.placement} />
         ),
       )}
 
 
-      {!showMore && (
+      {/* Only for the fixtures, which are a fixed list of seven split in two.
+          Against a server this is a second page, and offering it before paging
+          exists would be a button that does nothing. */}
+      {!BACKEND_CONFIGURED && !showMore && (
         <Pressable accessibilityRole="button" style={styles.seeMore} onPress={() => setShowMore(true)}>
           <Text style={styles.moreLabel}>See earlier today</Text>
         </Pressable>
@@ -594,6 +657,10 @@ const styles = StyleSheet.create({
   empty: {
     marginTop: 12,
     padding: 16,
+  },
+  feedState: {
+    paddingVertical: 24,
+    alignItems: 'center',
   },
   emptyTitle: {
     fontSize: 15,

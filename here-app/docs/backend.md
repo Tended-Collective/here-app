@@ -201,17 +201,22 @@ Honest status, because the difference matters.
 - Sending a real six-digit code, and checking it
 - Refusing personal email domains — enforced by the database, not just the app
 - Checking whether a username is free, against the real directory
-- Everything in `src/lib/api.ts`: posts, comments, likes, reposts, follows,
-  blocks, reports, photo upload, account deletion
+- **The feed itself.** Posts come from the database, not from `mock.ts`, and one
+  tester's post appears on another tester's phone. This is the thing the whole
+  exercise was for.
+- Posting, editing and deleting; likes and reposts; following; blocking;
+  reporting; photo upload; profile edits; account deletion
 
-**Not yet wired:** the screens. The feed still reads `src/data/mock.ts`, and a
-post still saves to the phone. `src/lib/api.ts` is the complete set of calls and
-the schema is behind them, but `src/store.tsx` has not been switched over to use
-them — that is the next piece of work, and it is the one that makes testers
-visible to each other.
+**Still local, and staying that way:** the daily check-ins and the self-care
+list, exactly as promised.
 
-So: doing everything on this page gets you real accounts and real verification.
-It does not yet get you a shared feed.
+**Not yet wired:** comment threads. Posting a comment reaches the database, but
+the sheet still lists the sample replies from `mock.ts` rather than loading the
+real ones. Everything else on a post is live.
+
+Also not built: paging. The feed loads the most recent 30 posts and the "See
+earlier today" button is hidden when there is a server, because there is nothing
+behind it yet. That is fine for a pilot and needs doing before the feed is busy.
 
 ---
 
