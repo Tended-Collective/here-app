@@ -28,6 +28,24 @@ export const SITE = {
    */
   podcast: 'https://podcasts.apple.com/us/search?term=Here%20Collective',
   /**
+   * Where a tester's feedback goes during the pilot. A page on the Squarespace
+   * site with a form embedded in it.
+   *
+   * Set to empty string and the row vanishes from Settings — which is what it
+   * should be the moment the page comes down, rather than a link to a 404.
+   *
+   * Deliberately an outside link rather than a form inside the app. The app
+   * collects nothing beyond what a teacher publishes, and a survey in here would
+   * mean another table, another line in the App Store privacy filing, and a new
+   * build every time a question changes. A link is none of those, and the
+   * questions can be rewritten between one tester and the next.
+   *
+   * Whatever it points at, turn OFF "collect email addresses" in the form. This
+   * is an app about how hard someone's week was; a survey that quietly attaches
+   * a name to the answers is the wrong instinct even when the answers are dull.
+   */
+  feedback: 'https://www.tendedcollective.com/here-feedback',
+  /**
    * The two documents App Review will click on. They are linked from sign-up
    * and from Settings, and a 404 on either is a rejection — so if either page
    * moves on the website, it moves here in the same change.

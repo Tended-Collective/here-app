@@ -246,6 +246,15 @@ export function SettingsScreen() {
           }
           onPress={() => open('rules')}
         />
+        {/* Only while there is somewhere for it to go — see SITE.feedback. */}
+        {!!SITE.feedback && (
+          <LinkRow
+            label="Tell us what you think"
+            hint="Opens a short form. Nothing is attached to your account."
+            onPress={() => openLink(SITE.feedback)}
+            external
+          />
+        )}
         <LinkRow label="Terms of service" onPress={() => openLink(SITE.terms)} external />
         <LinkRow label="Privacy policy" onPress={() => openLink(SITE.privacy)} external />
         <LinkRow
