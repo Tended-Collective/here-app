@@ -181,11 +181,35 @@ will not get their codes.**
 
 1. Go to **https://resend.com** and sign up (free up to 3,000 emails a month).
 2. Click **Domains** → **Add Domain** → type `tendedcollective.com` → **Add**.
-3. Resend shows you three or four DNS records. You need to add these wherever
-   `tendedcollective.com` is registered — GoDaddy, Squarespace, Cloudflare,
-   wherever you bought it. Look for a page called **DNS** or **DNS Records**.
-   For each row Resend shows you, add a record with the same Type, Name and
-   Value.
+3. Resend shows you three records. Add them wherever `tendedcollective.com` is
+   registered — for Tended Collective that is **Squarespace**: log in →
+   **Settings** → **Domains** → click the domain → **DNS** → **Custom records**
+   → **Add record**, one per row below.
+
+   | Type | Name | Priority | Value |
+   |---|---|---|---|
+   | TXT | `resend._domainkey` | leave blank | the long `p=MIGfMA…QIDAQAB` string |
+   | MX | `send` | `10` | `feedback-smtp.….amazonses.com` |
+   | TXT | `send` | leave blank | `v=spf1 include:amazonses.com ~all` |
+
+   **Copy each value from Resend with its copy button — do not retype them.**
+   Resend shows them shortened with `[…]` in the middle; a DKIM key is around
+   200 characters and one wrong character means it never verifies.
+
+   Leave **Enable Receiving** switched off in Resend. Nothing needs to arrive
+   through it, and switching it on only adds more records to keep correct.
+
+   Three things that look wrong in Squarespace and are not:
+
+   - **TTL is stuck at 30 minutes.** Resend says "Auto", which only means "your
+     provider's default". TTL controls how long other servers cache the record.
+     It has no bearing on whether it works.
+   - **Priority is a dash on the TXT rows.** Only MX records have a priority.
+     The box appears when you pick MX; that is where the `10` goes.
+   - **It will not disturb your existing mail.** Every record sits on a
+     subdomain — `resend._domainkey` and `send` — so whatever delivers to
+     `hello@tendedcollective.com` today is untouched. That separation is the
+     reason Resend uses a `send` subdomain at all.
 4. Back in Resend, click **Verify**. It can take anywhere from five minutes to
    an hour. Go and do something else; come back and press it again.
 5. Once it says Verified, go to **API Keys** → **Create API Key** → name it
