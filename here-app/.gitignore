@@ -9,6 +9,11 @@ dist/
 web-build/
 expo-env.d.ts
 
+# The browser version, built by web/build-try.py. Not committed: the build is
+# where the Supabase key gets injected, so a checked-in copy would be the one
+# without it — downloaded, hosted, and silently collecting nothing.
+try/
+
 # Native
 .kotlin/
 *.orig.*

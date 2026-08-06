@@ -1,0 +1,387 @@
+<title>Try Here</title>
+
+<style>
+  @font-face { font-family: 'Newsreader'; font-weight: 300; font-display: block;
+    src: url(data:font/ttf;base64,__NEWSREADER_300__) format('truetype'); }
+  @font-face { font-family: 'Newsreader'; font-weight: 400; font-display: block;
+    src: url(data:font/ttf;base64,__NEWSREADER_400__) format('truetype'); }
+  @font-face { font-family: 'PlexMono'; font-weight: 500; font-display: block;
+    src: url(data:font/ttf;base64,__PLEXMONO_500__) format('truetype'); }
+
+  :root {
+    --ground: #f6f5f2;
+    --card: #ffffff;
+    --ink: #24231f;
+    --body: #46443f;
+    --muted: #6b6862;
+    --faint: #93908a;
+    --rule: rgba(0,0,0,0.10);
+    --accent: #17606b;
+    --accent-soft: rgba(23,96,107,0.10);
+    --warn: #a4574f;
+    --warn-soft: rgba(180,103,98,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#1a1917; --card:#232220; --ink:#f2f0ec; --body:#d6d3cd; --muted:#a8a49c;
+      --faint:#807c74; --rule:rgba(255,255,255,0.13); --accent:#6fb3bd;
+      --accent-soft:rgba(111,179,189,0.12); --warn:#e0a19a; --warn-soft:rgba(224,161,154,0.10);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#1a1917; --card:#232220; --ink:#f2f0ec; --body:#d6d3cd; --muted:#a8a49c;
+    --faint:#807c74; --rule:rgba(255,255,255,0.13); --accent:#6fb3bd;
+    --accent-soft:rgba(111,179,189,0.12); --warn:#e0a19a; --warn-soft:rgba(224,161,154,0.10);
+  }
+  :root[data-theme="light"] {
+    --ground:#f6f5f2; --card:#ffffff; --ink:#24231f; --body:#46443f; --muted:#6b6862;
+    --faint:#93908a; --rule:rgba(0,0,0,0.10); --accent:#17606b;
+    --accent-soft:rgba(23,96,107,0.10); --warn:#a4574f; --warn-soft:rgba(180,103,98,0.08);
+  }
+
+  body {
+    margin: 0; background: var(--ground); color: var(--body);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+  h1 { font-family: 'Newsreader', Georgia, serif; font-weight: 300; color: var(--ink);
+       font-size: clamp(2rem, 6vw, 2.9rem); line-height: 1.1; margin: 0 0 1rem; }
+  h2 { font-family: 'Newsreader', Georgia, serif; font-weight: 400; color: var(--ink);
+       font-size: 1.5rem; line-height: 1.25; margin: 3rem 0 0.4rem; }
+  .kicker { font-family: 'PlexMono', ui-monospace, monospace; font-size: 0.7rem;
+            letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.9rem; }
+  p { margin: 0 0 1rem; }
+  a { color: var(--accent); }
+
+  .note, .careful {
+    border-radius: 12px; padding: 0.95rem 1.1rem; font-size: 0.94rem; line-height: 1.55;
+    margin: 1.4rem 0;
+  }
+  .note { background: var(--card); border: 1px solid var(--rule); color: var(--muted); }
+  .careful { background: var(--warn-soft); border: 1px solid var(--warn); color: var(--body); }
+  .careful strong { color: var(--warn); }
+
+  /* ── The app, in a phone ─────────────────────────────────────────────────── */
+  .phone {
+    margin: 2rem auto; width: 100%; max-width: 393px;
+    border-radius: 34px; border: 1px solid var(--rule); background: #000; padding: 8px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.16);
+  }
+  .phone iframe {
+    display: block; width: 100%; height: 780px; border: 0; border-radius: 27px;
+    background: var(--ground);
+  }
+  @media (max-width: 30rem) { .phone iframe { height: 660px; } }
+  .phone-actions {
+    display: flex; flex-wrap: wrap; gap: 0.6rem 1rem;
+    align-items: center; justify-content: center; margin-top: 0.9rem;
+  }
+  /* On a phone the frame is a phone inside a phone, so full screen is the way
+     most people should be reading this. It leads. */
+  .phone-actions .open {
+    font: inherit; font-size: 0.92rem; font-weight: 600; text-decoration: none;
+    color: var(--accent); background: var(--accent-soft);
+    border-radius: 999px; padding: 0.55rem 1.1rem;
+  }
+  .phone-actions button {
+    font: inherit; font-size: 0.85rem; color: var(--muted); background: none;
+    border: 0; cursor: pointer; padding: 0.3rem; text-decoration: underline;
+  }
+
+  /* ── The form ────────────────────────────────────────────────────────────── */
+  fieldset { border: 0; padding: 0; margin: 0; }
+  legend { padding: 0; }
+  .q { margin: 1.9rem 0; }
+  .q > label, .q .qlabel {
+    display: block; color: var(--ink); font-weight: 600; font-size: 1rem; margin-bottom: 0.15rem;
+  }
+  .q .help { display: block; color: var(--muted); font-size: 0.88rem; margin-bottom: 0.6rem; }
+  input[type=text], input[type=email], textarea {
+    width: 100%; box-sizing: border-box; font: inherit; font-size: 0.97rem;
+    color: var(--ink); background: var(--card);
+    border: 1px solid var(--rule); border-radius: 10px; padding: 0.7rem 0.85rem;
+  }
+  textarea { min-height: 5.5rem; resize: vertical; }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .opt { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.42rem 0; cursor: pointer; }
+  .opt input { margin: 0.35rem 0 0; flex: none; accent-color: var(--accent); }
+  .opt span { color: var(--body); font-size: 0.97rem; }
+
+  /* A field no person sees. A naive bot fills everything it finds. */
+  .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+  button.send {
+    font: inherit; font-weight: 600; font-size: 1rem; color: #fff; background: var(--ink);
+    border: 0; border-radius: 12px; padding: 0.85rem 1.6rem; cursor: pointer; margin-top: 1rem;
+  }
+  :root[data-theme="dark"] button.send, :root:not([data-theme="light"]) button.send { color: var(--ground); }
+  @media (prefers-color-scheme: dark) { button.send { color: var(--ground); } }
+  button.send:disabled { opacity: 0.5; cursor: default; }
+  .result { margin-top: 1.2rem; font-size: 0.95rem; }
+  .result.bad { color: var(--warn); }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
+</style>
+
+<div class="wrap">
+  <p class="kicker">Here · pilot</p>
+  <h1>Have a look, then tell us what you think.</h1>
+
+  <p>
+    This is the real app, running in your browser. Nothing to install. Tap the faces,
+    write something, look around the feed — you cannot break it, and nothing you do
+    here reaches anybody else.
+  </p>
+
+  <div class="note">
+    <strong>Three ways this differs from the phone.</strong>
+    Anything you type here stays in this browser and is not connected to your phone.
+    The camera button opens your files instead. And a code is not really emailed —
+    any six digits will let you in, so use <code>you@yourschool.edu</code> and
+    <code>123456</code>.
+  </div>
+
+  <div class="phone">
+    <iframe src="app.html" title="Here, running in your browser"></iframe>
+  </div>
+  <div class="phone-actions">
+    <a class="open" href="app.html" target="_blank" rel="noopener">Open it full screen ↗</a>
+    <button type="button" id="restart">Start again from the beginning</button>
+  </div>
+
+  <hr />
+
+  <p class="kicker">Six minutes, and every question is skippable</p>
+  <h1 style="font-size:clamp(1.6rem,5vw,2.2rem)">What did you make of it?</h1>
+  <p>
+    Nothing here is attached to your name or your account. Answer what you like and
+    leave the rest blank — a half-finished form is more use to us than none.
+  </p>
+
+  <form id="f" novalidate>
+    <h2>Did anything break?</h2>
+
+    <div class="q">
+      <label for="broke">Did anything not work, look wrong, or go missing?</label>
+      <span class="help">However small. "The date was wrong" is a real bug report.</span>
+      <textarea id="broke" name="broke" maxlength="4000"></textarea>
+    </div>
+
+    <div class="q">
+      <label for="confusing">Was anything confusing?</label>
+      <span class="help">A button you weren't sure about, a word that didn't mean what you expected, a screen you couldn't get back from.</span>
+      <textarea id="confusing" name="confusing" maxlength="4000"></textarea>
+    </div>
+
+    <div class="q" id="q-code">
+      <span class="qlabel">If you tried it on your phone, did the sign-up code arrive?</span>
+      <span class="help">Skip this if you only used the browser version above.</span>
+      <label class="opt"><input type="radio" name="code_arrived" value="fast" /><span>Yes, straight away</span></label>
+      <label class="opt"><input type="radio" name="code_arrived" value="slow" /><span>Yes, but it took a few minutes</span></label>
+      <label class="opt"><input type="radio" name="code_arrived" value="junk" /><span>Yes, but it went to junk or spam</span></label>
+      <label class="opt"><input type="radio" name="code_arrived" value="never" /><span>No, it never came</span></label>
+      <label class="opt"><input type="radio" name="code_arrived" value="na" /><span>I couldn't get that far</span></label>
+    </div>
+
+    <h2>Did you use it?</h2>
+
+    <div class="q">
+      <span class="qlabel">How many days did you check in this week?</span>
+      <label class="opt"><input type="radio" name="days_used" value="0" /><span>None</span></label>
+      <label class="opt"><input type="radio" name="days_used" value="1-2" /><span>One or two</span></label>
+      <label class="opt"><input type="radio" name="days_used" value="3-4" /><span>Three or four</span></label>
+      <label class="opt"><input type="radio" name="days_used" value="5+" /><span>Five or more</span></label>
+    </div>
+
+    <div class="q">
+      <label for="what_stopped">On the days you didn't, what got in the way?</label>
+      <span class="help">"I forgot" is the most useful answer there is. It tells us the app has to come to you.</span>
+      <textarea id="what_stopped" name="what_stopped" maxlength="4000"></textarea>
+    </div>
+
+    <div class="q">
+      <label for="posted">Did you post anything to the feed?</label>
+      <span class="help">Either way — what made you post, or what stopped you?</span>
+      <textarea id="posted" name="posted" maxlength="4000"></textarea>
+    </div>
+
+    <div class="q">
+      <label for="feed_worth">Was anything in the feed worth reading?</label>
+      <span class="help">Be blunt. If it read as filler, that is the finding.</span>
+      <textarea id="feed_worth" name="feed_worth" maxlength="4000"></textarea>
+    </div>
+
+    <h2>What's missing?</h2>
+
+    <div class="q">
+      <label for="wanted">What did you want to do and couldn't?</label>
+      <textarea id="wanted" name="wanted" maxlength="4000"></textarea>
+    </div>
+
+    <div class="q">
+      <label for="would_miss">If Here disappeared tomorrow, what would you miss?</label>
+      <span class="help">If the honest answer is nothing, say nothing. That is worth knowing now.</span>
+      <textarea id="would_miss" name="would_miss" maxlength="4000"></textarea>
+    </div>
+
+    <h2>Who should pay for this?</h2>
+
+    <div class="q">
+      <span class="qlabel">An app like this costs money to run. Who should cover it?</span>
+      <label class="opt"><input type="radio" name="who_pays" value="me" /><span>Me, the teacher using it</span></label>
+      <label class="opt"><input type="radio" name="who_pays" value="school" /><span>My school or district</span></label>
+      <label class="opt"><input type="radio" name="who_pays" value="funder" /><span>A grant or an outside funder</span></label>
+      <label class="opt"><input type="radio" name="who_pays" value="free" /><span>Nobody — it should just be free</span></label>
+      <label class="opt"><input type="radio" name="who_pays" value="unsure" /><span>I don't know</span></label>
+    </div>
+
+    <div class="q">
+      <label for="paid_before">Have you ever paid out of your own pocket for something for your own wellbeing as a teacher?</label>
+      <span class="help">A book, an app, a class, therapy, a subscription. Roughly what, and roughly how much.</span>
+      <textarea id="paid_before" name="paid_before" maxlength="4000"></textarea>
+    </div>
+
+    <div class="q">
+      <span class="qlabel">Which of these would be worth paying for, if any?</span>
+      <label class="opt"><input type="checkbox" name="worth_paying" value="history" /><span>Keeping more than a week of check-ins</span></label>
+      <label class="opt"><input type="checkbox" name="worth_paying" value="list" /><span>A self-care list longer than three items</span></label>
+      <label class="opt"><input type="checkbox" name="worth_paying" value="export" /><span>Exporting your own record as a file</span></label>
+      <label class="opt"><input type="checkbox" name="worth_paying" value="groups" /><span>A private group for just your school</span></label>
+      <label class="opt"><input type="checkbox" name="worth_paying" value="none" /><span>None of these</span></label>
+    </div>
+
+    <h2>About you</h2>
+    <p style="font-size:0.92rem;color:var(--muted);margin-top:-0.2rem">All three optional.</p>
+
+    <div class="q">
+      <label for="role">What do you do?</label>
+      <span class="help">Teacher, counselor, paraeducator, principal, office staff — whatever fits.</span>
+      <input type="text" id="role" name="role" maxlength="60" />
+    </div>
+
+    <div class="q">
+      <label for="device">What phone do you have?</label>
+      <span class="help">Helps us reproduce anything that broke. "An old iPhone" is fine.</span>
+      <input type="text" id="device" name="device" maxlength="60" />
+    </div>
+
+    <div class="q">
+      <label for="contact">Happy for us to ask you more?</label>
+      <span class="help">Leave an email only if you want to be contacted. Leave it blank and this stays completely anonymous.</span>
+      <input type="email" id="contact" name="contact" maxlength="200" />
+    </div>
+
+    <div class="trap" aria-hidden="true">
+      <label for="website">Leave this empty</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+    </div>
+
+    <button type="submit" class="send" id="send">Send</button>
+    <p class="result" id="result" role="status"></p>
+  </form>
+</div>
+
+<script>
+  /*
+   * Where the answers go.
+   *
+   * The publishable key is meant to be public — it identifies the project and
+   * grants nothing on its own. What protects the answers is the database: the
+   * `feedback` table permits an insert from anyone and a read from nobody, so
+   * this page can post and cannot retrieve. See supabase/feedback.sql.
+   *
+   * Paste the key below, the same one the app uses. Until you do, the form says
+   * it is not connected rather than pretending to send.
+   */
+  var SUPABASE_URL = 'https://idvwnynvojkipcampbfa.supabase.co';
+  var SUPABASE_KEY = 'PASTE_YOUR_PUBLISHABLE_KEY_HERE';
+
+  var form = document.getElementById('f');
+  var send = document.getElementById('send');
+  var result = document.getElementById('result');
+
+  document.getElementById('restart').addEventListener('click', function () {
+    // The app keeps its state in this browser, so starting over means clearing
+    // it. Reaching into the frame works because it is the same origin.
+    var frame = document.querySelector('.phone iframe');
+    try { frame.contentWindow.localStorage.clear(); } catch (e) {}
+    frame.src = frame.src;
+  });
+
+  function value(name) {
+    var el = form.elements[name];
+    if (!el) return null;
+    if (el.length && el[0] && el[0].type === 'radio') {
+      for (var i = 0; i < el.length; i++) if (el[i].checked) return el[i].value;
+      return null;
+    }
+    var v = (el.value || '').trim();
+    return v === '' ? null : v;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    // The honeypot. Only something automated fills a field it cannot see, and
+    // pretending to succeed is better than telling it why it failed.
+    if (form.elements.website.value) {
+      result.textContent = 'Thank you.';
+      return;
+    }
+
+    var boxes = form.querySelectorAll('input[name=worth_paying]:checked');
+    var worth = [];
+    for (var i = 0; i < boxes.length; i++) worth.push(boxes[i].value);
+
+    var body = {
+      broke: value('broke'), confusing: value('confusing'),
+      code_arrived: value('code_arrived'), days_used: value('days_used'),
+      what_stopped: value('what_stopped'), posted: value('posted'),
+      feed_worth: value('feed_worth'), wanted: value('wanted'),
+      would_miss: value('would_miss'), who_pays: value('who_pays'),
+      paid_before: value('paid_before'), worth_paying: worth.length ? worth : null,
+      role: value('role'), device: value('device'), contact: value('contact')
+    };
+
+    var anything = Object.keys(body).some(function (k) { return body[k]; });
+    if (!anything) {
+      result.className = 'result bad';
+      result.textContent = 'Nothing to send yet — answer at least one question.';
+      return;
+    }
+
+    if (SUPABASE_KEY.indexOf('PASTE_') === 0) {
+      result.className = 'result bad';
+      result.textContent = 'This form is not connected yet. Tell Sharon.';
+      return;
+    }
+
+    send.disabled = true;
+    result.className = 'result';
+    result.textContent = 'Sending…';
+
+    fetch(SUPABASE_URL + '/rest/v1/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_KEY,
+        Authorization: 'Bearer ' + SUPABASE_KEY,
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify(body)
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error(String(r.status));
+        form.style.display = 'none';
+        result.style.display = 'block';
+        result.className = 'result';
+        result.textContent = 'Sent. Thank you — this is genuinely how the app gets better.';
+      })
+      .catch(function () {
+        send.disabled = false;
+        result.className = 'result bad';
+        result.textContent =
+          'That did not send. Check your connection and try again, or email hello@tendedcollective.com.';
+      });
+  });
+</script>
