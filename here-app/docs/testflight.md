@@ -96,11 +96,28 @@ Everything below is a browser tab or a terminal command.
 |---|---|
 | Platform | iOS |
 | Name | `Here: for K-12 school staff` — 27 of the 30 characters Apple allows. Must be unique across the whole App Store, which is why it is not just `Here`; that one is taken. Listing name only: `app.config.js` still sets `Here` as the home-screen name, and that does not have to be unique. |
-| Subtitle | 30 characters, same page. Search indexes the name and the subtitle together, and the name already carries `school` and `staff`, so the subtitle can be the tagline: `A moment for yourself`. |
+| Subtitle | `A moment for yourself` — 21 of 30. See the note below; do not repeat any word already in the name. |
 | Primary language | English (U.S.) |
 | Bundle ID | `com.tendedcollective.here` |
 | SKU | Anything private and stable, e.g. `here-ios-1` |
 | User access | Full Access |
+
+**On the subtitle.** Apple indexes the name and the subtitle as one string for
+search, and scores a word once however many times it appears. So a word spent
+twice is a word wasted, and on a phone the two lines sit directly on top of each
+other — repeating yourself is visible as well as useless.
+
+The name already carries `school`, `staff` and `K-12`, which are the terms
+somebody looks for. That leaves the subtitle free to say why they would open it
+rather than what it is:
+
+    Here: for K-12 school staff
+    A moment for yourself
+
+Anything else must clear the same bar: no word from the name, and under 30
+characters. `Daily check-ins that stick` (26) and `A quiet minute in your day`
+(26) both work. `A moment for school staff` does not — it spends two of the
+thirty characters' worth of search on words the name already won.
 
 If the bundle ID is not in the dropdown, register it first at
 <https://developer.apple.com/account/resources/identifiers> → **+** → **App
