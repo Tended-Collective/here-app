@@ -64,52 +64,64 @@ export function SignIn({ onCreateAccount }: { onCreateAccount: () => void }) {
           resizeMode="cover"
           accessibilityLabel="Watercolour of school staff walking home along a sunlit sidewalk at the end of the day."
         />
-        <MonoLabel>HERE</MonoLabel>
-        <Display size={29} style={{ marginTop: 12 }}>
-          Welcome back.
-        </Display>
-        <Body size={15} tone={color.muted} style={{ marginTop: 10 }}>
-          Sign in with the school email you joined with.
-        </Body>
+        {/* Everything under the picture sits in the middle of what is left of
+            the screen, centred on the column.
 
-        {nothingHere ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No account on this phone</Text>
-            <Text style={styles.emptySub}>
-              Your check-ins are stored on the device that made them and are not backed up
-              anywhere, so there is nothing here to sign in to yet. Create an account to start on
-              this phone.
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              style={styles.primary}
-              onPress={onCreateAccount}
-            >
-              <Text style={styles.primaryLabel}>Create an account</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <>
-            <VerifyForm
-              onVerified={(address) => {
-                if (signIn(address)) return;
-                setProblem(
-                  'That is not the address this phone is signed up with. Check it, or create a new account.',
-                );
-              }}
-            />
-            {!!problem && <Text style={styles.problem}>{problem}</Text>}
+            It used to stack straight down from the bottom edge of the image,
+            which left the headline jammed against the art and a third of the
+            screen empty underneath it. The picture is the top of the page and
+            the field is the bottom of it; the words belong between them, not
+            crowded up against one end. `flex: 1` inside a `flexGrow: 1`
+            container takes whatever height the image did not, and gives it
+            back as space above and below. */}
+        <View style={styles.middle}>
+          <MonoLabel style={styles.center}>HERE</MonoLabel>
+          <Display size={29} style={[styles.center, { marginTop: 12 }]}>
+            Welcome back.
+          </Display>
+          <Body size={15} tone={color.muted} style={[styles.center, { marginTop: 10 }]}>
+            Sign in with the school email you joined with.
+          </Body>
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Create a new account instead"
-              onPress={onCreateAccount}
-              style={styles.switch}
-            >
-              <Text style={styles.switchLabel}>Create a new account instead</Text>
-            </Pressable>
-          </>
-        )}
+          {nothingHere ? (
+            <View style={styles.empty}>
+              <Text style={[styles.emptyTitle, styles.center]}>No account on this phone</Text>
+              <Text style={[styles.emptySub, styles.center]}>
+                Your check-ins are stored on the device that made them and are not backed up
+                anywhere, so there is nothing here to sign in to yet. Create an account to start on
+                this phone.
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                style={styles.primary}
+                onPress={onCreateAccount}
+              >
+                <Text style={styles.primaryLabel}>Create an account</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <>
+              <VerifyForm
+                onVerified={(address) => {
+                  if (signIn(address)) return;
+                  setProblem(
+                    'That is not the address this phone is signed up with. Check it, or create a new account.',
+                  );
+                }}
+              />
+              {!!problem && <Text style={[styles.problem, styles.center]}>{problem}</Text>}
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Create a new account instead"
+                onPress={onCreateAccount}
+                style={styles.switch}
+              >
+                <Text style={styles.switchLabel}>Create a new account instead</Text>
+              </Pressable>
+            </>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -123,6 +135,16 @@ const styles = StyleSheet.create({
   content: {
     ...SCREEN_PADDING,
     paddingBottom: 24,
+    // At least the height of the screen, so the block below the picture has
+    // something to centre itself in. Longer content simply scrolls.
+    flexGrow: 1,
+  },
+  middle: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  center: {
+    textAlign: 'center',
   },
   welcome: {
     // See the note in Onboarding: the width has to come from the window, not
