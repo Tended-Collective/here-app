@@ -10,7 +10,7 @@ import {
   weekStarts,
 } from '../lib/dates';
 import { useToday } from '../lib/useToday';
-import { FREE_LIST_LIMIT, PRICING } from '../data/mock';
+import { FREE_LIST_LIMIT, PLUS_ENABLED, PRICING } from '../data/mock';
 import { Entry, useStore } from '../store';
 import { color, font, MOODS, monoLabel, radius } from '../theme';
 
@@ -126,48 +126,44 @@ export function RecordScreen() {
         <Text style={styles.insight}>{line}</Text>
       </Card>
 
-      {plusActive ? (
-        <View style={styles.plusCard}>
-          <MonoLabel tone={color.accent}>HERE+ · TRIAL</MonoLabel>
-          <Display size={27} lineHeight={1.15} style={{ marginTop: 10 }}>
-            {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left in your trial.
-          </Display>
-          <Body style={{ marginTop: 10 }}>
-            Your full history is unlocked, and your list has no cap.
-          </Body>
-          <Pressable
-            accessibilityRole="button"
-            style={styles.manage}
-            onPress={() => open('plus')}
-          >
-            <Text style={styles.manageLabel}>Manage trial</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <View style={styles.plusCard}>
-          <MonoLabel tone={color.accent}>BEYOND THIS WEEK</MonoLabel>
-          <Display size={27} lineHeight={1.15} style={{ marginTop: 10 }}>
-            Keep more than seven days.
-          </Display>
-          <Body style={{ marginTop: 10 }}>
-            The free plan shows this week and holds {FREE_LIST_LIMIT} things on your list. Here+
-            keeps every check-in you have ever made — month and semester views, this year against
-            last — shows six weeks of every item on your list, and lets the list run as long as you
-            want.
-          </Body>
-          <View style={styles.priceRow}>
-            <Text style={styles.price}>{PRICING.price}</Text>
-            <Text style={styles.cadence}>{PRICING.cadence}</Text>
+      {/* The trial banner and the paywall, both hidden while Here+ is switched
+          off for the pilot — see PLUS_ENABLED in data/mock.ts. Nothing here
+          mentions a price, because nothing can currently be bought. */}
+      {PLUS_ENABLED &&
+        (plusActive ? (
+          <View style={styles.plusCard}>
+            <MonoLabel tone={color.accent}>HERE+ · TRIAL</MonoLabel>
+            <Display size={27} lineHeight={1.15} style={{ marginTop: 10 }}>
+              {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left in your trial.
+            </Display>
+            <Body style={{ marginTop: 10 }}>
+              Your full history is unlocked, and your list has no cap.
+            </Body>
+            <Pressable accessibilityRole="button" style={styles.manage} onPress={() => open('plus')}>
+              <Text style={styles.manageLabel}>Manage trial</Text>
+            </Pressable>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            style={styles.cta}
-            onPress={() => open('plus')}
-          >
-            <Text style={styles.ctaLabel}>{PRICING.cta}</Text>
-          </Pressable>
-        </View>
-      )}
+        ) : (
+          <View style={styles.plusCard}>
+            <MonoLabel tone={color.accent}>BEYOND THIS WEEK</MonoLabel>
+            <Display size={27} lineHeight={1.15} style={{ marginTop: 10 }}>
+              Keep more than seven days.
+            </Display>
+            <Body style={{ marginTop: 10 }}>
+              The free plan shows this week and holds {FREE_LIST_LIMIT} things on your list. Here+
+              keeps every check-in you have ever made — month and semester views, this year against
+              last — shows six weeks of every item on your list, and lets the list run as long as
+              you want.
+            </Body>
+            <View style={styles.priceRow}>
+              <Text style={styles.price}>{PRICING.price}</Text>
+              <Text style={styles.cadence}>{PRICING.cadence}</Text>
+            </View>
+            <Pressable accessibilityRole="button" style={styles.cta} onPress={() => open('plus')}>
+              <Text style={styles.ctaLabel}>{PRICING.cta}</Text>
+            </Pressable>
+          </View>
+        ))}
 
       {/* Six weeks, computed. This was a hardcoded polyline — the same
           invented line for everybody, drawn identically whether the term had
@@ -178,9 +174,9 @@ export function RecordScreen() {
           from whichever dates happen to have data. */}
       <View style={styles.sixHead}>
         <MonoLabel tone={plusActive ? color.accent : color.faint}>SIX WEEKS</MonoLabel>
-        <MonoLabel em={0} tone={color.faint}>
-          {plusActive ? 'HERE+' : 'HERE+ ONLY'}
-        </MonoLabel>
+        {PLUS_ENABLED && (
+          <MonoLabel em={0} tone={color.faint}>{plusActive ? 'HERE+' : 'HERE+ ONLY'}</MonoLabel>
+        )}
       </View>
       <Card style={styles.lockedCard}>
         <View style={[styles.sixChart, !plusActive && styles.blurred]}>

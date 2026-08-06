@@ -391,6 +391,36 @@ export const NEARBY_UPDATES: FeedUpdate[] = [
  */
 export const FREE_LIST_LIMIT = 3;
 
+/**
+ * Whether Here+ exists as far as the app is concerned.
+ *
+ * **False for the pilot.** Everyone gets the unlimited list and the full
+ * history, and nothing anywhere mentions a price, a trial or an upgrade.
+ *
+ * Two reasons, and the second is the real one.
+ *
+ * There is no billing. `lib/billing.ts` has no processor behind it, so the
+ * $4.99 on screen buys nothing and the "trial" is a timestamp on one phone.
+ * Showing a price for something that cannot be bought is a poor look and an
+ * awkward conversation with App Review.
+ *
+ * And the trial is a countdown to the pilot degrading itself. A tester who taps
+ * the button on day one finds, on day 31, their list capped mid-pilot, their
+ * six-week chart greyed out, and every Save button in the feed reading "List
+ * full" — with nothing on screen to explain why. That is week five of a
+ * six-week test, which is exactly when their record finally had something in
+ * it. (It also produces "4 OF 3" on the list header, which is only reachable
+ * this way and looks like a bug because it is one.)
+ *
+ * What the pilot buys instead is the answer to what should be paid for at all.
+ * The split — history and list length behind the wall — was a guess. Watch
+ * which of them people actually reach for, then decide.
+ *
+ * Turning it back on is this one line. The paywall, the trial timer and the
+ * locked charts are all still here and still work; they are only hidden.
+ */
+export const PLUS_ENABLED = false;
+
 /** Days of check-in history the free plan can see. */
 export const FREE_HISTORY_DAYS = 7;
 

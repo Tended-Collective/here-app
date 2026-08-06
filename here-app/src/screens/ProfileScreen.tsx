@@ -46,7 +46,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Avatar } from '../components/Avatar';
 import { useSheets } from '../components/Sheet';
 import { Body, Card, Display, MonoLabel } from '../components/ui';
-import { FREE_LIST_LIMIT, yearsLabel } from '../data/mock';
+import { FREE_LIST_LIMIT, PLUS_ENABLED, yearsLabel } from '../data/mock';
 import {
   ISODate,
   WEEKDAY_INITIALS,
@@ -211,7 +211,11 @@ export function ProfileScreen({
       <View style={styles.listHead}>
         <MonoLabel>MY SELF-CARE LIST</MonoLabel>
         <MonoLabel em={0} tone={listFull ? color.accent : color.faint}>
-          {plusActive ? `${practices.length} · HERE+` : `${practices.length} OF ${FREE_LIST_LIMIT}`}
+          {!PLUS_ENABLED
+            ? `${practices.length}`
+            : plusActive
+              ? `${practices.length} · HERE+`
+              : `${practices.length} OF ${FREE_LIST_LIMIT}`}
         </MonoLabel>
       </View>
       <Card style={styles.listCard}>

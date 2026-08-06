@@ -14,7 +14,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { FREE_LIST_LIMIT, TRIAL_DAYS } from './data/mock';
+import { FREE_LIST_LIMIT, PLUS_ENABLED, TRIAL_DAYS } from './data/mock';
 import { normalizeUsername } from './lib/usernames';
 import { normalizeZip, stateForZip } from './lib/zip';
 import { ISODate, todayISO, weekDates, weekdayIndex, weekStarts } from './lib/dates';
@@ -663,10 +663,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ...data,
       hydrated,
       refresh,
-      plusActive: daysLeft > 0,
+      /**
+       * With Here+ switched off for the pilot, everybody simply has the
+       * features — no trial to start, nothing to run out. See PLUS_ENABLED.
+       */
+      plusActive: !PLUS_ENABLED || daysLeft > 0,
       trialDaysLeft: daysLeft,
-      listLimit: daysLeft > 0 ? Infinity : FREE_LIST_LIMIT,
-      listFull: daysLeft <= 0 && data.practices.length >= FREE_LIST_LIMIT,
+      listLimit: !PLUS_ENABLED || daysLeft > 0 ? Infinity : FREE_LIST_LIMIT,
+      listFull: PLUS_ENABLED && daysLeft <= 0 && data.practices.length >= FREE_LIST_LIMIT,
       saveCheckIn: (score) =>
         update((prev) => {
           const date = todayISO();
@@ -690,7 +694,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         update((prev) => {
           const trimmed = label.trim();
           if (!trimmed) return prev;
-          if (daysLeft <= 0 && prev.practices.length >= FREE_LIST_LIMIT) return prev;
+          if (PLUS_ENABLED && daysLeft <= 0 && prev.practices.length >= FREE_LIST_LIMIT) return prev;
           const id = `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
           const tint = PRACTICE_PALETTE[prev.practices.length % PRACTICE_PALETTE.length];
           return {
@@ -971,7 +975,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           if (!trimmed || prev.practices.some((p) => p.label === trimmed)) return prev;
           // The cap is the product. Saving from the feed is the most common way
           // to hit it, so it is enforced here as well as on the typed input.
-          if (daysLeft <= 0 && prev.practices.length >= FREE_LIST_LIMIT) return prev;
+          if (PLUS_ENABLED && daysLeft <= 0 && prev.practices.length >= FREE_LIST_LIMIT) return prev;
           return {
             ...prev,
             practices: [
